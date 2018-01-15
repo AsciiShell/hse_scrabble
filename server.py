@@ -127,5 +127,34 @@ class Matrix:
         self.temp = []
 
 
-a = Matrix()
-print(a.get(1, 5).t)
+class GameDictionary:
+    """Словарь слов игры"""
+    filename = "dictionary"
+
+    def append(self, item):
+        """Добавляет новое слово в словарь"""
+        self.dict.append(item)
+        with open(self.filename, "r", encoding="utf-8") as f:
+            f.write(item + "\n")
+
+    def prepare(self, alphabet):
+        """Подготавливает словарь к допустимым буквам
+
+        alphabet - строка допустимых символов"""
+        # TODO test
+        alphabet = alphabet.upper()
+        if len(alphabet) >= 32:
+            return self.dict
+
+        temp_dict = []
+        for i in self.dict:
+            for j in alphabet:
+                if i.count(j) > 0:
+                    temp_dict.append(i)
+                    break
+        return temp_dict
+
+    def __init__(self):
+        """Инициализирует словарь начальным списком слов"""
+        with open(self.filename, "r", encoding="utf-8") as f:
+            self.dict = f.readlines()
