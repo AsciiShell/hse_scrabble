@@ -157,4 +157,4 @@ class GameDictionary:
     def __init__(self):
         """Инициализирует словарь начальным списком слов"""
         with open(self.filename, "r", encoding="utf-8") as f:
-            self.dict = f.readlines()
+            self.dict = f.read().lower().split("\n")
