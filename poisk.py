@@ -13,11 +13,9 @@ words = [['','','','','','','','','','','','','','','',],
            ['','','','','','','','','','','','','','','',],
            ['','','','','','','','','','','','','','','',],
            ['','','','','','','','','','','','','','','',]]
-newkoord = [[4,6],[4,8],[4,9],[4,10]]
-newletters = ['б','т','о','н']
-#движение по оси x = 1
-#движение по оси y = 2
+
 def prov(words,x,y,napr,newkoord):
+    """проверяет, начие слова в этой ячейке (начало слова)"""
     flag = 0
     if (napr == 2) and (y != 14) :
         if (y != 0):
@@ -39,6 +37,7 @@ def prov(words,x,y,napr,newkoord):
         return(['',0])
 
 def schit(words,x,y,napr,newkoord):
+    """считывает слово"""
     s = ''
     newword = 0
     if (napr == 2):
@@ -69,12 +68,27 @@ def schit(words,x,y,napr,newkoord):
             x = x + 1
     return([s,newword])
 def pasteletters(words, newkoord, newletters):
+    """вставляет буквы в матрицу"""
     for i in range(len(newkoord)):
         words[newkoord[i][1]][newkoord[i][0]] = newletters[i]
     return(words)
                 
 
-def serch(words, newkoord, newletters):
+def serch(self):
+    """ищет слова в матрице"""
+    newkoord = []
+    newletters = []
+    words  = self.map
+    n = 0
+    for i in self.temp:
+        newleters.append([[i.x],[i.y]])
+        newkoord.append(i.letter)
+    #newkoord = [[4,6],[4,8],[4,9],[4,10]]
+    #newletters = ['б','т','о','н']
+    #движение по оси x = 1
+    #движение по оси y = 2
+    outx = []
+    outy = []
     words = pasteletters(words, newkoord, newletters)
     for i in range(len(words)):
         for j in range(len(words[i])):
@@ -82,11 +96,11 @@ def serch(words, newkoord, newletters):
                 slx = prov(words,j,i,1,newkoord)
                 sly = prov(words,j,i,2,newkoord)
                 if (slx[1] == 1):
-                    slx[0] = slx[0] + 'new'
+                    outx.append(slx)
                 if (sly[1] == 1):
-                    sly[0] = sly[0] + 'new'
-                if (slx[0] != ''):
+                    outx.append(sly)
+                """if (slx[0] != ''):
                     print(slx[0])
                 if (sly[0] != ''):
-                    print(sly[0])
+                    print(sly[0])"""
             
