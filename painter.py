@@ -6,7 +6,7 @@ from PyQt5.QtGui import QPainter, QColor, QPen, QIcon, QBrush
 from PyQt5.QtCore import Qt
 
 
-class scr(QWidget):
+class painter(QWidget):
 
     def __init__(self):
         super().__init__()
@@ -69,5 +69,5 @@ class scr(QWidget):
 if __name__ == '__main__':
 
     app = QApplication(sys.argv)
-    ex = scr()
+    ex = painter()
     sys.exit(app.exec_())
