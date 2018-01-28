@@ -54,13 +54,15 @@ class scr(QWidget):
             for j in range(15):
                 background.drawRect(self.libw + j * (self.ot + self.yi) + self.ot ,self.ot + i * (self.ot + self.yi),self.yi , self.yi )
         #history
-        background.drawRect(self.ot,self.ot + self.libh,self.libw - self.ot,2 * self.libh - self.ot)
+        background.drawRect(self.ot,self.ot + self.libh,self.libw - self.ot,2 * self.libh - self.ot - self.ot)
+        #letters
+        background.drawRect(self.libw + self.ot,15 * (self.ot + self.yi) + self.ot,15 * (self.ot + self.yi) - self.ot,self.heighttotal - 15 * (self.ot + self.yi) - 2* self.ot)
         #p1
-        background.drawRect(self.widthtotal * (1 - self.k2) + self.ot,self.ot,self.libw - self.ot,self.libh - self.ot)
+        background.drawRect(self.widthtotal * (1 - self.k2) + self.ot,self.ot,self.libw - self.ot- self.ot,self.libh - self.ot)
         #p2
-        background.drawRect(self.widthtotal * (1 - self.k2) + self.ot,self.ot + self.libh,self.libw - self.ot,self.libh - self.ot)
+        background.drawRect(self.widthtotal * (1 - self.k2) + self.ot,self.ot + self.libh,self.libw - self.ot- self.ot,self.libh - self.ot)
         #p3
-        background.drawRect(self.widthtotal * (1 - self.k2) + self.ot,self.ot + self.libh * 2,self.libw - self.ot,self.libh - self.ot)   
+        background.drawRect(self.widthtotal * (1 - self.k2) + self.ot,self.ot + self.libh * 2,self.libw - self.ot- self.ot,self.libh - self.ot - self.ot)   
        
         
 
