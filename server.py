@@ -1,3 +1,10 @@
+import json
+import random
+import socket
+import warnings
+from threading import Thread
+
+
 class GameConfig:
     """Конфигурация игры"""
     map = [[4, 0, 0, 1, 0, 0, 0, 4, 0, 0, 0, 1, 0, 0, 4],
@@ -141,7 +148,6 @@ class GameDictionary:
         """Подготавливает словарь к допустимым буквам
 
         alphabet - строка допустимых символов"""
-        # TODO test
         alphabet = alphabet.upper()
         if len(alphabet) >= 32:
             return self.dict
@@ -158,3 +164,138 @@ class GameDictionary:
         """Инициализирует словарь начальным списком слов"""
         with open(self.filename, "r", encoding="utf-8") as f:
             self.dict = f.read().lower().split("\n")
+
+def send_broadcast(data, port=8384):
+    cs = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    cs.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    cs.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+    cs.sendto(_encode(data), ('255.255.255.255', port))
+
+
+def _encode(b):
+    return json.dumps(b).encode("utf-8")
+
+
+def _convert_type(b):
+    """Преобразует байтовую строку в массив"""
+    return json.loads(b.decode("utf-8"))
+
+class Player:
+    """Абстрактный класс игрока"""
+    lastID = 0
+
+    def __init__(self, name, t, rid=None, dif=None, ip=None):
+        """Создает нового игрока с указанным именем"""
+        self.name = name
+        self.type = t
+        self.id = Player.lastID
+        Player.lastID += 1
+        self.rid = rid
+        self.dif = dif
+        self.ip = ip
+
+
+class Message:
+    """Класс возвращаемых сообщений"""
+
+    def __init__(self, res=False, msg=""):
+        self.res = res
+        self.msg = msg
+
+
+class GameServerPrepare:
+    """Основной класс игры"""
+
+    def create_game_async(self):
+        """Асинхронный метод для ожидания информации"""
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        sock.bind(("", 8383))
+        while self.gamePrepare:
+            data, address = sock.recvfrom(1024)
+            data = _convert_type(data)
+            if data["action"] == "getStatus":
+                send_broadcast({"game": self.players, "queue": self.queue})
+            elif data["action"] == "connectGame":
+                for i in self.queue:
+                    if i['rid'] == data['rid']:
+                        break
+                else:
+                    self.queue.append({"ip": address, "name": data["name"], "rid": data["rid"]})
+            elif data["action"] == 'continue':
+                pass
+            else:
+                warnings.warn("Неизвестное действие " + data["action"])
+            print(data)
+
+    def create_game(self, player_name):
+        """Создает игру с указанными параметрами"""
+        self.gamePrepare = True
+        self.players = {}
+        self.queue = []
+        me = Player(player_name, "local")
+        self.players[me.id] = me
+        self.gamePrepareThread = Thread(target=self.create_game_async)
+
+    def get_status(self):
+        if self.gamePrepare:
+            return {"game": self.players, "queue": self.queue}
+        else:
+            return False
+
+    def add_player(self, t, rid=None):
+        if self.gamePrepare:
+            return Message(False, 'Игра не находится в процессе подготовки')
+        if len(self.players) >= 4:
+            return Message(False, 'Достаточно игроков')
+        if t == 'bot':
+            p = Player('BOT_' + str(random.randint(1000, 9999)), 'bot')
+            self.players[p.id] = p
+        elif t == 'net':
+            for i in self.queue:
+                if i['rid'] == rid:
+                    p = Player(i['name'], 'net', rid, ip=i['ip'])
+                    self.players[p.id] = p
+            else:
+                return Message(False, "Игрок {} не найден ".format(str(rid)))
+        else:
+            return Message(False, 'Неизвестный тип ' + t)
+        return Message(True)
+
+    def delete_player(self, rid):
+        if self.gamePrepare:
+            return Message(False, 'Игра не находится в процессе подготовки')
+        for i in self.players:
+            if i.rid == rid:
+                del self.players[i]
+                break
+        else:
+            for i in self.queue:
+                if i['rid'] == rid:
+                    self.queue.remove(i)
+                    break
+            else:
+                return Message(False, "Игрок {} не найден ".format(str(rid)))
+        return Message(True)
+
+    def start_game(self):
+        self.gamePrepare = False
+        send_broadcast({'action': 'continue'}, 8383)
+        self.gamePrepareThread.join(1)
+
+
+    def __init__(self):
+        self.players = {}
+        self.queue = []
+        self.gamePrepare = False
+        self.gamePrepareThread = Thread()
+        self.dict = GameDictionary()
+
+
+class GameServer:
+    def __init__(self, players):
+        self.players = players
+
+
+
+a = {"Qwe": "zxc", "a": [1, 2, 3]}
+send_broadcast(a)
