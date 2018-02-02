@@ -256,7 +256,7 @@ class painter(QWidget):
 
     def initUI(self):
         
-        self.koef = 1
+        self.koef = 0.8
         self.k2 = 0.3
         self.widthtotal = self.koef * QDesktopWidget().availableGeometry().width()
         self.heighttotal = self.koef * QDesktopWidget().availableGeometry().height() - 30
