@@ -231,16 +231,17 @@ class GameDictionary:
         """Подготавливает словарь к допустимым буквам
 
         alphabet - строка допустимых символов"""
-        alphabet = alphabet.upper()
+        alphabet = alphabet.lower()
         if len(alphabet) >= 32:
             return self.dict
 
         temp_dict = []
         for i in self.dict:
-            for j in alphabet:
-                if i.count(j) > 0:
-                    temp_dict.append(i)
+            for j in i:
+                if alphabet.count(j) == 0:
                     break
+            else:
+                temp_dict.append(i)
         return temp_dict
 
     def __init__(self):
