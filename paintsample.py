@@ -5,24 +5,23 @@ from PyQt5.QtGui import QPainter, QColor, QPen, QIcon, QBrush
 from PyQt5.QtCore import pyqtSignal, QObject, Qt, QCoreApplication
 from server import *
 
-class FirstWindow(object):
-    def setupUI(self, MainWindow):
-        MainWindow.setGeometry(300, 300, 290, 150)
 
-        MainWindow.setWindowTitle("FirstWindow")
-        self.centralwidget = QWidget(MainWindow)
-        # mainwindow.setWindowIcon(QtGui.QIcon('PhotoIcon.png'))
-        #self.ToolsBTN = QPushButton('text', self.centralwidget)
-        #self.ToolsBTN.move(50, 350)
-        self.btncreate = QPushButton("Create game", self.centralwidget)
+class FirstWindow(QWidget):
+    def __init__(self, parent=None):
+        super(FirstWindow, self).__init__(parent)
+        self.btncreate = QPushButton("Create game", self)
         self.btncreate.move(30, 50)
-        self.btnConnect = QPushButton("Connect game", self.centralwidget)
-        self.btnConnect.move(150, 50)
-        MainWindow.setCentralWidget(self.centralwidget)
+
+        self.btnconnect = QPushButton("Connect game", self)
+        self.btnconnect.move(150, 50)
+
+        self.setGeometry(300, 300, 290, 150)
+        self.setWindowTitle('Event sender')
 
 
-class SecondWindow(object):
-    def setupUI(self, MainWindow):
+class SecondWindow(QWidget):
+    def __init__(self, parent=None):
+        super(SecondWindow, self).__init__(parent)
         self.koef = 0.8
         self.k2 = 0.3
         self.widthtotal = self.koef * QDesktopWidget().availableGeometry().width() * 0.5
@@ -32,76 +31,52 @@ class SecondWindow(object):
         self.libh = self.heighttotal / 3
         self.yi = self.widthtotal * (1 - 2 * self.k2) / 15 - self.ot
         """инициализация окна"""
+        self.setGeometry(0, 30, self.widthtotal, self.heighttotal)
+        self.setWindowTitle('Event sender')
 
-        MainWindow.setGeometry(300, 300, self.widthtotal, self.heighttotal)
-        MainWindow.setWindowTitle("Подключение к игрэ")
-        self.centralwidget = QWidget(MainWindow)
+        self.btnconcreate = QPushButton("Подключиться", self)
+        self.btnfirst = QPushButton("Вернуться назад", self)
 
-        MainWindow.setCentralWidget(self.centralwidget)
+        title = QLabel('Title')
+        title.setAlignment(Qt.AlignCenter)
+        title.setStyleSheet("QLabel {background-color: red;}")
 
-        self.btnConCreate = QPushButton("Подключиться", self.centralwidget)
-        self.btnFirst = QPushButton("Вернуться назад", self.centralwidget)
-
-        self.title = QLabel('Title')
-        self.title.setAlignment(Qt.AlignCenter)
-        self.title.setStyleSheet("QLabel {background-color: red;}")
-        self.status = QLineEdit('')
-        self.title2 = QLabel('Title2')
-        self.title2.setAlignment(Qt.AlignCenter)
-        self.title2.setStyleSheet("QLabel {background-color: yellow;}")
+        title2 = QLabel('Title2')
+        title2.setAlignment(Qt.AlignCenter)
+        title2.setStyleSheet("QLabel {background-color: yellow;}")
 
         self.grid = QGridLayout()
         self.grid.setSpacing(8)
 
+        self.grid.addWidget(title, 0, 0, 2, 3)
+        self.grid.addWidget(title2, 4, 0, 1, 3)
 
 
-        self.grid.addWidget(self.title, 0, 0, 2, 3)
-        self.grid.addWidget(self.title2, 4, 0, 1, 3)
-        self.grid.addWidget(self.status, 2, 0, 1, 3)
+        self.grid.addWidget(self.btnfirst, 1, 4, 1, 1)
+        self.grid.addWidget(self.btnconcreate, 0, 4, 1, 1)
 
-        self.grid.addWidget(self.btnFirst, 1, 4, 1, 1)
-        self.grid.addWidget(self.btnConCreate, 0, 4, 1, 1)
-        MainWindow.setLayout(self.grid)
-        MainWindow.setCentralWidget(self.centralwidget)
-
-class Window(object):
-    def setupUI(self, MainWindow):
-        MainWindow.setGeometry(300, 300, 290, 150)
-
-        MainWindow.setWindowTitle("FirsfghjtWindow")
-        self.centralwidget = QWidget(MainWindow)
-        # mainwindow.setWindowIcon(QtGui.QIcon('PhotoIcon.png'))
-        #self.ToolsBTN = QPushButton('text', self.centralwidget)
-        #self.ToolsBTN.move(50, 350)
-        self.btncreate = QPushButton("Create game", self.centralwidget)
-        self.btncreate.move(30, 50)
-        self.btnConnect = QPushButton("Connect game", self.centralwidget)
-        self.btnConnect.move(150, 50)
-        MainWindow.setCentralWidget(self.centralwidget)
+        self.setLayout(self.grid)
 
 
 class MainWindow(QMainWindow):
     def __init__(self, parent=None):
         super(MainWindow, self).__init__(parent)
-        self.uiFirst = FirstWindow()
-        self.uiSecond = SecondWindow()
-        self.uiSecond = Window()
-        self.startFirstWindow()
-        #self.startSecondWindow()
+        self.setGeometry(50, 50, 400, 450)
 
-    def startSecondWindow(self):
-        self.uiSecond.setupUI(self)
-        self.uiSecond.btnFirst.clicked.connect(self.startFirstWindow)
+        self.startSecond()
+
+    def startSecond(self):
+        self.ToolTab = SecondWindow(self)
+        self.setWindowTitle("UIToolTab")
+        self.setCentralWidget(self.ToolTab)
+        self.ToolTab.btnfirst.clicked.connect(self.startFirst)
         self.show()
 
-    def startFirstWindow(self):
-        self.uiFirst.setupUI(self)
-        self.uiFirst.btnConnect.clicked.connect(self.startSecondWindow)
-        self.show()
-
-    def startWindow(self):
-        self.uiSecond.setupUI(self)
-        self.uiSecond.btnConCreate.clicked.connect(self.startFirstWindow)
+    def startFirst(self):
+        self.Window = FirstWindow(self)
+        self.setWindowTitle("UIWindow")
+        self.setCentralWidget(self.Window)
+        self.Window.btnconnect.clicked.connect(self.startSecond)
         self.show()
 
 
