@@ -6,10 +6,6 @@ from PyQt5.QtCore import pyqtSignal, QObject, Qt, QCoreApplication
 from server import *
 
 
-class Communicate(QObject):
-    st = 'first'
-    n = 0
-    closeApp = pyqtSignal()
 
 
 class MAIN_painter(QWidget):
