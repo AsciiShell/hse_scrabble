@@ -321,6 +321,7 @@ class GameServerPrepare:
         me = Player(player_name, "local")
         self.players[me.id] = me
         self.gamePrepareThread = Thread(target=self.create_game_async)
+        self.gamePrepareThread.start()
 
     def get_status(self):
         if self.gamePrepare:
@@ -379,3 +380,4 @@ class GameServerPrepare:
 class GameServer:
     def __init__(self, players):
         self.players = players
+# send_broadcast({'action': 'connectGame', 'rid': 'qwмty', 'name': 'BOSS'}, 8383)

@@ -1,9 +1,11 @@
 import sys
-from PyQt5.QtWidgets import QWidget, QDesktopWidget, QLabel, QGridLayout, QLineEdit, QHBoxLayout, QVBoxLayout, \
-    QHBoxLayout, QFrame, QSplitter, QStyleFactory, QApplication, QMainWindow, QPushButton, QApplication
-from PyQt5.QtGui import QPainter, QColor, QPen, QIcon, QBrush
+import time
 from PyQt5.QtCore import *
+from PyQt5.QtGui import QPainter, QColor
+from PyQt5.QtWidgets import QWidget, QDesktopWidget, QLabel, QGridLayout, QMainWindow, QPushButton, QApplication,QGroupBox, QVBoxLayout
+
 from server import *
+
 
 class GameWindow(QWidget):
 
@@ -22,29 +24,26 @@ class GameWindow(QWidget):
         self.yi = self.widthtotal * (1 - 2 * self.k2) / 15 - self.ot
         """инициализация окна"""
         self.btnconcreateret = QPushButton("назад", self)
-        self.btnconcreateret.move( self.widthtotal - 120, 50)
-        #self.stolfishki =
+        self.btnconcreateret.move(self.widthtotal - 120, 50)
+        # self.stolfishki =
         self.fishka1 = QPushButton(self.let, self)
-        self.fishka1.setGeometry(QRect(100 + (self.yi + self.ot)* 1, 90, self.yi, self.yi))
+        self.fishka1.setGeometry(QRect(100 + (self.yi + self.ot) * 1, 90, self.yi, self.yi))
         self.fishka2 = QPushButton(self.let, self)
-        self.fishka2.setGeometry(QRect(100 + (self.yi + self.ot)* 2, 90, self.yi, self.yi))
-        #CreateFishka(self.let,self.poi,100 + (self.yi + self.ot) * self.pos, 90,self.fishka1,1)
+        self.fishka2.setGeometry(QRect(100 + (self.yi + self.ot) * 2, 90, self.yi, self.yi))
+        # CreateFishka(self.let,self.poi,100 + (self.yi + self.ot) * self.pos, 90,self.fishka1,1)
 
-        #self.initUI()
+        # self.initUI()
 
-    #def initUI(self):
+    # def initUI(self):
 
-
-        #self.setGeometry(0, 30, self.widthtotal, self.heighttotal)
-        # self.square.setStyleSheet("QWidget { background-color: %s }" % self.col.name())
-        # self.setWindowTitle('Icon')
-        # self.setWindowIcon(QIcon('web.png'))
-        # QToolTip.setFont(QFont('SansSerif', 10))
-    def CreateFishka(self,letter,points,x,y,but, pos):
+    # self.setGeometry(0, 30, self.widthtotal, self.heighttotal)
+    # self.square.setStyleSheet("QWidget { background-color: %s }" % self.col.name())
+    # self.setWindowTitle('Icon')
+    # self.setWindowIcon(QIcon('web.png'))
+    # QToolTip.setFont(QFont('SansSerif', 10))
+    def CreateFishka(self, letter, points, x, y, but, pos):
         if pos > 0:
-            but.setGeometry(QRect(x,y, self.yi, self.yi))
-
-
+            but.setGeometry(QRect(x, y, self.yi, self.yi))
 
     def paintEvent(self, e):
         background = QPainter()
@@ -54,7 +53,7 @@ class GameWindow(QWidget):
 
     def drawBackground(self, background):
         self.btnconcreateret = QPushButton("назад", self)
-        self.btnconcreateret.move( self.widthtotal - 120, 50)
+        self.btnconcreateret.move(self.widthtotal - 120, 50)
         col = QColor(0, 0, 0)
         col.setNamedColor('#d4d4d4')
         background.setPen(col)
@@ -99,6 +98,7 @@ class GameWindow(QWidget):
                 background.setFont(QFont('Decorative', 10))
                 background.drawText(self.karta[i][j][0][0],self.karta[i][j][1][0], self.yi,self.yi,Qt.AlignCenter, Point.info[GameConfig.map[i][j]]['multi'])"""
 
+
 class ScreenSet():
     def __init__(self):
         self.koef = 1
@@ -120,18 +120,19 @@ class FirstWindow(QWidget):
         self.btnconnect = QPushButton("Connect game", self)
         self.btnconnect.move(150, 50)
 
-        #hbox = QHBoxLayout()
-        #hbox.addStretch(1)
-        #hbox.addWidget(self.btnconnect)
-        #hbox.addWidget(self.btncreate)
-        #vbox = QVBoxLayout()
-        #vbox.addStretch(1)
-        #vbox.addLayout(hbox)
+        # hbox = QHBoxLayout()
+        # hbox.addStretch(1)
+        # hbox.addWidget(self.btnconnect)
+        # hbox.addWidget(self.btncreate)
+        # vbox = QVBoxLayout()
+        # vbox.addStretch(1)
+        # vbox.addLayout(hbox)
 
-        #self.setLayout(vbox)
+        # self.setLayout(vbox)
 
-        #self.setGeometry(300, 300, 290, 150)
+        # self.setGeometry(300, 300, 290, 150)
         self.setWindowTitle('Event sender')
+
 
 class SecondWindow(QWidget):
     def __init__(self, parent=None):
@@ -145,7 +146,7 @@ class SecondWindow(QWidget):
         self.libh = self.heighttotal / 3
         self.yi = self.widthtotal * (1 - 2 * self.k2) / 15 - self.ot
         """инициализация окна"""
-        #self.setGeometry(0, 30, self.widthtotal, self.heighttotal)
+        # self.setGeometry(0, 30, self.widthtotal, self.heighttotal)
         self.setWindowTitle('Event sender')
 
         self.btnconcreate = QPushButton("Подключиться", self)
@@ -165,18 +166,18 @@ class SecondWindow(QWidget):
         self.grid.addWidget(title, 0, 0, 2, 3)
         self.grid.addWidget(title2, 4, 0, 1, 3)
 
-
         self.grid.addWidget(self.btnfirst, 1, 4, 1, 1)
         self.grid.addWidget(self.btnconcreate, 0, 4, 1, 1)
 
         self.setLayout(self.grid)
+
 
 class ThirdWindowCreate(QWidget):
     def __init__(self, parent=None):
         super(ThirdWindowCreate, self).__init__(parent)
         self.koef = 1
         self.k2 = 0.3
-        self.widthtotal = self.koef * QDesktopWidget().availableGeometry().width()/2
+        self.widthtotal = self.koef * QDesktopWidget().availableGeometry().width() / 2
         self.heighttotal = self.koef * QDesktopWidget().availableGeometry().height() - 30
         self.ot = QDesktopWidget().availableGeometry().width() / 300
         self.libw = self.widthtotal * self.k2
@@ -184,13 +185,82 @@ class ThirdWindowCreate(QWidget):
         self.yi = self.widthtotal * (1 - 2 * self.k2) / 15 - self.ot
 
         """инициализация окна"""
-        #self.setGeometry(0, 30, self.widthtotal, self.heighttotal)
+        # self.setGeometry(0, 30, self.widthtotal, self.heighttotal)
         self.setWindowTitle('Event sender')
 
         self.btnconcreate = QPushButton("Подключиться", self)
-        self.btnconcreate.move( self.widthtotal - 120, 50)
+        self.btnconcreate.move(self.widthtotal - 120, 50)
         self.btnFirst = QPushButton("Вернуться назад", self)
-        self.btnFirst.move( self.widthtotal - 120, 100)
+        self.btnFirst.move(self.widthtotal - 120, 100)
+        self.setupUi(self)
+        self.serverInit()
+    def setupUi(self, Form):
+        Form.setObjectName("Form")
+        Form.resize(509, 300)
+        self.groupBoxConnected = QGroupBox(Form)
+        self.groupBoxConnected.setGeometry(QRect(10, 10, 341, 101))
+        self.groupBoxConnected.setObjectName("groupBoxConnected")
+        self.readyLabels = [QLabel(self.groupBoxConnected) for _ in range(4)]
+        for i in range(len(self.readyLabels)):
+            self.readyLabels[i].setGeometry(QRect(10, (i + 1) * 20, 200, 13))
+            self.readyLabels[i].setText("Свободно")
+
+
+        self.groupBoxQueue = QGroupBox(Form)
+        self.groupBoxQueue.setGeometry(QRect(10, 120, 341, 171))
+        self.groupBoxQueue.setObjectName("groupBoxQueue")
+        self.queueItem = [QLabel(self.groupBoxQueue) for _ in range(16)]
+        for i in range(len(self.queueItem)):
+            self.queueItem[i].setGeometry(QRect(10, (i + 1) * 20, 200, 13))
+            self.queueItem[i].setText("Свободно")
+        self.btnBack = QPushButton(Form)
+        self.btnBack.setGeometry(QRect(370, 20, 75, 23))
+        self.btnBack.setObjectName("btnBack")
+        self.btnStart = QPushButton(Form)
+        self.btnStart.setGeometry(QRect(370, 50, 75, 23))
+        self.btnStart.setObjectName("btnStart")
+
+        self.retranslateUi(Form)
+        self.Form = Form
+        QMetaObject.connectSlotsByName(Form)
+
+    def retranslateUi(self, Form):
+        _translate = QCoreApplication.translate
+        Form.setWindowTitle(_translate("Form", "Form"))
+        self.groupBoxConnected.setTitle(_translate("Form", "Подключены"))
+
+        self.groupBoxQueue.setTitle(_translate("Form", "Очередь"))
+        self.btnBack.setText(_translate("Form", "Отмена"))
+        self.btnStart.setText(_translate("Form", "Старт"))
+
+    def server_redraw(self):
+        while self.game.gamePrepare:
+            status = self.game.get_status()
+            i = 0
+            for key, value in status["game"].items():
+                self.readyLabels[i].setText(value.name)
+                i += 1
+            while i < 4:
+                self.readyLabels[i].setText("Свободно")
+                i += 1
+
+            i = 0
+            while i < len(status["queue"]):
+                self.queueItem[i].setText(str(status["queue"][i]))
+                i += 1
+            while i < 16:
+                self.queueItem[i].setText("Свободно")
+                i += 1
+            #self.Form.setLayout(self.queueItem[-1])
+            time.sleep(1)
+
+
+    def serverInit(self):
+        self.game = GameServerPrepare()
+        self.game.create_game("Модератор")
+        self.gameThread = Thread(target=self.server_redraw)
+        self.gameThread.start()
+
 
     """hbox = QHBoxLayout()
         hbox.addStretch(1)
@@ -199,7 +269,8 @@ class ThirdWindowCreate(QWidget):
         vbox = QVBoxLayout()
         vbox.addStretch(1)
         vbox.addLayout(hbox)"""
-        #self.setLayout(vbox)
+    # self.setLayout(vbox)
+
 
 class ThirdWindowEx1(object):
     def setupUi(self, Form):
@@ -299,9 +370,6 @@ class ThirdWindowEx1(object):
         self.ButtonReturn.setText(_translate("Form", "вернуться назад"))
 
 
-
-
-
 class MainWindow(QMainWindow):
     def __init__(self, parent=None):
         super(MainWindow, self).__init__(parent)
@@ -315,14 +383,14 @@ class MainWindow(QMainWindow):
         self.yi = self.widthtotal * (1 - 2 * self.k2) / 15 - self.ot
         """инициализация окна"""
         self.setGeometry(0, 30, self.widthtotal, self.heighttotal)
-        self.startGame()
+        self.startFirst()
 
     def startGame(self):
         self.GameCreate = GameWindow(self)
         self.setWindowTitle("GameCreate")
-        self.setGeometry(0 , 30, self.widthtotal , self.heighttotal)
+        self.setGeometry(0, 30, self.widthtotal, self.heighttotal)
         self.setCentralWidget(self.GameCreate)
-        #self.GameCreate.btnFirst.clicked.connect(self.startFirst)
+        # self.GameCreate.btnFirst.clicked.connect(self.startFirst)
         self.GameCreate.btnconcreateret.clicked.connect(self.startThirdCreate)
         self.show()
 
@@ -338,10 +406,10 @@ class MainWindow(QMainWindow):
     def startSecond(self):
         self.Second = SecondWindow(self)
         self.setWindowTitle("SecondWindow")
-        self.setGeometry(0, 30, self.widthtotal/2, self.heighttotal/2)
+        self.setGeometry(0, 30, self.widthtotal / 2, self.heighttotal / 2)
         self.setCentralWidget(self.Second)
         self.Second.btnfirst.clicked.connect(self.startFirst)
-        #self.Second.btnconcreate.clicked.connect(self.startThirdEx1)
+        # self.Second.btnconcreate.clicked.connect(self.startThirdEx1)
 
         self.show()
 
@@ -363,10 +431,7 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(self.ThirdEx1)
         self.ThirdEx1.ButtonReturn.clicked.connect(self.startFirst)
 
-
-
         Form.show()
-
 
 
 if __name__ == '__main__':
