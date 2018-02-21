@@ -1,4 +1,3 @@
-
 import json
 import random
 import socket
@@ -118,87 +117,87 @@ class Matrix:
         # TODO andrsolo21
         return True
 
-    def prov(words,x,y,napr,newkoord):
+    def prov(self, words, x, y, napr, newkoord):
         """проверяет, начие слова в этой ячейке (начало слова)"""
         flag = 0
-        if (napr == 2) and (y != 14) :
-            if (y != 0):
-                if (words[y-1][x] == '') and (words[y+1][x] != ''):
+        if napr == 2 and y != 14:
+            if y != 0:
+                if (words[y - 1][x] == '') and (words[y + 1][x] != ''):
                     flag = 1
             else:
-                if (words[y+1][x] != ''):
+                if words[y + 1][x] != '':
                     flag = 1
-        if (napr == 1) and (x != 14):
-            if (x != 0):
-                if (words[y][x-1] == '') and (words[y][x+1] != ''):
+        if napr == 1 and x != 14:
+            if x != 0:
+                if words[y][x - 1] == '' and words[y][x + 1] != '':
                     flag = 1
             else:
-                if (words[y][x+1] != ''):
+                if words[y][x + 1] != '':
                     flag = 1
-        if (flag == 1):
-            return(schit(words,x,y,napr,newkoord))
+        if flag == 1:
+            return self.schit(words, x, y, napr, newkoord)
         else:
-            return(['',0])
+            return ['', 0]
 
-    def schit(words,x,y,napr,newkoord):
+    def schit(self, words, x, y, napr, newkoord):
         """считывает слово"""
         s = ''
         newword = 0
-        if (napr == 2):
-            a=1
-            while (a != 0):
-                koord = [x,y]
-                if (koord in newkoord):
+        if napr == 2:
+            a = 1
+            while a != 0:
+                koord = [x, y]
+                if koord in newkoord:
                     newword = 1
                 s = s + words[y][x]
-                if (y == 14):
+                if y == 14:
                     a = 0
                 else:
-                    if (words[y+1][x] == ''):
+                    if words[y + 1][x] == '':
                         a = 0
                 y = y + 1
         else:
-            a=1
-            while (a != 0):
-                koord = [x,y]
-                if (koord in newkoord):
+            a = 1
+            while a != 0:
+                koord = [x, y]
+                if koord in newkoord:
                     newword = 1
                 s = s + words[y][x]
-                if (x == 14):
+                if x == 14:
                     a = 0
                 else:
-                    if (words[y][x+1] == ''):
+                    if words[y][x + 1] == '':
                         a = 0
                 x = x + 1
-        return([s,newword])
-    def pasteletters(words, newkoord, newletters):
+        return [s, newword]
+
+    def pasteletters(self, words, newkoord, newletters):
         """вставляет буквы в матрицу"""
         for i in range(len(newkoord)):
             words[newkoord[i][1]][newkoord[i][0]] = newletters[i]
-        return(words)
-                    
+        return words
 
     def serch(self):
         """ищет слова в матрице"""
         newkoord = []
         newletters = []
-        words  = self.map
+        words = self.map
         n = 0
         for i in self.temp:
-            newleters.append([[i.x],[i.y]])
+            newletters.append([[i.x], [i.y]])
             newkoord.append(i.letter)
-        #newkoord = [[4,6],[4,8],[4,9],[4,10]]
-        #newletters = ['б','т','о','н']
-        #движение по оси x = 1
-        #движение по оси y = 2
+        # newkoord = [[4,6],[4,8],[4,9],[4,10]]
+        # newletters = ['б','т','о','н']
+        # движение по оси x = 1
+        # движение по оси y = 2
         outx = []
         outy = []
-        words = pasteletters(words, newkoord, newletters)
+        words = self.pasteletters(words, newkoord, newletters)
         for i in range(len(words)):
             for j in range(len(words[i])):
                 if (words[i][j] != ''):
-                    slx = prov(words,j,i,1,newkoord)
-                    sly = prov(words,j,i,2,newkoord)
+                    slx = self.prov(words, j, i, 1, newkoord)
+                    sly = self.prov(words, j, i, 2, newkoord)
                     if (slx[1] == 1):
                         outx.append(slx)
                     if (sly[1] == 1):
@@ -232,22 +231,24 @@ class GameDictionary:
         """Подготавливает словарь к допустимым буквам
 
         alphabet - строка допустимых символов"""
-        alphabet = alphabet.upper()
+        alphabet = alphabet.lower()
         if len(alphabet) >= 32:
             return self.dict
 
         temp_dict = []
         for i in self.dict:
-            for j in alphabet:
-                if i.count(j) > 0:
-                    temp_dict.append(i)
+            for j in i:
+                if alphabet.count(j) == 0:
                     break
+            else:
+                temp_dict.append(i)
         return temp_dict
 
     def __init__(self):
         """Инициализирует словарь начальным списком слов"""
         with open(self.filename, "r", encoding="utf-8") as f:
             self.dict = f.read().lower().split("\n")
+
 
 def send_broadcast(data, port=8384):
     cs = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -263,6 +264,7 @@ def _encode(b):
 def _convert_type(b):
     """Преобразует байтовую строку в массив"""
     return json.loads(b.decode("utf-8"))
+
 
 class Player:
     """Абстрактный класс игрока"""
@@ -366,7 +368,6 @@ class GameServerPrepare:
         send_broadcast({'action': 'continue'}, 8383)
         self.gamePrepareThread.join(1)
 
-
     def __init__(self):
         self.players = {}
         self.queue = []
@@ -378,8 +379,3 @@ class GameServerPrepare:
 class GameServer:
     def __init__(self, players):
         self.players = players
-
-
-
-
-
