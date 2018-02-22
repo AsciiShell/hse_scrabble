@@ -306,12 +306,13 @@ class GameServerPrepare:
                     if i['rid'] == data['rid']:
                         break
                 else:
-                    self.queue.append({"ip": address, "name": data["name"], "rid": data["rid"]})
+                    self.queue.append({"ip": address, "name": data["name"], "rid": data["rid"], "add": False})
             elif data["action"] == 'continue':
                 pass
             else:
                 warnings.warn("Неизвестное действие " + data["action"])
             print(data)
+        sock.close()
 
     def create_game(self, player_name):
         """Создает игру с указанными параметрами"""
@@ -330,7 +331,7 @@ class GameServerPrepare:
             return False
 
     def add_player(self, t, rid=None):
-        if self.gamePrepare:
+        if not self.gamePrepare:
             return Message(False, 'Игра не находится в процессе подготовки')
         if len(self.players) >= 4:
             return Message(False, 'Достаточно игроков')
@@ -340,8 +341,13 @@ class GameServerPrepare:
         elif t == 'net':
             for i in self.queue:
                 if i['rid'] == rid:
+                    for j in self.players:
+                        if rid == j.rid:
+                            return Message(False, "Игрок {} не найден ".format(str(rid)))
                     p = Player(i['name'], 'net', rid, ip=i['ip'])
                     self.players[p.id] = p
+                    i["add"] = True
+                    break
             else:
                 return Message(False, "Игрок {} не найден ".format(str(rid)))
         else:
