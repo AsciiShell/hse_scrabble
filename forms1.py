@@ -1,8 +1,10 @@
 import sys
 import time
+
 from PyQt5.QtCore import *
 from PyQt5.QtGui import QPainter, QColor
-from PyQt5.QtWidgets import QWidget, QDesktopWidget, QLabel, QGridLayout, QMainWindow, QPushButton, QApplication,QGroupBox, QVBoxLayout
+from PyQt5.QtWidgets import QWidget, QDesktopWidget, QLabel, QGridLayout, QMainWindow, QPushButton, QApplication, \
+    QGroupBox, QMessageBox
 
 from server import *
 
@@ -171,7 +173,6 @@ class SecondWindow(QWidget):
 
         self.setLayout(self.grid)
 
-
 class ThirdWindowCreate(QWidget):
     def __init__(self, parent=None):
         super(ThirdWindowCreate, self).__init__(parent)
@@ -194,6 +195,7 @@ class ThirdWindowCreate(QWidget):
         self.btnFirst.move(self.widthtotal - 120, 100)
         self.setupUi(self)
         self.serverInit()
+
     def setupUi(self, Form):
         Form.setObjectName("Form")
         Form.resize(509, 300)
@@ -205,21 +207,28 @@ class ThirdWindowCreate(QWidget):
             self.readyLabels[i].setGeometry(QRect(10, (i + 1) * 20, 200, 13))
             self.readyLabels[i].setText("Свободно")
 
-
         self.groupBoxQueue = QGroupBox(Form)
-        self.groupBoxQueue.setGeometry(QRect(10, 120, 341, 171))
+        self.groupBoxQueue.setGeometry(QRect(10, 120, 341, 500))
         self.groupBoxQueue.setObjectName("groupBoxQueue")
-        self.queueItem = [QLabel(self.groupBoxQueue) for _ in range(16)]
+        self.queueItem = [QPushButton(self.groupBoxQueue) for _ in range(16)]
         for i in range(len(self.queueItem)):
-            self.queueItem[i].setGeometry(QRect(10, (i + 1) * 20, 200, 13))
+            self.queueItem[i].setGeometry(QRect(10, (i + 1) * 23, 321, 20))
             self.queueItem[i].setText("Свободно")
+            self.queueItem[i].rid = ""
+            self.queueItem[i].clicked.connect(self.add_player)
         self.btnBack = QPushButton(Form)
-        self.btnBack.setGeometry(QRect(370, 20, 75, 23))
+        self.btnBot = QPushButton(Form)
+        self.btnBot.setGeometry(QRect(370, 20, 75, 23))
+        self.btnBot.setText("Добавить бота")
+        self.btnBot.clicked.connect(self.add_bot)
+        self.btnBack.setGeometry(QRect(370, 50, 75, 23))
         self.btnBack.setObjectName("btnBack")
+        self.btnBack.clicked.connect(self.stop)
         self.btnStart = QPushButton(Form)
-        self.btnStart.setGeometry(QRect(370, 50, 75, 23))
-        self.btnStart.setObjectName("btnStart")
 
+        self.btnStart.setGeometry(QRect(370, 70, 75, 23))
+        self.btnStart.setObjectName("btnStart")
+        self.btnStart.clicked.connect(self.stop)
         self.retranslateUi(Form)
         self.Form = Form
         QMetaObject.connectSlotsByName(Form)
@@ -233,11 +242,29 @@ class ThirdWindowCreate(QWidget):
         self.btnBack.setText(_translate("Form", "Отмена"))
         self.btnStart.setText(_translate("Form", "Старт"))
 
+    def stop(self):
+        # TODO
+        # Метод start_game в будущем будет возвращать информацию для запуска игры
+        # При отмене нужно просто подавить выход
+        # А при создании передать в создание другого класса
+        # Как вариант, сделать все серверные класс статичными и глобальными
+        self.game.start_game()
+        self.gameThread.join(1)
+
+    def add_player(self):
+        res = self.game.add_player("net", self.sender().rid)
+        if not res.res:
+            QMessageBox.question(self.sender(), 'Ошибка', res.msg, QMessageBox.Ok, QMessageBox.Ok)
+
+    def add_bot(self):
+        res = self.game.add_player("bot")
+        if not res.res:
+            QMessageBox.question(self.sender(), 'Ошибка', res.msg, QMessageBox.Ok, QMessageBox.Ok)
+
     def server_redraw(self):
         while self.game.gamePrepare:
-            status = self.game.get_status()
             i = 0
-            for key, value in status["game"].items():
+            for key, value in self.game.players.items():
                 self.readyLabels[i].setText(value.name)
                 i += 1
             while i < 4:
@@ -245,15 +272,19 @@ class ThirdWindowCreate(QWidget):
                 i += 1
 
             i = 0
-            while i < len(status["queue"]):
-                self.queueItem[i].setText(str(status["queue"][i]))
+            while i < len(self.game.queue):
+                name = str(self.game.queue[i]['add']) + self.game.queue[i]['ip'][0] + ":" + str(
+                    self.game.queue[i]['ip'][1]) + " " + self.game.queue[i][
+                           "name"]
+                self.queueItem[i].rid = self.game.queue[i]["rid"]
+                self.queueItem[i].setText(name)
                 i += 1
             while i < 16:
                 self.queueItem[i].setText("Свободно")
+                self.queueItem[i].rid = ""
                 i += 1
-            #self.Form.setLayout(self.queueItem[-1])
+            # self.Form.setLayout(self.queueItem[-1])
             time.sleep(1)
-
 
     def serverInit(self):
         self.game = GameServerPrepare()
@@ -261,6 +292,8 @@ class ThirdWindowCreate(QWidget):
         self.gameThread = Thread(target=self.server_redraw)
         self.gameThread.start()
 
+    def __delete__(self, instance):
+        self.game.start_game()
 
     """hbox = QHBoxLayout()
         hbox.addStretch(1)
@@ -386,21 +419,22 @@ class MainWindow(QMainWindow):
         self.startFirst()
 
     def startGame(self):
+        self.gamePrepare.game.start_game()
         self.GameCreate = GameWindow(self)
         self.setWindowTitle("GameCreate")
         self.setGeometry(0, 30, self.widthtotal, self.heighttotal)
         self.setCentralWidget(self.GameCreate)
         # self.GameCreate.btnFirst.clicked.connect(self.startFirst)
-        self.GameCreate.btnconcreateret.clicked.connect(self.startThirdCreate)
+        self.GameCreate.btnconcreateret.clicked.connect(self.startGamePrepare)
         self.show()
 
-    def startThirdCreate(self):
-        self.ThirdCreate = ThirdWindowCreate(self)
-        self.setWindowTitle("ThirdWindowCreate")
+    def startGamePrepare(self):
+        self.gamePrepare = ThirdWindowCreate(self)
+        self.setWindowTitle("Создание игры")
         self.setGeometry(self.widthtotal / 4, 30, self.widthtotal / 2, self.heighttotal)
-        self.setCentralWidget(self.ThirdCreate)
-        self.ThirdCreate.btnFirst.clicked.connect(self.startFirst)
-        self.ThirdCreate.btnconcreate.clicked.connect(self.startGame)
+        self.setCentralWidget(self.gamePrepare)
+        self.gamePrepare.btnBack.clicked.connect(self.startFirst)
+        self.gamePrepare.btnStart.clicked.connect(self.startGame)
         self.show()
 
     def startSecond(self):
@@ -419,7 +453,7 @@ class MainWindow(QMainWindow):
         self.setGeometry(300, 300, 260, 150)
         self.setCentralWidget(self.First)
         self.First.btnconnect.clicked.connect(self.startSecond)
-        self.First.btncreate.clicked.connect(self.startThirdCreate)
+        self.First.btncreate.clicked.connect(self.startGamePrepare)
         self.show()
 
     def startThirdEx1(self):
