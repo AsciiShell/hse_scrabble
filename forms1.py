@@ -1,7 +1,7 @@
 import sys
 import random
 from PyQt5.QtWidgets import QWidget, QDesktopWidget, QLabel, QGridLayout, QLineEdit, QHBoxLayout, QVBoxLayout, \
-    QHBoxLayout, QFrame, QSplitter, QStyleFactory, QApplication, QMainWindow, QPushButton, QApplication
+    QHBoxLayout, QFrame, QSplitter, QStyleFactory, QApplication, QMainWindow, QPushButton, QApplication,QListWidget
 from PyQt5.QtGui import QPainter, QColor, QPen, QIcon, QBrush, QDrag
 from PyQt5.QtCore import *
 from server import *
@@ -48,18 +48,34 @@ class GameWindow(QWidget):
     def initUI(self):
         self.matr = Matrix()
         """основная часть создания элементов формы"""
+        #self.list = QListWidget()
+        #self.list.setGeometry(self.ot, self.ot + self.libh + 20, self.libw - self.ot,2 * self.libh - self.ot - self.ot - 20)
         """Buttons"""
         self.btnconcreateret = QPushButton("назад", self)
         self.btnconcreateret.move( self.widthtotal - 120, 50)
         self.setAcceptDrops(True)
-        """Расстановка кнопок, уже имеющихся в таблице"""
-        for i in range(6):
+
+        for i in range(10):
             self.matr.map[i][i+2] = self.getletter()
+        """Расстановка кнопок, уже имеющихся в таблице"""
+        self.ButMap = [[]]
+
+        """for i in range(15):
+            l = []
+            for j in range(15):
+                l.append(Fishka(self.matr.map[j][i], self))
+            self.ButMap.append(l)
+            for j in range(15):
+                self.ButMap[i][j].MyLetter = self.matr.map[j][i]
+                self.ButMap[i][j].MyPrice = GameConfig.letters[self.matr.map[i][j]]['price']
+                self.ButMap[i][j].MyKoord = [j , i]
+                self.ButMap[i][j].setGeometry(self.karta[i][j][0], self.karta[i][j][0] , self.yi, self.yi)"""
+
         """расстановка кнопок для перемещения"""
         self.myletters = []
         for i in range(GameConfig.startCount):
             gs = self.getletter()
-            self.myletters.append(Fishka(gs, self))
+            self.myletters.append(Fishka((gs + '(' + str(i) + ')'), self))
             self.myletters[i].MyLetter = gs
             self.myletters[i].MyPrice = GameConfig.letters[gs]['price']
             self.myletters[i].MyKoord = [None , i]
@@ -74,30 +90,43 @@ class GameWindow(QWidget):
         """функция обработки строки консоли"""
         """move i,x,y"""
         l = self.konsol.text()
-        name = l.split("_")
+        name = l.split(" ")
         if name[0] == "move":
             ch = name[1].split(",")
             i = int(ch[0])
             x = int(ch[1])
             y = int(ch[2])
+            if self.myletters[i].MyKoord[0] != None:
+                t = self.myletters[i].MyKoord
+                ii = 0
+                while t != self.matr.newkoord[ii] and ii < len(self.matr.newkoord):
+                    ii += 1
+                if ii < len(self.matr.newkoord):
+                    self.matr.newkoord[ii]= [None,None]
             self.myletters[i].move(self.karta[x][y][0], self.karta[x][y][1])
+            self.myletters[i].MyKoord = [y,x]
             self.matr.newletters.append(self.myletters[i].MyLetter)
-            self.matr.newkoord.append([x,y])
+            self.matr.newkoord.append([y,x])
         if name[0] == 'show':
             self.ShowWords()
-        if name[0] == 'help' or help[0] == 'SOS':
+        if name[0] == 'help' or name[0] == 'SOS':
             self.Help()
         self.konsol.clear()
 
     def Help(self):
-        print('переместить кнопку - move_i,x,y (i - номер кнопки,(x, y) - координаты)')
+
+        print('переместить кнопку - move i,x,y (i - номер кнопки,(x, y) - координаты)')
         print('поиск новых слов - show')
+        for i in self.matr.map:
+            print(i)
     def ShowWords(self):
         """выводит новые слова"""
         self.matr.pasteletters()
         self.matr.serch()
         print (self.matr.outx)
         print (self.matr.outy)
+        for i in self.matr.map:
+            print(i)
 
     def getletter(self):
         """выбирает случайную букву"""

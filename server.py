@@ -192,6 +192,7 @@ class Matrix:
         # движение по оси y = 2
         self.outx = []
         self.outy = []
+        self.chekkoord
         self.pasteletters()
         for i in range(len(self.map)):
             for j in range(len(self.map[i])):
@@ -210,6 +211,17 @@ class Matrix:
     def get(self, y, x):
         """Возвращает точку по адресу"""
         return self.map[y][x]
+
+    def chekKoord(self):
+        a = []
+        b = []
+        for i in range(len(self.newkoord)):
+            if self.newkoord[i][1] != None and self.newkoord[i][0] != None:
+                a.append(self.newkoord[i])
+                b.append(self.newletters[i])
+        self.newkoord = a
+        self.newletters = b
+
 
     def __init__(self):
         """Создает новую игровую карту"""
