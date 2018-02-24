@@ -1,4 +1,5 @@
 import sys
+import random
 from PyQt5.QtWidgets import QWidget, QDesktopWidget, QLabel, QGridLayout, QLineEdit, QHBoxLayout, QVBoxLayout, \
     QHBoxLayout, QFrame, QSplitter, QStyleFactory, QApplication, QMainWindow, QPushButton, QApplication
 from PyQt5.QtGui import QPainter, QColor, QPen, QIcon, QBrush, QDrag
@@ -55,37 +56,45 @@ class GameWindow(QWidget):
         self.btnconcreateret = QPushButton("назад", self)
         self.btnconcreateret.move( self.widthtotal - 120, 50)
         #self.stolfishki =
-        """Buttons"""
+
 
         #CreateFishka(self.let,self.poi,100 + (self.yi + self.ot) * self.pos, 90,self.fishka1,1)
 
         self.initUI()
 
     def initUI(self):
+        """основная часть создания элементов формы"""
         """Buttons"""
         self.setAcceptDrops(True)
         self.myletters = []
-        self.let = ["А","Б","В","Г","Д","Е","Ж"]
         for i in range(GameConfig.startCount):
-            self.myletters.append(QPushButton(self.let[i], self))
+            self.myletters.append(QPushButton(self.getletter(), self))
             self.myletters[i].setGeometry(QRect(self.letterskoord[0] + (self.yi + self.ot)* i + self.ot, self.letterskoord[1] + self.ot, self.yi, self.yi))
 
-        """line edit"""
+        """line edit/konsol"""
         self.konsol = QLineEdit(self)
         self.konsol.setGeometry(self.ot, self.ot + self.libh, self.libw - self.ot, 20)
         self.konsol.returnPressed.connect(self.enter)
 
     def enter(self):
+        """функция обработки строки консоли"""
         """button=i,x,y"""
         l = self.konsol.text()
         name = l.split("=")
-        if name[0] == "button":
+        if name[0] == "button" or name[0] == "but":
             ch = name[1].split(",")
             i = int(ch[0])
             x = int(ch[1])
             y = int(ch[2])
             self.myletters[i].move(self.karta[x][y][0], self.karta[x][y][1])
         self.konsol.clear()
+    def getletter(self):
+        """выбирает случайную букву"""
+        random.seed()
+        genletter = random.choice(GameConfig.let)
+        GameConfig.letters[genletter]['count'] -= 1
+        return (genletter)
+
 
     #self.setGeometry(0, 30, self.widthtotal, self.heighttotal)
         # self.square.setStyleSheet("QWidget { background-color: %s }" % self.col.name())
@@ -257,102 +266,7 @@ class ThirdWindowCreate(QWidget):
         vbox.addLayout(hbox)"""
         #self.setLayout(vbox)
 
-class ThirdWindowEx1(object):
-    def setupUi(self, Form):
-        Form.setObjectName("Form")
-        Form.resize(456, 575)
-        self.gridLayoutWidget = QWidget(Form)
-        self.gridLayoutWidget.setGeometry(QRect(10, 40, 441, 531))
-        self.gridLayoutWidget.setObjectName("gridLayoutWidget")
-        self.gridLayout = QGridLayout(self.gridLayoutWidget)
-        self.gridLayout.setContentsMargins(0, 0, 0, 0)
-        self.gridLayout.setObjectName("gridLayout")
-        self.gridLayout_3 = QGridLayout()
-        self.gridLayout_3.setHorizontalSpacing(20)
-        self.gridLayout_3.setVerticalSpacing(50)
-        self.gridLayout_3.setObjectName("gridLayout_3")
-        self.pushButton_3 = QPushButton(self.gridLayoutWidget)
-        self.pushButton_3.setEnabled(False)
-        self.pushButton_3.setObjectName("pushButton_3")
-        self.gridLayout_3.addWidget(self.pushButton_3, 0, 1, 1, 1)
-        self.name2 = QLabel(self.gridLayoutWidget)
-        self.name2.setObjectName("name2")
-        self.gridLayout_3.addWidget(self.name2, 1, 0, 1, 1)
-        self.name1 = QLabel(self.gridLayoutWidget)
-        self.name1.setMouseTracking(False)
-        self.name1.setLayoutDirection(Qt.LeftToRight)
-        self.name1.setObjectName("name1")
-        self.gridLayout_3.addWidget(self.name1, 0, 0, 1, 1)
-        self.name4 = QLabel(self.gridLayoutWidget)
-        self.name4.setObjectName("name4")
-        self.gridLayout_3.addWidget(self.name4, 3, 0, 1, 1)
-        self.name3 = QLabel(self.gridLayoutWidget)
-        self.name3.setObjectName("name3")
-        self.gridLayout_3.addWidget(self.name3, 2, 0, 1, 1)
-        self.PushButton2 = QPushButton(self.gridLayoutWidget)
-        self.PushButton2.setObjectName("PushButton2")
-        self.gridLayout_3.addWidget(self.PushButton2, 1, 1, 1, 1)
-        self.PushButton4 = QPushButton(self.gridLayoutWidget)
-        self.PushButton4.setObjectName("PushButton4")
-        self.gridLayout_3.addWidget(self.PushButton4, 3, 1, 1, 1)
-        self.PushButton3 = QPushButton(self.gridLayoutWidget)
-        self.PushButton3.setObjectName("PushButton3")
-        self.gridLayout_3.addWidget(self.PushButton3, 2, 1, 1, 1)
-        self.gridLayout.addLayout(self.gridLayout_3, 0, 1, 1, 1)
-        self.gridLayout_5 = QGridLayout()
-        self.gridLayout_5.setObjectName("gridLayout_5")
-        self.label_7 = QLabel(self.gridLayoutWidget)
-        self.label_7.setObjectName("label_7")
-        self.gridLayout_5.addWidget(self.label_7, 0, 0, 1, 1)
-        self.label_8 = QLabel(self.gridLayoutWidget)
-        self.label_8.setObjectName("label_8")
-        self.gridLayout_5.addWidget(self.label_8, 1, 0, 1, 1)
-        self.label_6 = QLabel(self.gridLayoutWidget)
-        self.label_6.setObjectName("label_6")
-        self.gridLayout_5.addWidget(self.label_6, 2, 0, 1, 1)
-        self.pushButton_7 = QPushButton(self.gridLayoutWidget)
-        self.pushButton_7.setObjectName("pushButton_7")
-        self.gridLayout_5.addWidget(self.pushButton_7, 0, 1, 1, 1)
-        self.pushButton_8 = QPushButton(self.gridLayoutWidget)
-        self.pushButton_8.setObjectName("pushButton_8")
-        self.gridLayout_5.addWidget(self.pushButton_8, 1, 1, 1, 1)
-        self.pushButton_9 = QPushButton(self.gridLayoutWidget)
-        self.pushButton_9.setObjectName("pushButton_9")
-        self.gridLayout_5.addWidget(self.pushButton_9, 2, 1, 1, 1)
-        self.gridLayout.addLayout(self.gridLayout_5, 1, 1, 1, 1)
-        self.label = QLabel(Form)
-        self.label.setGeometry(QRect(20, 10, 171, 16))
-        self.label.setObjectName("label")
-        self.pushButton = QPushButton(Form)
-        self.pushButton.setGeometry(QRect(240, 10, 81, 23))
-        self.pushButton.setObjectName("pushButton")
-        self.ButtonReturn = QPushButton(Form)
-        self.ButtonReturn.setGeometry(QRect(334, 10, 101, 23))
-        self.ButtonReturn.setObjectName("ButtonReturn")
 
-        self.retranslateUi(Form)
-        QMetaObject.connectSlotsByName(Form)
-
-    def retranslateUi(self, Form):
-        _translate = QCoreApplication.translate
-        Form.setWindowTitle(_translate("Form", "Form"))
-        self.pushButton_3.setText(_translate("Form", "i am"))
-        self.name2.setText(_translate("Form", "name2"))
-        self.name1.setText(_translate("Form", "name1"))
-        self.name4.setText(_translate("Form", "name4"))
-        self.name3.setText(_translate("Form", "name3"))
-        self.PushButton2.setText(_translate("Form", "добавить бота"))
-        self.PushButton4.setText(_translate("Form", "добавить бота"))
-        self.PushButton3.setText(_translate("Form", "добавить бота"))
-        self.label_7.setText(_translate("Form", "player1"))
-        self.label_8.setText(_translate("Form", "player2"))
-        self.label_6.setText(_translate("Form", "player3"))
-        self.pushButton_7.setText(_translate("Form", "добавить"))
-        self.pushButton_8.setText(_translate("Form", "добавить"))
-        self.pushButton_9.setText(_translate("Form", "добавить"))
-        self.label.setText(_translate("Form", "Создание игры"))
-        self.pushButton.setText(_translate("Form", "начать игру"))
-        self.ButtonReturn.setText(_translate("Form", "вернуться назад"))
 
 
 
@@ -410,18 +324,10 @@ class MainWindow(QMainWindow):
         self.First.btncreate.clicked.connect(self.startThirdCreate)
         self.show()
 
-    def startThirdEx1(self):
-        self.ThirdEx1 = ThirdWindowEx1(self)
-        Form = QWidget()
-        self.ThirdEx1.setupUi(Q)
-        self.setWindowTitle("ThirdWindowEx1")
-        self.setGeometry(self.widthtotal / 4, 30, self.widthtotal / 2, self.heighttotal)
-        self.setCentralWidget(self.ThirdEx1)
-        self.ThirdEx1.ButtonReturn.clicked.connect(self.startFirst)
 
 
 
-        Form.show()
+
 
 
 
