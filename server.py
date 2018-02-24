@@ -1,6 +1,7 @@
 import json
 import random
 import socket
+import time
 import warnings
 from threading import Thread
 
@@ -250,11 +251,12 @@ class GameDictionary:
             self.dict = f.read().lower().split("\n")
 
 
-def send_broadcast(data, port=8384):
+def send_broadcast(data, port=8384, ip='255.255.255.255'):
     cs = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    cs.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    cs.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-    cs.sendto(_encode(data), ('255.255.255.255', port))
+    if ip == '255.255.255.255':
+        cs.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        cs.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+    cs.sendto(_encode(data), (ip, port))
 
 
 def _encode(b):
@@ -264,6 +266,11 @@ def _encode(b):
 def _convert_type(b):
     """Преобразует байтовую строку в массив"""
     return json.loads(b.decode("utf-8"))
+
+
+def rand(length=4):
+    alphabet = 'abcdefghijklmnopqrstuvwxyz0123456789'
+    return ''.join([alphabet[random.randrange(len(alphabet))] for i in range(length)])
 
 
 class Player:
@@ -296,11 +303,13 @@ class GameServerPrepare:
         """Асинхронный метод для ожидания информации"""
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         sock.bind(("", 8383))
+        server_id = rand(8)
         while self.gamePrepare:
             data, address = sock.recvfrom(1024)
             data = _convert_type(data)
             if data["action"] == "getStatus":
-                send_broadcast({"game": self.players, "queue": self.queue})
+                send_broadcast({"game": [value.__dict__ for key, value in self.players.items()], "queue": self.queue,
+                                "id": server_id})
             elif data["action"] == "connectGame":
                 for i in self.queue:
                     if i['rid'] == data['rid']:
@@ -341,8 +350,8 @@ class GameServerPrepare:
         elif t == 'net':
             for i in self.queue:
                 if i['rid'] == rid:
-                    for j in self.players:
-                        if rid == j.rid:
+                    for key, value in self.players.items():
+                        if rid == value.rid:
                             return Message(False, "Игрок {} не найден ".format(str(rid)))
                     p = Player(i['name'], 'net', rid, ip=i['ip'])
                     self.players[p.id] = p
@@ -381,6 +390,52 @@ class GameServerPrepare:
         self.gamePrepare = False
         self.gamePrepareThread = Thread()
         self.dict = GameDictionary()
+
+
+class GameClientPrepare:
+    """Класс подключения клиента к игре"""
+
+    def _listener_daemon(self):
+        """Асинхронный метод для ожидания информации"""
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        sock.bind(("", 8384))
+        while self.prepare:
+            data, address = sock.recvfrom(1024)
+            data = _convert_type(data)
+            for i in self.servers:
+                if i["id"] == data["id"]:
+                    i["queue"] = data["queue"]
+                    i["game"] = data["game"]
+                    self.callback()
+                    break
+            else:
+                self.servers.append(data)
+                self.servers[-1]["ip"] = address[0]
+                self.callback()
+            print(data)
+        sock.close()
+
+    def _fetch_daemon(self):
+        while self.prepare:
+            send_broadcast({'action': 'getStatus'}, 8383)
+            time.sleep(1)
+
+    def connectServer(self, rid):
+        for i in self.servers:
+            if i["id"] == rid:
+                send_broadcast({'action': 'connectGame', 'rid': self.client_id, 'name': rand(2) + '_BOSS'}, 8383, i["ip"])
+                return Message(True)
+        return Message(False, "Сервер не найден")
+
+    def __init__(self):
+        self.prepare = True
+        self.servers = []
+        self.client_id = rand(8)
+        self.callback = lambda *args: None
+        self.listenThread = Thread(target=self._listener_daemon)
+        self.listenThread.start()
+        self.fetchThread = Thread(target=self._fetch_daemon)
+        self.fetchThread.start()
 
 
 class GameServer:

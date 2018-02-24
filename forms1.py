@@ -1,10 +1,9 @@
 import sys
-import time
 
 from PyQt5.QtCore import *
 from PyQt5.QtGui import QPainter, QColor
 from PyQt5.QtWidgets import QWidget, QDesktopWidget, QLabel, QGridLayout, QMainWindow, QPushButton, QApplication, \
-    QGroupBox, QMessageBox
+    QGroupBox, QMessageBox, QHBoxLayout
 
 from server import *
 
@@ -149,29 +148,92 @@ class SecondWindow(QWidget):
         self.yi = self.widthtotal * (1 - 2 * self.k2) / 15 - self.ot
         """инициализация окна"""
         # self.setGeometry(0, 30, self.widthtotal, self.heighttotal)
-        self.setWindowTitle('Event sender')
+        # self.setWindowTitle('Event sender')
+        #
+        # self.btnconcreate = QPushButton("Подключиться", self)
+        self.btnBack = QPushButton("Вернуться назад", self)
+        self.btnBack.move(400, 50)
+        #
+        # title = QLabel('Title')
+        # title.setAlignment(Qt.AlignCenter)
+        # title.setStyleSheet("QLabel {background-color: red;}")
+        #
+        # title2 = QLabel('Title2')
+        # title2.setAlignment(Qt.AlignCenter)
+        # title2.setStyleSheet("QLabel {background-color: yellow;}")
+        #
+        # self.grid = QGridLayout()
+        # self.grid.setSpacing(8)
+        #
+        # self.grid.addWidget(title, 0, 0, 2, 3)
+        # self.grid.addWidget(title2, 4, 0, 1, 3)
+        #
+        # self.grid.addWidget(self.btnfirst, 1, 4, 1, 1)
+        # self.grid.addWidget(self.btnconcreate, 0, 4, 1, 1)
+        #
+        # self.setLayout(self.grid)
+        self.setupUi(self)
+        self.serverInit()
 
-        self.btnconcreate = QPushButton("Подключиться", self)
-        self.btnfirst = QPushButton("Вернуться назад", self)
+    def setupUi(self, Form):
+        Form.setObjectName("Form")
+        Form.resize(400, 300)
+        self.groupBoxServers = QGroupBox(Form)
+        self.groupBoxServers.setGeometry(QRect(10, 0, 291, 361))
+        self.groupBoxServers.setObjectName("groupBoxServers")
 
-        title = QLabel('Title')
-        title.setAlignment(Qt.AlignCenter)
-        title.setStyleSheet("QLabel {background-color: red;}")
+        self.horizontalLayoutWidgets = []
+        self.horizontalLayouts = []
+        self.labels = []
+        self.pushButtons = []
+        for i in range(10):
+            self.horizontalLayoutWidgets.append(QWidget(self.groupBoxServers))
+            self.horizontalLayoutWidgets[-1].setGeometry(QRect(0, 20 + i * 30, 291, 21))
+            self.horizontalLayoutWidgets[-1].setObjectName("horizontalLayoutWidget")
+            self.horizontalLayouts.append(QHBoxLayout(self.horizontalLayoutWidgets[-1]))
+            self.horizontalLayouts[-1].setContentsMargins(0, 0, 0, 0)
+            self.horizontalLayouts[-1].setObjectName("horizontalLayout")
+            self.labels.append(QLabel(self.horizontalLayoutWidgets[-1]))
+            self.labels[-1].setText("Сервер такой то")
+            self.horizontalLayouts[-1].addWidget(self.labels[-1])
+            self.pushButtons.append(QPushButton(self.horizontalLayoutWidgets[-1]))
+            self.pushButtons[-1].setMouseTracking(False)
+            self.pushButtons[-1].setCheckable(False)
+            self.pushButtons[-1].setEnabled(False)
+            self.pushButtons[-1].setText("Подключиться")
+            self.horizontalLayouts[-1].addWidget(self.pushButtons[-1])
+            self.horizontalLayouts[-1].setStretch(0, 2)
 
-        title2 = QLabel('Title2')
-        title2.setAlignment(Qt.AlignCenter)
-        title2.setStyleSheet("QLabel {background-color: yellow;}")
+        self.retranslateUi(Form)
+        QMetaObject.connectSlotsByName(Form)
 
-        self.grid = QGridLayout()
-        self.grid.setSpacing(8)
+    def retranslateUi(self, Form):
+        _translate = QCoreApplication.translate
+        Form.setWindowTitle(_translate("Form", "Form"))
+        self.groupBoxServers.setTitle(_translate("Form", "Сервера"))
 
-        self.grid.addWidget(title, 0, 0, 2, 3)
-        self.grid.addWidget(title2, 4, 0, 1, 3)
+    def connect_server(self):
+        res = self.game.connectServer(self.sender().server_id)
+        if not res.res:
+            QMessageBox.question(self.sender(), 'Ошибка', res.msg, QMessageBox.Ok, QMessageBox.Ok)
 
-        self.grid.addWidget(self.btnfirst, 1, 4, 1, 1)
-        self.grid.addWidget(self.btnconcreate, 0, 4, 1, 1)
+    def redraw(self):
+        i = 0
+        while i < len(self.labels):
+            if i < len(self.game.servers):
+                self.labels[i].setText(self.game.servers[i]["id"] + " Игроков: " + str(len(self.game.servers[i]["game"])) + ". Ожидание: " + str(len(self.game.servers[i]["queue"])))
+                self.pushButtons[i].server_id = self.game.servers[i]["id"]
+                self.pushButtons[i].clicked.connect(self.connect_server)
+                self.pushButtons[i].setEnabled(True)
+            else:
+                self.labels[i].setText("")
+                self.pushButtons[i].setEnabled(False)
+            i += 1
 
-        self.setLayout(self.grid)
+    def serverInit(self):
+        self.game = GameClientPrepare()
+        self.game.callback = self.redraw
+
 
 class ThirdWindowCreate(QWidget):
     def __init__(self, parent=None):
@@ -439,10 +501,10 @@ class MainWindow(QMainWindow):
 
     def startSecond(self):
         self.Second = SecondWindow(self)
-        self.setWindowTitle("SecondWindow")
+        self.setWindowTitle("Подключение к серверу")
         self.setGeometry(0, 30, self.widthtotal / 2, self.heighttotal / 2)
         self.setCentralWidget(self.Second)
-        self.Second.btnfirst.clicked.connect(self.startFirst)
+        self.Second.btnBack.clicked.connect(self.startFirst)
         # self.Second.btnconcreate.clicked.connect(self.startThirdEx1)
 
         self.show()
