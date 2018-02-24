@@ -6,33 +6,18 @@ from PyQt5.QtGui import QPainter, QColor, QPen, QIcon, QBrush, QDrag
 from PyQt5.QtCore import *
 from server import *
 
-
-class Button(QPushButton):
+class Fishka(QPushButton):
 
     def __init__(self, title, parent):
         super().__init__(title, parent)
+        self.initUI()
+
+    def initUI(self):
+        self.MyLetter = ''
+        self.MyPrice = 0
+        self.MyKoord = [None , 0]
 
 
-    def mouseMoveEvent(self, e):
-
-        if e.buttons() != Qt.LeftButton:
-            return
-
-        mimeData = QMimeData()
-
-        drag = QDrag(self)
-        drag.setMimeData(mimeData)
-        drag.setHotSpot(e.pos() - self.rect().topLeft())
-
-        dropAction = drag.exec_(Qt.MoveAction)
-
-
-    def mousePressEvent(self, e):
-
-        QPushButton.mousePressEvent(self, e)
-
-        if e.button() == Qt.LeftButton:
-            print('press')
 
 
 
@@ -40,8 +25,6 @@ class GameWindow(QWidget):
 
     def __init__(self, parent=None):
         super(GameWindow, self).__init__(parent)
-        self.let = "A"
-        self.poi = 5
         self.koef = 1
         self.pos = 0
         self.k2 = 0.3
@@ -63,12 +46,23 @@ class GameWindow(QWidget):
         self.initUI()
 
     def initUI(self):
+        self.matr = Matrix()
         """основная часть создания элементов формы"""
         """Buttons"""
+        self.btnconcreateret = QPushButton("назад", self)
+        self.btnconcreateret.move( self.widthtotal - 120, 50)
         self.setAcceptDrops(True)
+        """Расстановка кнопок, уже имеющихся в таблице"""
+        for i in range(6):
+            self.matr.map[i][i+2] = self.getletter()
+        """расстановка кнопок для перемещения"""
         self.myletters = []
         for i in range(GameConfig.startCount):
-            self.myletters.append(QPushButton(self.getletter(), self))
+            gs = self.getletter()
+            self.myletters.append(Fishka(gs, self))
+            self.myletters[i].MyLetter = gs
+            self.myletters[i].MyPrice = GameConfig.letters[gs]['price']
+            self.myletters[i].MyKoord = [None , i]
             self.myletters[i].setGeometry(QRect(self.letterskoord[0] + (self.yi + self.ot)* i + self.ot, self.letterskoord[1] + self.ot, self.yi, self.yi))
 
         """line edit/konsol"""
@@ -78,20 +72,39 @@ class GameWindow(QWidget):
 
     def enter(self):
         """функция обработки строки консоли"""
-        """button=i,x,y"""
+        """move i,x,y"""
         l = self.konsol.text()
-        name = l.split("=")
-        if name[0] == "button" or name[0] == "but":
+        name = l.split("_")
+        if name[0] == "move":
             ch = name[1].split(",")
             i = int(ch[0])
             x = int(ch[1])
             y = int(ch[2])
             self.myletters[i].move(self.karta[x][y][0], self.karta[x][y][1])
+            self.matr.newletters.append(self.myletters[i].MyLetter)
+            self.matr.newkoord.append([x,y])
+        if name[0] == 'show':
+            self.ShowWords()
+        if name[0] == 'help' or help[0] == 'SOS':
+            self.Help()
         self.konsol.clear()
+
+    def Help(self):
+        print('переместить кнопку - move_i,x,y (i - номер кнопки,(x, y) - координаты)')
+        print('поиск новых слов - show')
+    def ShowWords(self):
+        """выводит новые слова"""
+        self.matr.pasteletters()
+        self.matr.serch()
+        print (self.matr.outx)
+        print (self.matr.outy)
+
     def getletter(self):
         """выбирает случайную букву"""
         random.seed()
         genletter = random.choice(GameConfig.let)
+        while GameConfig.letters[genletter]['count'] < 0:
+            genletter = random.choice(GameConfig.let)
         GameConfig.letters[genletter]['count'] -= 1
         return (genletter)
 
@@ -113,12 +126,12 @@ class GameWindow(QWidget):
         background.end()
 
     def drawBackground(self, background):
-        self.btnconcreateret = QPushButton("назад", self)
-        self.btnconcreateret.move( self.widthtotal - 120, 50)
+        """background)"""
+
         col = QColor(0, 0, 0)
         col.setNamedColor('#d4d4d4')
         background.setPen(col)
-        """background"""
+
         background.setBrush(QColor(220, 220, 220))
         background.drawRect(0, 0, self.widthtotal * 5, self.heighttotal * 5)
         """iam"""

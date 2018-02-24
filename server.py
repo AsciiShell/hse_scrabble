@@ -111,36 +111,37 @@ class Matrix:
 
     def reject_temp(self):
         """Отклоняет временные изменения"""
-        self.temp.clear()
+        self.newkoord = []
+        self.newletters = []
 
     def check_temp(self):
         """Возвращает True, если временная матрица правильная"""
         # TODO andrsolo21
         return True
 
-    def prov(self, words, x, y, napr, newkoord):
+    def prov(self,  x, y, napr):
         """проверяет, начие слова в этой ячейке (начало слова)"""
         flag = 0
         if napr == 2 and y != 14:
             if y != 0:
-                if (words[y - 1][x] == '') and (words[y + 1][x] != ''):
+                if (self.map[y - 1][x] == '') and (self.map[y + 1][x] != ''):
                     flag = 1
             else:
-                if words[y + 1][x] != '':
+                if self.map[y + 1][x] != '':
                     flag = 1
         if napr == 1 and x != 14:
             if x != 0:
-                if words[y][x - 1] == '' and words[y][x + 1] != '':
+                if self.map[y][x - 1] == '' and self.map[y][x + 1] != '':
                     flag = 1
             else:
-                if words[y][x + 1] != '':
+                if self.map[y][x + 1] != '':
                     flag = 1
         if flag == 1:
-            return self.schit(words, x, y, napr, newkoord)
+            return self.schit( x, y, napr)
         else:
             return ['', 0]
 
-    def schit(self, words, x, y, napr, newkoord):
+    def schit(self,  x, y, napr):
         """считывает слово"""
         s = ''
         newword = 0
@@ -148,74 +149,73 @@ class Matrix:
             a = 1
             while a != 0:
                 koord = [x, y]
-                if koord in newkoord:
+                if koord in self.newkoord:
                     newword = 1
-                s = s + words[y][x]
+                s = s + self.map[y][x]
                 if y == 14:
                     a = 0
                 else:
-                    if words[y + 1][x] == '':
+                    if self.map[y + 1][x] == '':
                         a = 0
                 y = y + 1
         else:
             a = 1
             while a != 0:
                 koord = [x, y]
-                if koord in newkoord:
+                if koord in self.newkoord:
                     newword = 1
-                s = s + words[y][x]
+                s = s + self.map[y][x]
                 if x == 14:
                     a = 0
                 else:
-                    if words[y][x + 1] == '':
+                    if self.map[y][x + 1] == '':
                         a = 0
                 x = x + 1
         return [s, newword]
 
-    def pasteletters(self, words, newkoord, newletters):
+    def pasteletters(self):
         """вставляет буквы в матрицу"""
-        for i in range(len(newkoord)):
-            words[newkoord[i][1]][newkoord[i][0]] = newletters[i]
-        return words
+        for i in range(len(self.newkoord)):
+            self.map[self.newkoord[i][1]][self.newkoord[i][0]] = self.newletters[i]
+
 
     def serch(self):
         """ищет слова в матрице"""
-        newkoord = []
-        newletters = []
-        words = self.map
-        n = 0
-        for i in self.temp:
-            newletters.append([[i.x], [i.y]])
-            newkoord.append(i.letter)
-        # newkoord = [[4,6],[4,8],[4,9],[4,10]]
-        # newletters = ['б','т','о','н']
+
+        #n = 0
+        #for i in self.temp:
+        #    newletters.append([[i.x], [i.y]])
+        #   self.newkoord.append(i.letter)
+        # self.newkoord = [[4,6],[4,8],[4,9],[4,10]]
+        # self.newletters = ['б','т','о','н']
         # движение по оси x = 1
         # движение по оси y = 2
-        outx = []
-        outy = []
-        words = self.pasteletters(words, newkoord, newletters)
-        for i in range(len(words)):
-            for j in range(len(words[i])):
-                if (words[i][j] != ''):
-                    slx = self.prov(words, j, i, 1, newkoord)
-                    sly = self.prov(words, j, i, 2, newkoord)
+        self.outx = []
+        self.outy = []
+        self.pasteletters()
+        for i in range(len(self.map)):
+            for j in range(len(self.map[i])):
+                if (self.map[i][j] != ''):
+                    slx = self.prov( j, i, 1)
+                    sly = self.prov( j, i, 2 )
                     if (slx[1] == 1):
-                        outx.append(slx)
+                        self.outx.append(slx[0])
                     if (sly[1] == 1):
-                        outx.append(sly)
+                        self.outy.append(sly[0])
                     """if (slx[0] != ''):
                         print(slx[0])
                     if (sly[0] != ''):
                         print(sly[0])"""
 
-    def get(self, x, y):
+    def get(self, y, x):
         """Возвращает точку по адресу"""
-        return self.map[x][y]
+        return self.map[y][x]
 
     def __init__(self):
         """Создает новую игровую карту"""
-        self.map = [[Point(j, i) for i in range(15)] for j in range(15)]
-        self.temp = []
+        self.map = [["" for i in range(15)] for j in range(15)]
+        self.newkoord = []
+        self.newletters = []
 
 
 class GameDictionary:
@@ -380,3 +380,13 @@ class GameServerPrepare:
 class GameServer:
     def __init__(self, players):
         self.players = players
+
+
+if __name__ == '__main__':
+    Matr = Matrix()
+    Matr.newkoord = [[4,6],[4,8],[4,9],[4,10] ,[3,7],[4,7],[5,7] ]
+    Matr.newletters = ['б','т','о','н','в','а','л']
+    Matr.serch()
+    print('Hello, world!!!')
+    print(Matr.outx)
+    print(Matr.outy)
