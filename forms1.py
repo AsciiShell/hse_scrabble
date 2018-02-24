@@ -1,9 +1,39 @@
 import sys
 from PyQt5.QtWidgets import QWidget, QDesktopWidget, QLabel, QGridLayout, QLineEdit, QHBoxLayout, QVBoxLayout, \
     QHBoxLayout, QFrame, QSplitter, QStyleFactory, QApplication, QMainWindow, QPushButton, QApplication
-from PyQt5.QtGui import QPainter, QColor, QPen, QIcon, QBrush
+from PyQt5.QtGui import QPainter, QColor, QPen, QIcon, QBrush, QDrag
 from PyQt5.QtCore import *
 from server import *
+
+
+class Button(QPushButton):
+
+    def __init__(self, title, parent):
+        super().__init__(title, parent)
+
+
+    def mouseMoveEvent(self, e):
+
+        if e.buttons() != Qt.LeftButton:
+            return
+
+        mimeData = QMimeData()
+
+        drag = QDrag(self)
+        drag.setMimeData(mimeData)
+        drag.setHotSpot(e.pos() - self.rect().topLeft())
+
+        dropAction = drag.exec_(Qt.MoveAction)
+
+
+    def mousePressEvent(self, e):
+
+        QPushButton.mousePressEvent(self, e)
+
+        if e.button() == Qt.LeftButton:
+            print('press')
+
+
 
 class GameWindow(QWidget):
 
@@ -20,29 +50,50 @@ class GameWindow(QWidget):
         self.libw = self.widthtotal * self.k2
         self.libh = self.heighttotal / 3
         self.yi = self.widthtotal * (1 - 2 * self.k2) / 15 - self.ot
+        self.letterskoord = [self.libw + self.ot, 15 * (self.ot + self.yi) + self.ot]
         """инициализация окна"""
         self.btnconcreateret = QPushButton("назад", self)
         self.btnconcreateret.move( self.widthtotal - 120, 50)
         #self.stolfishki =
-        self.fishka1 = QPushButton(self.let, self)
-        self.fishka1.setGeometry(QRect(100 + (self.yi + self.ot)* 1, 90, self.yi, self.yi))
-        self.fishka2 = QPushButton(self.let, self)
-        self.fishka2.setGeometry(QRect(100 + (self.yi + self.ot)* 2, 90, self.yi, self.yi))
+        """Buttons"""
+
         #CreateFishka(self.let,self.poi,100 + (self.yi + self.ot) * self.pos, 90,self.fishka1,1)
 
-        #self.initUI()
+        self.initUI()
 
-    #def initUI(self):
+    def initUI(self):
+        """Buttons"""
+        self.setAcceptDrops(True)
+        self.myletters = []
+        self.let = ["А","Б","В","Г","Д","Е","Ж"]
+        for i in range(GameConfig.startCount):
+            self.myletters.append(QPushButton(self.let[i], self))
+            self.myletters[i].setGeometry(QRect(self.letterskoord[0] + (self.yi + self.ot)* i + self.ot, self.letterskoord[1] + self.ot, self.yi, self.yi))
 
+        """line edit"""
+        self.konsol = QLineEdit(self)
+        self.konsol.setGeometry(self.ot, self.ot + self.libh, self.libw - self.ot, 20)
+        self.konsol.returnPressed.connect(self.enter)
 
-        #self.setGeometry(0, 30, self.widthtotal, self.heighttotal)
+    def enter(self):
+        """button=i,x,y"""
+        l = self.konsol.text()
+        name = l.split("=")
+        if name[0] == "button":
+            ch = name[1].split(",")
+            i = int(ch[0])
+            x = int(ch[1])
+            y = int(ch[2])
+            self.myletters[i].move(self.karta[x][y][0], self.karta[x][y][1])
+        self.konsol.clear()
+
+    #self.setGeometry(0, 30, self.widthtotal, self.heighttotal)
         # self.square.setStyleSheet("QWidget { background-color: %s }" % self.col.name())
         # self.setWindowTitle('Icon')
         # self.setWindowIcon(QIcon('web.png'))
         # QToolTip.setFont(QFont('SansSerif', 10))
-    def CreateFishka(self,letter,points,x,y,but, pos):
-        if pos > 0:
-            but.setGeometry(QRect(x,y, self.yi, self.yi))
+
+
 
 
 
@@ -72,15 +123,17 @@ class GameWindow(QWidget):
             for j in range(15):
                 xp = self.libw + j * (self.ot + self.yi) + self.ot
                 yp = self.ot + i * (self.ot + self.yi)
-                self.karta[i][j] = [xp], [yp]
+                self.karta[i][j] = [xp , yp]
                 background.setBrush(QColor(Point.info[GameConfig.map[i][j]]['color']))
                 background.drawRect(xp, yp, self.yi, self.yi)
         background.setBrush(QColor(255, 255, 255))
         """history"""
         background.drawRect(self.ot, self.ot + self.libh, self.libw - self.ot, 2 * self.libh - self.ot - self.ot)
         """letters"""
-        background.drawRect(self.libw + self.ot, 15 * (self.ot + self.yi) + self.ot, 15 * (self.ot + self.yi) - self.ot,
+
+        background.drawRect(self.letterskoord[0], self.letterskoord[1], 15 * (self.ot + self.yi) - self.ot,
                             self.heighttotal - 15 * (self.ot + self.yi) - 2 * self.ot)
+
         """p1"""
         background.drawRect(self.widthtotal * (1 - self.k2) + self.ot, self.ot, self.libw - self.ot - self.ot,
                             self.libh - self.ot)
@@ -92,12 +145,15 @@ class GameWindow(QWidget):
                             self.libw - self.ot - self.ot, self.libh - self.ot - self.ot)
         """закрашивает квадратик по координатам"""
         background.setBrush(QColor(200, 200, 200))
-        background.drawRect(self.karta[7][7][0][0], self.karta[7][7][1][0], self.yi, self.yi)
+        background.drawRect(self.karta[7][7][0], self.karta[7][7][1], self.yi, self.yi)
         """for i in range(15):
             for j in range(15):
                 background.setPen(QColor(255, 255, 255))
                 background.setFont(QFont('Decorative', 10))
                 background.drawText(self.karta[i][j][0][0],self.karta[i][j][1][0], self.yi,self.yi,Qt.AlignCenter, Point.info[GameConfig.map[i][j]]['multi'])"""
+
+
+
 
 class ScreenSet():
     def __init__(self):
