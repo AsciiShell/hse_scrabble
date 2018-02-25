@@ -192,7 +192,7 @@ class Matrix:
         # движение по оси y = 2
         self.outx = []
         self.outy = []
-        self.chekkoord
+        self.chekKoord()
         self.pasteletters()
         for i in range(len(self.map)):
             for j in range(len(self.map[i])):
@@ -221,6 +221,7 @@ class Matrix:
                 b.append(self.newletters[i])
         self.newkoord = a
         self.newletters = b
+        print('проверили новые данные')
 
 
     def __init__(self):
@@ -396,8 +397,8 @@ class GameServer:
 
 if __name__ == '__main__':
     Matr = Matrix()
-    Matr.newkoord = [[4,6],[4,8],[4,9],[4,10] ,[3,7],[4,7],[5,7] ]
-    Matr.newletters = ['б','т','о','н','в','а','л']
+    Matr.newkoord = [[None, None], [2, 2], [2, 1], [4, 1]]
+    Matr.newletters = ['Д', 'Д', 'У', 'Е']
     Matr.serch()
     print('Hello, world!!!')
     print(Matr.outx)
