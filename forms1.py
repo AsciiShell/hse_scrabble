@@ -213,7 +213,7 @@ class SecondWindow(QWidget):
         self.groupBoxServers.setTitle(_translate("Form", "Сервера"))
 
     def connect_server(self):
-        res = self.game.connectServer(self.sender().server_id)
+        res = self.game.connect_server(self.sender().server_id)
         if not res.res:
             QMessageBox.question(self.sender(), 'Ошибка', res.msg, QMessageBox.Ok, QMessageBox.Ok)
 

@@ -62,9 +62,17 @@ class GameConfig:
     fullBonus = 15
     """Количество пропусков для завершения игры"""
     skipEnd = 2
+    """Время хода"""
+    turnTime = 60
 
 
-class Point:
+class Letter:
+    def __init__(self, letter):
+        self.letter = letter
+        self.price = GameConfig.letters[letter]["price"]
+
+
+class Point(Letter):
     """Класс ячейки поля"""
     info = [{'color': 'white', 'multi': 'letter', 'value': 1},
             {'color': 'green', 'multi': 'letter', 'value': 2},
@@ -76,7 +84,8 @@ class Point:
         """Возвращает информацию о текущей точке"""
         return self.info[self.t]
 
-    def __init__(self, x, y, letter=None, t=None):
+    def __init__(self, x, y, letter, t=None):
+        super().__init__(letter)
         """Создает точку
         x, y - координаты
         t - числовой тип
@@ -88,7 +97,6 @@ class Point:
             self.t = GameConfig.map[x][y]
         else:
             self.t = t
-        self.letter = letter
 
 
 class Matrix:
@@ -270,7 +278,7 @@ def _convert_type(b):
 
 def rand(length=4):
     alphabet = 'abcdefghijklmnopqrstuvwxyz0123456789'
-    return ''.join([alphabet[random.randrange(len(alphabet))] for i in range(length)])
+    return ''.join([alphabet[random.randrange(len(alphabet))] for _ in range(length)])
 
 
 class Player:
@@ -286,6 +294,36 @@ class Player:
         self.rid = rid
         self.dif = dif
         self.ip = ip
+
+
+class GamePlayer(Player):
+    def __init__(self, name, t, callback=lambda *args: None, rid=None, dif=None, ip=None):
+        super().__init__(name, t, rid, dif, ip)
+        self.score = 0
+        self.letters = []
+        self.isTurn = False
+        self.isComplete = False
+        # TODO функция должна зависеть от типа игрока
+        # TODO возможно следует создать еще несколько дочерних классов для каждого типа пользователя
+        self.callback = callback
+        self.timeout = 0
+        self.input = None
+        self.result = None
+
+    def action(self, game):
+        """Посылает игроку команду на начало действий и ожидает прекращения"""
+        self.isTurn = True
+        self.isComplete = False
+        self.timeout = GameConfig.turnTime
+        self.input = game
+        self.callback()
+        while not self.isComplete:
+            time.sleep(1)
+            self.timeout -= 1
+            if self.timeout <= 0:
+                self.isComplete = True
+        self.isTurn = False
+        return self.result
 
 
 class Message:
@@ -420,10 +458,11 @@ class GameClientPrepare:
             send_broadcast({'action': 'getStatus'}, 8383)
             time.sleep(1)
 
-    def connectServer(self, rid):
+    def connect_server(self, rid):
         for i in self.servers:
             if i["id"] == rid:
-                send_broadcast({'action': 'connectGame', 'rid': self.client_id, 'name': rand(2) + '_BOSS'}, 8383, i["ip"])
+                send_broadcast({'action': 'connectGame', 'rid': self.client_id, 'name': rand(2) + '_BOSS'}, 8383,
+                               i["ip"])
                 return Message(True)
         return Message(False, "Сервер не найден")
 
@@ -441,4 +480,21 @@ class GameClientPrepare:
 class GameServer:
     def __init__(self, players):
         self.players = players
+        self.playStatus = True
+        self.alphabet = ""
+        for key, value in GameConfig.letters.items():
+            self.alphabet += key * value["count"]
+        self.thread = Thread(target=self._game_loop)
+        self.thread.start()
+
+    def _game_loop(self):
+        while self.playStatus:
+            for i in self.players:
+                result = i.action(self)
+                if result:
+                    # TODO Какая то обработка резульатата и измененние значений
+                    pass
+
+
+x = GameServer([GamePlayer("ADMIN", "local"), GamePlayer("BOT", "bot")])
 # send_broadcast({'action': 'connectGame', 'rid': 'qwмty', 'name': 'BOSS'}, 8383)
