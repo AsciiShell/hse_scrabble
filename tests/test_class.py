@@ -37,19 +37,19 @@ class TestGameDictionary(unittest.TestCase):
 
 class TestPoint(unittest.TestCase):
     def test_1(self):
-        self.assertTrue(Point(0, 0).get_info() == Point.info[4])
+        self.assertTrue(Point(0, 0, 'Я').get_info() == Point.info[4])
 
     def test_2(self):
-        self.assertTrue(Point(6, 8).get_info() == Point.info[1])
+        self.assertTrue(Point(6, 8, 'Я').get_info() == Point.info[1])
 
     def test_3(self):
-        self.assertTrue(Point(4, 4).get_info() == Point.info[2])
+        self.assertTrue(Point(4, 4, 'Я').get_info() == Point.info[2])
 
     def test_4(self):
-        self.assertTrue(Point(1, 5).get_info() == Point.info[3])
+        self.assertTrue(Point(1, 5, 'Я').get_info() == Point.info[3])
 
     def test_5(self):
-        self.assertTrue(Point(1, 2).get_info() == Point.info[0])
+        self.assertTrue(Point(1, 2, 'Я').get_info() == Point.info[0])
 
 
 if __name__ == '__main__':
