@@ -1,14 +1,13 @@
 import sys
-import random
-from PyQt5.QtWidgets import QWidget, QDesktopWidget, QLabel, QGridLayout, QLineEdit, QHBoxLayout, QVBoxLayout, \
-    QHBoxLayout, QFrame, QSplitter, QStyleFactory, QApplication, QMainWindow, QPushButton, QApplication,QListWidget
-from PyQt5.QtGui import QPainter, QColor, QPen, QIcon, QBrush, QDrag
+
 from PyQt5.QtCore import *
 from PyQt5.QtGui import QPainter, QColor
-from PyQt5.QtWidgets import QWidget, QDesktopWidget, QLabel, QGridLayout, QMainWindow, QPushButton, QApplication, \
+from PyQt5.QtWidgets import QLineEdit
+from PyQt5.QtWidgets import QWidget, QDesktopWidget, QLabel, QMainWindow, QPushButton, QApplication, \
     QGroupBox, QMessageBox, QHBoxLayout
 
 from server import *
+
 
 class Fishka(QPushButton):
 
@@ -19,10 +18,7 @@ class Fishka(QPushButton):
     def initUI(self):
         self.MyLetter = ''
         self.MyPrice = 0
-        self.MyKoord = [None , 0]
-
-
-
+        self.MyKoord = [None, 0]
 
 
 class GameWindow(QWidget):
@@ -41,26 +37,25 @@ class GameWindow(QWidget):
         self.letterskoord = [self.libw + self.ot, 15 * (self.ot + self.yi) + self.ot]
         """инициализация окна"""
         self.btnconcreateret = QPushButton("назад", self)
-        self.btnconcreateret.move( self.widthtotal - 120, 50)
-        #self.stolfishki =
+        self.btnconcreateret.move(self.widthtotal - 120, 50)
+        # self.stolfishki =
 
-
-        #CreateFishka(self.let,self.poi,100 + (self.yi + self.ot) * self.pos, 90,self.fishka1,1)
+        # CreateFishka(self.let,self.poi,100 + (self.yi + self.ot) * self.pos, 90,self.fishka1,1)
 
         self.initUI()
 
     def initUI(self):
         self.matr = Matrix()
         """основная часть создания элементов формы"""
-        #self.list = QListWidget()
-        #self.list.setGeometry(self.ot, self.ot + self.libh + 20, self.libw - self.ot,2 * self.libh - self.ot - self.ot - 20)
+        # self.list = QListWidget()
+        # self.list.setGeometry(self.ot, self.ot + self.libh + 20, self.libw - self.ot,2 * self.libh - self.ot - self.ot - 20)
         """Buttons"""
         self.btnconcreateret = QPushButton("назад", self)
-        self.btnconcreateret.move( self.widthtotal - 120, 50)
+        self.btnconcreateret.move(self.widthtotal - 120, 50)
         self.setAcceptDrops(True)
 
         for i in range(10):
-            self.matr.map[i][i+2] = self.getletter()
+            self.matr.map[i][i + 2] = self.getletter()
         """Расстановка кнопок, уже имеющихся в таблице"""
         self.ButMap = [[]]
 
@@ -83,9 +78,12 @@ class GameWindow(QWidget):
             self.myletters.append(Fishka((gs + '(' + str(i) + ')'), self))
             self.myletters[i].MyLetter = gs
             self.myletters[i].MyPrice = GameConfig.letters[gs]['price']
-            self.myletters[i].MyKoord = [None , i]
-            self.StartPosition.append([self.letterskoord[0] + (self.yi + self.ot)* i + self.ot, self.letterskoord[1] + self.ot])
-            self.myletters[i].setGeometry(QRect(self.letterskoord[0] + (self.yi + self.ot)* i + self.ot, self.letterskoord[1] + self.ot, self.yi, self.yi))
+            self.myletters[i].MyKoord = [None, i]
+            self.StartPosition.append(
+                [self.letterskoord[0] + (self.yi + self.ot) * i + self.ot, self.letterskoord[1] + self.ot])
+            self.myletters[i].setGeometry(
+                QRect(self.letterskoord[0] + (self.yi + self.ot) * i + self.ot, self.letterskoord[1] + self.ot, self.yi,
+                      self.yi))
 
         """line edit/konsol"""
         self.konsol = QLineEdit(self)
@@ -99,7 +97,7 @@ class GameWindow(QWidget):
         name = l.split(" ")
         if name[0] == "move":
             ch = name[1].split(",")
-            self.ProverkaKoordinat(int(ch[0]),int(ch[1]), int(ch[2]))
+            self.ProverkaKoordinat(int(ch[0]), int(ch[1]), int(ch[2]))
         if name[0] == 'show':
             self.ShowWords()
         if name[0] == 'help' or name[0] == 'SOS':
@@ -114,11 +112,12 @@ class GameWindow(QWidget):
         print(self.matr.newkoord)
         for i in self.matr.map:
             print(i)
+
     def ShowWords(self):
         """выводит новые слова"""
         self.matr.serch()
-        print (self.matr.outx)
-        print (self.matr.outy)
+        print(self.matr.outx)
+        print(self.matr.outy)
         for i in self.matr.map:
             print(i)
 
@@ -132,48 +131,47 @@ class GameWindow(QWidget):
         return (genletter)
 
     def ProverkaKoordinat(self, i, x, y):
-        r = [y,x]
-        #проверяем, была ли занята эта ячейка до этого хода
+        r = [y, x]
+        # проверяем, была ли занята эта ячейка до этого хода
         if self.matr.map[x][y] == '':
-            #проверяем, откуда перетаскиваем букву, тк могут остаться хвосты
+            # проверяем, откуда перетаскиваем букву, тк могут остаться хвосты
             if self.myletters[i].MyKoord[0] != None:
                 print('есть хвост')
                 for j in range(len(self.matr.newkoord)):
-                    print ('начал поиск')
-                    print (self.matr.newkoord[j])
+                    print('начал поиск')
+                    print(self.matr.newkoord[j])
                     print(self.myletters[i].MyKoord)
-                    if self.matr.newkoord[j][0] == self.myletters[i].MyKoord[0] :
-                        print ('нашли хвост')
-                        self.matr.newkoord[j] = [None,None]
-                        print ('убрали хвост')
-            #проверяем, ставили ли мы букву на новое место на этом ходу
+                    if self.matr.newkoord[j][0] == self.myletters[i].MyKoord[0]:
+                        print('нашли хвост')
+                        self.matr.newkoord[j] = [None, None]
+                        print('убрали хвост')
+            # проверяем, ставили ли мы букву на новое место на этом ходу
             if r in self.matr.newkoord:
-                #да, ставили, освобождаем для нее место
+                # да, ставили, освобождаем для нее место
                 for j in range(len(self.myletters)):
-                    #ищем какую букву сьавили
+                    # ищем какую букву сьавили
                     if self.myletters[j].MyKoord == r:
-                        self.myletters[j].move(self.StartPosition[j][0],self.StartPosition[j][1])
-                        self.myletters[j].MyKoord = [None,j]
-                        print ('нашли')
+                        self.myletters[j].move(self.StartPosition[j][0], self.StartPosition[j][1])
+                        self.myletters[j].MyKoord = [None, j]
+                        print('нашли')
                 for j in range(len(self.matr.newkoord)):
-                    #ищем на какую позицию записана старая буква
+                    # ищем на какую позицию записана старая буква
                     if r == self.matr.newkoord[j]:
                         self.matr.newletters[j] = self.myletters[i].MyLetter
             else:
                 self.matr.newletters.append(self.myletters[i].MyLetter)
-                self.matr.newkoord.append([y,x])
-            #перемещаем новую кнопкуна новое место
+                self.matr.newkoord.append([y, x])
+            # перемещаем новую кнопкуна новое место
             self.myletters[i].move(self.karta[x][y][0], self.karta[x][y][1])
-            self.myletters[i].MyKoord = [y,x]
+            self.myletters[i].MyKoord = [y, x]
         else:
             pass
-    #self.setGeometry(0, 30, self.widthtotal, self.heighttotal)
-        # self.square.setStyleSheet("QWidget { background-color: %s }" % self.col.name())
-        # self.setWindowTitle('Icon')
-        # self.setWindowIcon(QIcon('web.png'))
-        # QToolTip.setFont(QFont('SansSerif', 10))
 
-
+    # self.setGeometry(0, 30, self.widthtotal, self.heighttotal)
+    # self.square.setStyleSheet("QWidget { background-color: %s }" % self.col.name())
+    # self.setWindowTitle('Icon')
+    # self.setWindowIcon(QIcon('web.png'))
+    # QToolTip.setFont(QFont('SansSerif', 10))
 
     def paintEvent(self, e):
         background = QPainter()
@@ -200,7 +198,7 @@ class GameWindow(QWidget):
             for j in range(15):
                 xp = self.libw + j * (self.ot + self.yi) + self.ot
                 yp = self.ot + i * (self.ot + self.yi)
-                self.karta[i][j] = [xp , yp]
+                self.karta[i][j] = [xp, yp]
                 background.setBrush(QColor(Point.info[GameConfig.map[i][j]]['color']))
                 background.drawRect(xp, yp, self.yi, self.yi)
         background.setBrush(QColor(255, 255, 255))
@@ -351,7 +349,8 @@ class SecondWindow(QWidget):
         i = 0
         while i < len(self.labels):
             if i < len(self.game.servers):
-                self.labels[i].setText(self.game.servers[i]["id"] + " Игроков: " + str(len(self.game.servers[i]["game"])) + ". Ожидание: " + str(len(self.game.servers[i]["queue"])))
+                self.labels[i].setText(self.game.servers[i]["id"] + " Игроков: " + str(
+                    len(self.game.servers[i]["game"])) + ". Ожидание: " + str(len(self.game.servers[i]["queue"])))
                 self.pushButtons[i].server_id = self.game.servers[i]["id"]
                 self.pushButtons[i].clicked.connect(self.connect_server)
                 self.pushButtons[i].setEnabled(True)
@@ -497,12 +496,6 @@ class ThirdWindowCreate(QWidget):
     # self.setLayout(vbox)
 
 
-
-
-
-
-
-
 class MainWindow(QMainWindow):
     def __init__(self, parent=None):
         super(MainWindow, self).__init__(parent)
@@ -555,12 +548,6 @@ class MainWindow(QMainWindow):
         self.First.btnconnect.clicked.connect(self.startSecond)
         self.First.btncreate.clicked.connect(self.startGamePrepare)
         self.show()
-
-
-
-
-        Form.show()
-
 
 
 if __name__ == '__main__':

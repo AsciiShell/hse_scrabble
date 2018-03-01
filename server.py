@@ -23,7 +23,8 @@ class GameConfig:
            [0, 0, 2, 0, 0, 0, 1, 0, 1, 0, 0, 0, 2, 0, 0],
            [0, 2, 0, 0, 0, 3, 0, 0, 0, 3, 0, 0, 0, 2, 0],
            [4, 0, 0, 1, 0, 0, 0, 4, 0, 0, 0, 1, 0, 0, 4]]
-    let = ['А','Б','В','Г','Д','Е','Ж','З','И','Й','К','Л','М','Н', 'О','П','Р','С', 'Т', 'У','Ф','Х','Ц','Ч','Ш','Щ','Ъ','Ы','Ь','Э','Ю','Я','*']
+    let = ['А', 'Б', 'В', 'Г', 'Д', 'Е', 'Ж', 'З', 'И', 'Й', 'К', 'Л', 'М', 'Н', 'О', 'П', 'Р', 'С', 'Т', 'У', 'Ф', 'Х',
+           'Ц', 'Ч', 'Ш', 'Щ', 'Ъ', 'Ы', 'Ь', 'Э', 'Ю', 'Я', '*']
     letters = {'А': {'count': 10, 'price': 1},
                'Б': {'count': 3, 'price': 3},
                'В': {'count': 5, 'price': 2},
@@ -128,7 +129,7 @@ class Matrix:
         # TODO andrsolo21
         return True
 
-    def prov(self,  x, y, napr):
+    def prov(self, x, y, napr):
         """проверяет, начие слова в этой ячейке (начало слова)"""
         flag = 0
         if napr == 2 and y != 14:
@@ -146,11 +147,11 @@ class Matrix:
                 if self.map[y][x + 1] != '':
                     flag = 1
         if flag == 1:
-            return self.schit( x, y, napr)
+            return self.schit(x, y, napr)
         else:
             return ['', 0]
 
-    def schit(self,  x, y, napr):
+    def schit(self, x, y, napr):
         """считывает слово"""
         s = ''
         newword = 0
@@ -187,12 +188,11 @@ class Matrix:
         for i in range(len(self.newkoord)):
             self.map[self.newkoord[i][1]][self.newkoord[i][0]] = self.newletters[i]
 
-
     def serch(self):
         """ищет слова в матрице"""
 
-        #n = 0
-        #for i in self.temp:
+        # n = 0
+        # for i in self.temp:
         #    newletters.append([[i.x], [i.y]])
         #   self.newkoord.append(i.letter)
         # self.newkoord = [[4,6],[4,8],[4,9],[4,10]]
@@ -206,8 +206,8 @@ class Matrix:
         for i in range(len(self.map)):
             for j in range(len(self.map[i])):
                 if (self.map[i][j] != ''):
-                    slx = self.prov( j, i, 1)
-                    sly = self.prov( j, i, 2 )
+                    slx = self.prov(j, i, 1)
+                    sly = self.prov(j, i, 2)
                     if (slx[1] == 1):
                         self.outx.append(slx[0])
                     if (sly[1] == 1):
@@ -231,7 +231,6 @@ class Matrix:
         self.newkoord = a
         self.newletters = b
         print('проверили новые данные')
-
 
     def __init__(self):
         """Создает новую игровую карту"""
@@ -510,7 +509,6 @@ class GameServer:
                     pass
 
 
-x = GameServer([GamePlayer("ADMIN", "local"), GamePlayer("BOT", "bot")])
 # send_broadcast({'action': 'connectGame', 'rid': 'qwмty', 'name': 'BOSS'}, 8383)
 
 
@@ -522,3 +520,4 @@ if __name__ == '__main__':
     print('Hello, world!!!')
     print(Matr.outx)
     print(Matr.outy)
+    x = GameServer([GamePlayer("ADMIN", "local"), GamePlayer("BOT", "bot")])
