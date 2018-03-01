@@ -1,6 +1,7 @@
 import json
 import random
 import socket
+import time
 import warnings
 from threading import Thread
 
@@ -62,9 +63,17 @@ class GameConfig:
     fullBonus = 15
     """Количество пропусков для завершения игры"""
     skipEnd = 2
+    """Время хода"""
+    turnTime = 60
 
 
-class Point:
+class Letter:
+    def __init__(self, letter):
+        self.letter = letter
+        self.price = GameConfig.letters[letter]["price"]
+
+
+class Point(Letter):
     """Класс ячейки поля"""
     info = [{'color': 'white', 'multi': 'letter', 'value': 1},
             {'color': 'green', 'multi': 'letter', 'value': 2},
@@ -76,7 +85,8 @@ class Point:
         """Возвращает информацию о текущей точке"""
         return self.info[self.t]
 
-    def __init__(self, x, y, letter=None, t=None):
+    def __init__(self, x, y, letter, t=None):
+        super().__init__(letter)
         """Создает точку
         x, y - координаты
         t - числовой тип
@@ -88,7 +98,6 @@ class Point:
             self.t = GameConfig.map[x][y]
         else:
             self.t = t
-        self.letter = letter
 
 
 class Matrix:
@@ -264,11 +273,12 @@ class GameDictionary:
             self.dict = f.read().lower().split("\n")
 
 
-def send_broadcast(data, port=8384):
+def send_broadcast(data, port=8384, ip='255.255.255.255'):
     cs = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    cs.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    cs.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-    cs.sendto(_encode(data), ('255.255.255.255', port))
+    if ip == '255.255.255.255':
+        cs.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        cs.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+    cs.sendto(_encode(data), (ip, port))
 
 
 def _encode(b):
@@ -278,6 +288,11 @@ def _encode(b):
 def _convert_type(b):
     """Преобразует байтовую строку в массив"""
     return json.loads(b.decode("utf-8"))
+
+
+def rand(length=4):
+    alphabet = 'abcdefghijklmnopqrstuvwxyz0123456789'
+    return ''.join([alphabet[random.randrange(len(alphabet))] for _ in range(length)])
 
 
 class Player:
@@ -295,6 +310,36 @@ class Player:
         self.ip = ip
 
 
+class GamePlayer(Player):
+    def __init__(self, name, t, callback=lambda *args: None, rid=None, dif=None, ip=None):
+        super().__init__(name, t, rid, dif, ip)
+        self.score = 0
+        self.letters = []
+        self.isTurn = False
+        self.isComplete = False
+        # TODO функция должна зависеть от типа игрока
+        # TODO возможно следует создать еще несколько дочерних классов для каждого типа пользователя
+        self.callback = callback
+        self.timeout = 0
+        self.input = None
+        self.result = None
+
+    def action(self, game):
+        """Посылает игроку команду на начало действий и ожидает прекращения"""
+        self.isTurn = True
+        self.isComplete = False
+        self.timeout = GameConfig.turnTime
+        self.input = game
+        self.callback()
+        while not self.isComplete:
+            time.sleep(1)
+            self.timeout -= 1
+            if self.timeout <= 0:
+                self.isComplete = True
+        self.isTurn = False
+        return self.result
+
+
 class Message:
     """Класс возвращаемых сообщений"""
 
@@ -310,22 +355,25 @@ class GameServerPrepare:
         """Асинхронный метод для ожидания информации"""
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         sock.bind(("", 8383))
+        server_id = rand(8)
         while self.gamePrepare:
             data, address = sock.recvfrom(1024)
             data = _convert_type(data)
             if data["action"] == "getStatus":
-                send_broadcast({"game": self.players, "queue": self.queue})
+                send_broadcast({"game": [value.__dict__ for key, value in self.players.items()], "queue": self.queue,
+                                "id": server_id})
             elif data["action"] == "connectGame":
                 for i in self.queue:
                     if i['rid'] == data['rid']:
                         break
                 else:
-                    self.queue.append({"ip": address, "name": data["name"], "rid": data["rid"]})
+                    self.queue.append({"ip": address, "name": data["name"], "rid": data["rid"], "add": False})
             elif data["action"] == 'continue':
                 pass
             else:
                 warnings.warn("Неизвестное действие " + data["action"])
             print(data)
+        sock.close()
 
     def create_game(self, player_name):
         """Создает игру с указанными параметрами"""
@@ -335,6 +383,7 @@ class GameServerPrepare:
         me = Player(player_name, "local")
         self.players[me.id] = me
         self.gamePrepareThread = Thread(target=self.create_game_async)
+        self.gamePrepareThread.start()
 
     def get_status(self):
         if self.gamePrepare:
@@ -343,7 +392,7 @@ class GameServerPrepare:
             return False
 
     def add_player(self, t, rid=None):
-        if self.gamePrepare:
+        if not self.gamePrepare:
             return Message(False, 'Игра не находится в процессе подготовки')
         if len(self.players) >= 4:
             return Message(False, 'Достаточно игроков')
@@ -353,8 +402,13 @@ class GameServerPrepare:
         elif t == 'net':
             for i in self.queue:
                 if i['rid'] == rid:
+                    for key, value in self.players.items():
+                        if rid == value.rid:
+                            return Message(False, "Игрок {} не найден ".format(str(rid)))
                     p = Player(i['name'], 'net', rid, ip=i['ip'])
                     self.players[p.id] = p
+                    i["add"] = True
+                    break
             else:
                 return Message(False, "Игрок {} не найден ".format(str(rid)))
         else:
@@ -390,9 +444,74 @@ class GameServerPrepare:
         self.dict = GameDictionary()
 
 
+class GameClientPrepare:
+    """Класс подключения клиента к игре"""
+
+    def _listener_daemon(self):
+        """Асинхронный метод для ожидания информации"""
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        sock.bind(("", 8384))
+        while self.prepare:
+            data, address = sock.recvfrom(1024)
+            data = _convert_type(data)
+            for i in self.servers:
+                if i["id"] == data["id"]:
+                    i["queue"] = data["queue"]
+                    i["game"] = data["game"]
+                    self.callback()
+                    break
+            else:
+                self.servers.append(data)
+                self.servers[-1]["ip"] = address[0]
+                self.callback()
+            print(data)
+        sock.close()
+
+    def _fetch_daemon(self):
+        while self.prepare:
+            send_broadcast({'action': 'getStatus'}, 8383)
+            time.sleep(1)
+
+    def connect_server(self, rid):
+        for i in self.servers:
+            if i["id"] == rid:
+                send_broadcast({'action': 'connectGame', 'rid': self.client_id, 'name': rand(2) + '_BOSS'}, 8383,
+                               i["ip"])
+                return Message(True)
+        return Message(False, "Сервер не найден")
+
+    def __init__(self):
+        self.prepare = True
+        self.servers = []
+        self.client_id = rand(8)
+        self.callback = lambda *args: None
+        self.listenThread = Thread(target=self._listener_daemon)
+        self.listenThread.start()
+        self.fetchThread = Thread(target=self._fetch_daemon)
+        self.fetchThread.start()
+
+
 class GameServer:
     def __init__(self, players):
         self.players = players
+        self.playStatus = True
+        self.alphabet = ""
+        for key, value in GameConfig.letters.items():
+            self.alphabet += key * value["count"]
+        self.thread = Thread(target=self._game_loop)
+        self.thread.start()
+
+    def _game_loop(self):
+        while self.playStatus:
+            for i in self.players:
+                result = i.action(self)
+                if result:
+                    # TODO Какая то обработка резульатата и измененние значений
+                    pass
+
+
+x = GameServer([GamePlayer("ADMIN", "local"), GamePlayer("BOT", "bot")])
+# send_broadcast({'action': 'connectGame', 'rid': 'qwмty', 'name': 'BOSS'}, 8383)
 
 
 if __name__ == '__main__':
