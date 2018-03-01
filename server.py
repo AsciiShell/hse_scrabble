@@ -96,6 +96,10 @@ class PlayerBot(GamePlayer):
         self.botEnable = False
         self.thread.join(1)
 
+    @staticmethod
+    def _is_replaceable(a, b):
+        return b == '' or a == b
+
     def cpu(self):
         """Вычисляет информацию для хода"""
         letters = ""
@@ -225,6 +229,7 @@ class GameServer:
                 warnings.warn("Тип не найден" + player.type)
         self.playStatus = True
         self.alphabet = ""
+        self.matrix = Matrix()
         self.dict = GameDictionary()
         for key, value in GameConfig.letters.items():
             self.alphabet += key * value["count"]
