@@ -1,16 +1,30 @@
 import sys
+import random
 from PyQt5.QtWidgets import QWidget, QDesktopWidget, QLabel, QGridLayout, QLineEdit, QHBoxLayout, QVBoxLayout, \
-    QHBoxLayout, QFrame, QSplitter, QStyleFactory, QApplication, QMainWindow, QPushButton, QApplication
-from PyQt5.QtGui import QPainter, QColor, QPen, QIcon, QBrush
+    QHBoxLayout, QFrame, QSplitter, QStyleFactory, QApplication, QMainWindow, QPushButton, QApplication,QListWidget
+from PyQt5.QtGui import QPainter, QColor, QPen, QIcon, QBrush, QDrag
 from PyQt5.QtCore import *
 from server import *
+
+class Fishka(QPushButton):
+
+    def __init__(self, title, parent):
+        super().__init__(title, parent)
+        self.initUI()
+
+    def initUI(self):
+        self.MyLetter = ''
+        self.MyPrice = 0
+        self.MyKoord = [None , 0]
+
+
+
+
 
 class GameWindow(QWidget):
 
     def __init__(self, parent=None):
         super(GameWindow, self).__init__(parent)
-        self.let = "A"
-        self.poi = 5
         self.koef = 1
         self.pos = 0
         self.k2 = 0.3
@@ -20,29 +34,142 @@ class GameWindow(QWidget):
         self.libw = self.widthtotal * self.k2
         self.libh = self.heighttotal / 3
         self.yi = self.widthtotal * (1 - 2 * self.k2) / 15 - self.ot
+        self.letterskoord = [self.libw + self.ot, 15 * (self.ot + self.yi) + self.ot]
         """инициализация окна"""
         self.btnconcreateret = QPushButton("назад", self)
         self.btnconcreateret.move( self.widthtotal - 120, 50)
         #self.stolfishki =
-        self.fishka1 = QPushButton(self.let, self)
-        self.fishka1.setGeometry(QRect(100 + (self.yi + self.ot)* 1, 90, self.yi, self.yi))
-        self.fishka2 = QPushButton(self.let, self)
-        self.fishka2.setGeometry(QRect(100 + (self.yi + self.ot)* 2, 90, self.yi, self.yi))
+
+
         #CreateFishka(self.let,self.poi,100 + (self.yi + self.ot) * self.pos, 90,self.fishka1,1)
 
-        #self.initUI()
+        self.initUI()
 
-    #def initUI(self):
+    def initUI(self):
+        self.matr = Matrix()
+        """основная часть создания элементов формы"""
+        #self.list = QListWidget()
+        #self.list.setGeometry(self.ot, self.ot + self.libh + 20, self.libw - self.ot,2 * self.libh - self.ot - self.ot - 20)
+        """Buttons"""
+        self.btnconcreateret = QPushButton("назад", self)
+        self.btnconcreateret.move( self.widthtotal - 120, 50)
+        self.setAcceptDrops(True)
 
+        for i in range(10):
+            self.matr.map[i][i+2] = self.getletter()
+        """Расстановка кнопок, уже имеющихся в таблице"""
+        self.ButMap = [[]]
 
-        #self.setGeometry(0, 30, self.widthtotal, self.heighttotal)
+        """for i in range(15):
+            l = []
+            for j in range(15):
+                l.append(Fishka(self.matr.map[j][i], self))
+            self.ButMap.append(l)
+            for j in range(15):
+                self.ButMap[i][j].MyLetter = self.matr.map[j][i]
+                self.ButMap[i][j].MyPrice = GameConfig.letters[self.matr.map[i][j]]['price']
+                self.ButMap[i][j].MyKoord = [j , i]
+                self.ButMap[i][j].setGeometry(self.karta[i][j][0], self.karta[i][j][0] , self.yi, self.yi)"""
+
+        """расстановка кнопок для перемещения"""
+        self.myletters = []
+        self.StartPosition = []
+        for i in range(GameConfig.startCount):
+            gs = self.getletter()
+            self.myletters.append(Fishka((gs + '(' + str(i) + ')'), self))
+            self.myletters[i].MyLetter = gs
+            self.myletters[i].MyPrice = GameConfig.letters[gs]['price']
+            self.myletters[i].MyKoord = [None , i]
+            self.StartPosition.append([self.letterskoord[0] + (self.yi + self.ot)* i + self.ot, self.letterskoord[1] + self.ot])
+            self.myletters[i].setGeometry(QRect(self.letterskoord[0] + (self.yi + self.ot)* i + self.ot, self.letterskoord[1] + self.ot, self.yi, self.yi))
+
+        """line edit/konsol"""
+        self.konsol = QLineEdit(self)
+        self.konsol.setGeometry(self.ot, self.ot + self.libh, self.libw - self.ot, 20)
+        self.konsol.returnPressed.connect(self.enter)
+
+    def enter(self):
+        """функция обработки строки консоли"""
+        """move i,x,y"""
+        l = self.konsol.text()
+        name = l.split(" ")
+        if name[0] == "move":
+            ch = name[1].split(",")
+            self.ProverkaKoordinat(int(ch[0]),int(ch[1]), int(ch[2]))
+        if name[0] == 'show':
+            self.ShowWords()
+        if name[0] == 'help' or name[0] == 'SOS':
+            self.Help()
+        self.konsol.clear()
+
+    def Help(self):
+
+        print('переместить кнопку - move i,x,y (i - номер кнопки,(x, y) - координаты)')
+        print('поиск новых слов - show')
+        print(self.matr.newletters)
+        print(self.matr.newkoord)
+        for i in self.matr.map:
+            print(i)
+    def ShowWords(self):
+        """выводит новые слова"""
+        self.matr.serch()
+        print (self.matr.outx)
+        print (self.matr.outy)
+        for i in self.matr.map:
+            print(i)
+
+    def getletter(self):
+        """выбирает случайную букву"""
+        random.seed()
+        genletter = random.choice(GameConfig.let)
+        while GameConfig.letters[genletter]['count'] < 0:
+            genletter = random.choice(GameConfig.let)
+        GameConfig.letters[genletter]['count'] -= 1
+        return (genletter)
+
+    def ProverkaKoordinat(self, i, x, y):
+        r = [y,x]
+        #проверяем, была ли занята эта ячейка до этого хода
+        if self.matr.map[x][y] == '':
+            #проверяем, откуда перетаскиваем букву, тк могут остаться хвосты
+            if self.myletters[i].MyKoord[0] != None:
+                print('есть хвост')
+                for j in range(len(self.matr.newkoord)):
+                    print ('начал поиск')
+                    print (self.matr.newkoord[j])
+                    print(self.myletters[i].MyKoord)
+                    if self.matr.newkoord[j][0] == self.myletters[i].MyKoord[0] :
+                        print ('нашли хвост')
+                        self.matr.newkoord[j] = [None,None]
+                        print ('убрали хвост')
+            #проверяем, ставили ли мы букву на новое место на этом ходу
+            if r in self.matr.newkoord:
+                #да, ставили, освобождаем для нее место
+                for j in range(len(self.myletters)):
+                    #ищем какую букву сьавили
+                    if self.myletters[j].MyKoord == r:
+                        self.myletters[j].move(self.StartPosition[j][0],self.StartPosition[j][1])
+                        self.myletters[j].MyKoord = [None,j]
+                        print ('нашли')
+                for j in range(len(self.matr.newkoord)):
+                    #ищем на какую позицию записана старая буква
+                    if r == self.matr.newkoord[j]:
+                        self.matr.newletters[j] = self.myletters[i].MyLetter
+            else:
+                self.matr.newletters.append(self.myletters[i].MyLetter)
+                self.matr.newkoord.append([y,x])
+            #перемещаем новую кнопкуна новое место
+            self.myletters[i].move(self.karta[x][y][0], self.karta[x][y][1])
+            self.myletters[i].MyKoord = [y,x]
+        else:
+            pass
+    #self.setGeometry(0, 30, self.widthtotal, self.heighttotal)
         # self.square.setStyleSheet("QWidget { background-color: %s }" % self.col.name())
         # self.setWindowTitle('Icon')
         # self.setWindowIcon(QIcon('web.png'))
         # QToolTip.setFont(QFont('SansSerif', 10))
-    def CreateFishka(self,letter,points,x,y,but, pos):
-        if pos > 0:
-            but.setGeometry(QRect(x,y, self.yi, self.yi))
+
+
 
 
 
@@ -53,12 +180,11 @@ class GameWindow(QWidget):
         background.end()
 
     def drawBackground(self, background):
-        self.btnconcreateret = QPushButton("назад", self)
-        self.btnconcreateret.move( self.widthtotal - 120, 50)
+        """background)"""
         col = QColor(0, 0, 0)
         col.setNamedColor('#d4d4d4')
         background.setPen(col)
-        """background"""
+
         background.setBrush(QColor(220, 220, 220))
         background.drawRect(0, 0, self.widthtotal * 5, self.heighttotal * 5)
         """iam"""
@@ -72,15 +198,17 @@ class GameWindow(QWidget):
             for j in range(15):
                 xp = self.libw + j * (self.ot + self.yi) + self.ot
                 yp = self.ot + i * (self.ot + self.yi)
-                self.karta[i][j] = [xp], [yp]
+                self.karta[i][j] = [xp , yp]
                 background.setBrush(QColor(Point.info[GameConfig.map[i][j]]['color']))
                 background.drawRect(xp, yp, self.yi, self.yi)
         background.setBrush(QColor(255, 255, 255))
         """history"""
         background.drawRect(self.ot, self.ot + self.libh, self.libw - self.ot, 2 * self.libh - self.ot - self.ot)
         """letters"""
-        background.drawRect(self.libw + self.ot, 15 * (self.ot + self.yi) + self.ot, 15 * (self.ot + self.yi) - self.ot,
+
+        background.drawRect(self.letterskoord[0], self.letterskoord[1], 15 * (self.ot + self.yi) - self.ot,
                             self.heighttotal - 15 * (self.ot + self.yi) - 2 * self.ot)
+
         """p1"""
         background.drawRect(self.widthtotal * (1 - self.k2) + self.ot, self.ot, self.libw - self.ot - self.ot,
                             self.libh - self.ot)
@@ -92,12 +220,15 @@ class GameWindow(QWidget):
                             self.libw - self.ot - self.ot, self.libh - self.ot - self.ot)
         """закрашивает квадратик по координатам"""
         background.setBrush(QColor(200, 200, 200))
-        background.drawRect(self.karta[7][7][0][0], self.karta[7][7][1][0], self.yi, self.yi)
+        background.drawRect(self.karta[7][7][0], self.karta[7][7][1], self.yi, self.yi)
         """for i in range(15):
             for j in range(15):
                 background.setPen(QColor(255, 255, 255))
                 background.setFont(QFont('Decorative', 10))
                 background.drawText(self.karta[i][j][0][0],self.karta[i][j][1][0], self.yi,self.yi,Qt.AlignCenter, Point.info[GameConfig.map[i][j]]['multi'])"""
+
+
+
 
 class ScreenSet():
     def __init__(self):
@@ -201,102 +332,7 @@ class ThirdWindowCreate(QWidget):
         vbox.addLayout(hbox)"""
         #self.setLayout(vbox)
 
-class ThirdWindowEx1(object):
-    def setupUi(self, Form):
-        Form.setObjectName("Form")
-        Form.resize(456, 575)
-        self.gridLayoutWidget = QWidget(Form)
-        self.gridLayoutWidget.setGeometry(QRect(10, 40, 441, 531))
-        self.gridLayoutWidget.setObjectName("gridLayoutWidget")
-        self.gridLayout = QGridLayout(self.gridLayoutWidget)
-        self.gridLayout.setContentsMargins(0, 0, 0, 0)
-        self.gridLayout.setObjectName("gridLayout")
-        self.gridLayout_3 = QGridLayout()
-        self.gridLayout_3.setHorizontalSpacing(20)
-        self.gridLayout_3.setVerticalSpacing(50)
-        self.gridLayout_3.setObjectName("gridLayout_3")
-        self.pushButton_3 = QPushButton(self.gridLayoutWidget)
-        self.pushButton_3.setEnabled(False)
-        self.pushButton_3.setObjectName("pushButton_3")
-        self.gridLayout_3.addWidget(self.pushButton_3, 0, 1, 1, 1)
-        self.name2 = QLabel(self.gridLayoutWidget)
-        self.name2.setObjectName("name2")
-        self.gridLayout_3.addWidget(self.name2, 1, 0, 1, 1)
-        self.name1 = QLabel(self.gridLayoutWidget)
-        self.name1.setMouseTracking(False)
-        self.name1.setLayoutDirection(Qt.LeftToRight)
-        self.name1.setObjectName("name1")
-        self.gridLayout_3.addWidget(self.name1, 0, 0, 1, 1)
-        self.name4 = QLabel(self.gridLayoutWidget)
-        self.name4.setObjectName("name4")
-        self.gridLayout_3.addWidget(self.name4, 3, 0, 1, 1)
-        self.name3 = QLabel(self.gridLayoutWidget)
-        self.name3.setObjectName("name3")
-        self.gridLayout_3.addWidget(self.name3, 2, 0, 1, 1)
-        self.PushButton2 = QPushButton(self.gridLayoutWidget)
-        self.PushButton2.setObjectName("PushButton2")
-        self.gridLayout_3.addWidget(self.PushButton2, 1, 1, 1, 1)
-        self.PushButton4 = QPushButton(self.gridLayoutWidget)
-        self.PushButton4.setObjectName("PushButton4")
-        self.gridLayout_3.addWidget(self.PushButton4, 3, 1, 1, 1)
-        self.PushButton3 = QPushButton(self.gridLayoutWidget)
-        self.PushButton3.setObjectName("PushButton3")
-        self.gridLayout_3.addWidget(self.PushButton3, 2, 1, 1, 1)
-        self.gridLayout.addLayout(self.gridLayout_3, 0, 1, 1, 1)
-        self.gridLayout_5 = QGridLayout()
-        self.gridLayout_5.setObjectName("gridLayout_5")
-        self.label_7 = QLabel(self.gridLayoutWidget)
-        self.label_7.setObjectName("label_7")
-        self.gridLayout_5.addWidget(self.label_7, 0, 0, 1, 1)
-        self.label_8 = QLabel(self.gridLayoutWidget)
-        self.label_8.setObjectName("label_8")
-        self.gridLayout_5.addWidget(self.label_8, 1, 0, 1, 1)
-        self.label_6 = QLabel(self.gridLayoutWidget)
-        self.label_6.setObjectName("label_6")
-        self.gridLayout_5.addWidget(self.label_6, 2, 0, 1, 1)
-        self.pushButton_7 = QPushButton(self.gridLayoutWidget)
-        self.pushButton_7.setObjectName("pushButton_7")
-        self.gridLayout_5.addWidget(self.pushButton_7, 0, 1, 1, 1)
-        self.pushButton_8 = QPushButton(self.gridLayoutWidget)
-        self.pushButton_8.setObjectName("pushButton_8")
-        self.gridLayout_5.addWidget(self.pushButton_8, 1, 1, 1, 1)
-        self.pushButton_9 = QPushButton(self.gridLayoutWidget)
-        self.pushButton_9.setObjectName("pushButton_9")
-        self.gridLayout_5.addWidget(self.pushButton_9, 2, 1, 1, 1)
-        self.gridLayout.addLayout(self.gridLayout_5, 1, 1, 1, 1)
-        self.label = QLabel(Form)
-        self.label.setGeometry(QRect(20, 10, 171, 16))
-        self.label.setObjectName("label")
-        self.pushButton = QPushButton(Form)
-        self.pushButton.setGeometry(QRect(240, 10, 81, 23))
-        self.pushButton.setObjectName("pushButton")
-        self.ButtonReturn = QPushButton(Form)
-        self.ButtonReturn.setGeometry(QRect(334, 10, 101, 23))
-        self.ButtonReturn.setObjectName("ButtonReturn")
 
-        self.retranslateUi(Form)
-        QMetaObject.connectSlotsByName(Form)
-
-    def retranslateUi(self, Form):
-        _translate = QCoreApplication.translate
-        Form.setWindowTitle(_translate("Form", "Form"))
-        self.pushButton_3.setText(_translate("Form", "i am"))
-        self.name2.setText(_translate("Form", "name2"))
-        self.name1.setText(_translate("Form", "name1"))
-        self.name4.setText(_translate("Form", "name4"))
-        self.name3.setText(_translate("Form", "name3"))
-        self.PushButton2.setText(_translate("Form", "добавить бота"))
-        self.PushButton4.setText(_translate("Form", "добавить бота"))
-        self.PushButton3.setText(_translate("Form", "добавить бота"))
-        self.label_7.setText(_translate("Form", "player1"))
-        self.label_8.setText(_translate("Form", "player2"))
-        self.label_6.setText(_translate("Form", "player3"))
-        self.pushButton_7.setText(_translate("Form", "добавить"))
-        self.pushButton_8.setText(_translate("Form", "добавить"))
-        self.pushButton_9.setText(_translate("Form", "добавить"))
-        self.label.setText(_translate("Form", "Создание игры"))
-        self.pushButton.setText(_translate("Form", "начать игру"))
-        self.ButtonReturn.setText(_translate("Form", "вернуться назад"))
 
 
 
@@ -354,18 +390,10 @@ class MainWindow(QMainWindow):
         self.First.btncreate.clicked.connect(self.startThirdCreate)
         self.show()
 
-    def startThirdEx1(self):
-        self.ThirdEx1 = ThirdWindowEx1(self)
-        Form = QWidget()
-        self.ThirdEx1.setupUi(Q)
-        self.setWindowTitle("ThirdWindowEx1")
-        self.setGeometry(self.widthtotal / 4, 30, self.widthtotal / 2, self.heighttotal)
-        self.setCentralWidget(self.ThirdEx1)
-        self.ThirdEx1.ButtonReturn.clicked.connect(self.startFirst)
 
 
 
-        Form.show()
+
 
 
 
