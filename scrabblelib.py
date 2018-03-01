@@ -87,13 +87,7 @@ class GameConfig:
     turnTime = 60
 
 
-class Letter:
-    def __init__(self, letter):
-        self.letter = letter
-        self.price = GameConfig.letters[letter]["price"]
-
-
-class Point(Letter):
+class Point():
     """Класс ячейки поля"""
     info = [{'color': 'white', 'multi': 'letter', 'value': 1},
             {'color': 'green', 'multi': 'letter', 'value': 2},
@@ -105,8 +99,7 @@ class Point(Letter):
         """Возвращает информацию о текущей точке"""
         return self.info[self.t]
 
-    def __init__(self, x, y, letter, t=None):
-        super().__init__(letter)
+    def __init__(self, x, y, letter=None, t=None):
         """Создает точку
         x, y - координаты
         t - числовой тип
@@ -114,6 +107,7 @@ class Point(Letter):
         """
         self.x = x
         self.y = y
+        self.letter = letter
         if t is None:
             self.t = GameConfig.map[x][y]
         else:
