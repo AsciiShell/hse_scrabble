@@ -7,7 +7,7 @@ from PyQt5.QtWidgets import QWidget, QDesktopWidget, QLabel, QMainWindow, QPushB
     QGroupBox, QMessageBox, QHBoxLayout
 
 from server import *
-
+from client import *
 
 class Fishka(QPushButton):
 

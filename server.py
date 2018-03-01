@@ -21,26 +21,31 @@ class Player:
 
 
 class GamePlayer(Player):
-    def __init__(self, name, t, callback=lambda *args: None, rid=None, dif=None, ip=None):
-        super().__init__(name, t, rid, dif, ip)
+    def __init__(self, name, game, rid=None, dif=None, ip=None):
         self.score = 0
+        self.game = game
         self.letters = []
         self.isTurn = False
         self.isComplete = False
-        # TODO функция должна зависеть от типа игрока
-        # TODO возможно следует создать еще несколько дочерних классов для каждого типа пользователя
-        self.callback = callback
         self.timeout = 0
         self.input = None
         self.result = None
+        super().__init__(name, None, rid, dif, ip)
 
-    def action(self, game):
+    def turn_end(self):
+        """Срабатывает при завершении хода любого игрока. Перерисовка"""
+        pass
+
+    def my_turn(self):
+        """Предупреждает игрока о начале его хода. Активирует игровой интерфейс"""
+        pass
+
+    def action(self):
         """Посылает игроку команду на начало действий и ожидает прекращения"""
         self.isTurn = True
         self.isComplete = False
         self.timeout = GameConfig.turnTime
-        self.input = game
-        self.callback()
+        self.my_turn()
         while not self.isComplete:
             time.sleep(1)
             self.timeout -= 1
@@ -48,6 +53,72 @@ class GamePlayer(Player):
                 self.isComplete = True
         self.isTurn = False
         return self.result
+
+    def check_turn(self, *args):
+        """Проверяет правильность ввода новых букв"""
+        # TODO andrsolo21 вызов функций класса матрицы
+        # TODO на вход массив буков с координатами
+        self.game.matrix.check_temp()
+        return Message(True)  # + слова/очки и проч
+
+    def accept_turn(self, *args):
+        """Проверяет правильность ввода новых букв и завершает ход"""
+        # TODO andrsolo21
+        # TODO на вход массив буков с координатами/сброс букв
+        self.check_turn(args)
+        # TODO спец переменная для возврата результата в главнуб функцию
+        self.result = "something"
+        # Останавливает ход
+        self.isComplete = True
+        return Message(True)  # + the same
+
+
+class PlayerLocal(GamePlayer):
+    def my_turn(self):
+        # TODO andrsolo21 перерисовываем интерфес
+        # мб эту функцию переопределить в Form.py?
+        pass
+
+    def turn_end(self):
+        # TODO andrsolo21 перерисовываем интерфес
+        # мб эту функцию переопределить в Form.py?
+        pass
+
+
+class PlayerBot(GamePlayer):
+    def __init__(self, name, game):
+        self.botEnable = True
+        self.thread = Thread(target=self._daemon)
+        super().__init__(name, game)
+        self.thread.start()
+
+    def __del__(self):
+        self.botEnable = False
+        self.thread.join(1)
+
+    @staticmethod
+    def _is_replaceable(a, b):
+        return b == '' or a == b
+
+    def cpu(self):
+        """Вычисляет информацию для хода"""
+        letters = ""
+        for i in self.game.matrix.map:
+            for j in i:
+                if letters.count(j) == 0:
+                    letters += j
+        for i in self.letters:
+            if letters.count(i) == 0:
+                letters += i
+        words = self.game.dict.prepare(letters)
+        pass
+
+    def _daemon(self):
+        """Демон бота"""
+        while self.botEnable:
+            if self.isTurn:
+                self.cpu()
+            time.sleep(1)
 
 
 class GameServerPrepare:
@@ -148,21 +219,40 @@ class GameServerPrepare:
 
 class GameServer:
     def __init__(self, players):
-        self.players = players
+        self.players = []
+        for player in players:
+            if player.type == "local":
+                self.players.append(PlayerLocal(player.name, self))
+            elif player.type == "bot":
+                self.players.append(PlayerBot(player.name, self))
+            else:
+                warnings.warn("Тип не найден" + player.type)
         self.playStatus = True
         self.alphabet = ""
+        self.matrix = Matrix()
+        self.dict = GameDictionary()
         for key, value in GameConfig.letters.items():
             self.alphabet += key * value["count"]
         self.thread = Thread(target=self._game_loop)
         self.thread.start()
 
+    def _give_letter(self, player):
+        """Выдает игроку недостающие фишки"""
+        while len(player.letters) < GameConfig.startCount and len(self.alphabet) > 0:
+            i = self.alphabet[random.randrange(len(self.alphabet))]
+            player.letters.append(i)
+            self.alphabet = self.alphabet.replace(i, "", 1)
+
     def _game_loop(self):
         while self.playStatus:
-            for i in self.players:
-                result = i.action(self)
+            for player in self.players:
+                self._give_letter(player)
+                result = player.action()
                 if result:
                     # TODO Какая то обработка резульатата и измененние значений
                     pass
+                for i in self.players:
+                    i.turn_end()
 
 
 # send_broadcast({'action': 'connectGame', 'rid': 'qwмty', 'name': 'BOSS'}, 8383)
@@ -176,4 +266,4 @@ if __name__ == '__main__':
     print('Hello, world!!!')
     print(Matr.outx)
     print(Matr.outy)
-    x = GameServer([GamePlayer("ADMIN", "local"), GamePlayer("BOT", "bot")])
+    x = GameServer([Player("ADMIN", "local")])

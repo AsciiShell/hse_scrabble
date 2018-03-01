@@ -87,13 +87,7 @@ class GameConfig:
     turnTime = 60
 
 
-class Letter:
-    def __init__(self, letter):
-        self.letter = letter
-        self.price = GameConfig.letters[letter]["price"]
-
-
-class Point(Letter):
+class Point:
     """Класс ячейки поля"""
     info = [{'color': 'white', 'multi': 'letter', 'value': 1},
             {'color': 'green', 'multi': 'letter', 'value': 2},
@@ -105,8 +99,7 @@ class Point(Letter):
         """Возвращает информацию о текущей точке"""
         return self.info[self.t]
 
-    def __init__(self, x, y, letter, t=None):
-        super().__init__(letter)
+    def __init__(self, x, y, letter=None, t=None):
         """Создает точку
         x, y - координаты
         t - числовой тип
@@ -114,6 +107,7 @@ class Point(Letter):
         """
         self.x = x
         self.y = y
+        self.letter = letter
         if t is None:
             self.t = GameConfig.map[x][y]
         else:
@@ -130,7 +124,24 @@ class Message:
 
 class Matrix:
     """Класс игрового поля"""
-
+    # TODO andrsolo21 создай/укажи 2 метода и назови их красиво
+    # первый принимает массив новых букв
+    # возвращает структуру состоящую из
+    #     a)успеха,
+    #     b)суммы очков,
+    #     c)найденные слова,
+    #     или
+    #     d)список ошибок (клетка занята), слово не существует в словаре
+    #
+    #     ошибки больше нужны для человека
+    # второй принимает все то же самое,
+    # вызывает первую функцию а затем, в случае успеха, фиксирует изменения
+    # По идее все методы есть, их надо красиво скомпоновать
+    # те сделать newkoord и newletters локальными, убрать обращение к ним извне и передавать как параметр
+    #
+    # P.S.
+    # TODO думаю словарь хранить тоже в матрице, так как там он и обрабатывается. Как думаешь?
+    # TODO P.P.S в этом файле ошибки только в этом классе
     def add_temporary(self, arr):
         """Добавляет несколько элементов во временную матрицу"""
         if type(arr) is list:
