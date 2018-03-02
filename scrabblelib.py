@@ -246,7 +246,8 @@ class Matrix:
             self.tempmap[self.newkoord[i][1]][self.newkoord[i][0]] = self.newletters[i]
 
     def serch(self):
-        """ищет слова в матрице"""
+        """ищет слова в матрице
+        основная функция"""
 
         # n = 0
         # for i in self.temp:
@@ -256,10 +257,11 @@ class Matrix:
         # self.newletters = ['б','т','о','н']
         # движение по оси x = 1
         # движение по оси y = 2
-        self.outx = []
-        self.outy = []
+        outx = []
+        outy = []
         self.chekKoord()
         self.pasteletters()
+        result = MatrixResult()
         if self.ValidationKoord():
             self.map = self.tempmap
             for i in range(len(self.map)):
@@ -268,16 +270,16 @@ class Matrix:
                         slx = self.prov(j, i, 1)
                         sly = self.prov(j, i, 2)
                         if (slx[1] == 1):
-                            self.outx.append(slx[0])
+                            outx.append(slx[0])
                         if (sly[1] == 1):
-                            self.outy.append(sly[0])
+                            outy.append(sly[0])
                         """if (slx[0] != ''):
                             print(slx[0])
                         if (sly[0] != ''):
                             print(sly[0])"""
-            return True
+            return MatrixResult(True,0, outx + outy)
         else:
-            return False
+            return MatrixResult(False,0, outx + outy, '')
 
     def get(self, y, x):
         """Возвращает точку по адресу"""
