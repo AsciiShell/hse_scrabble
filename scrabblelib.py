@@ -277,9 +277,9 @@ class Matrix:
                             print(slx[0])
                         if (sly[0] != ''):
                             print(sly[0])"""
-            return MatrixResult(True,0, outx + outy)
+            return MatrixResult(True, 0, outx + outy)
         else:
-            return MatrixResult(False,0, outx + outy, '')
+            return MatrixResult(False, 0, outx + outy, '')
 
     def get(self, y, x):
         """Возвращает точку по адресу"""

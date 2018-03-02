@@ -1,9 +1,7 @@
 import time
-import warnings
 from threading import Thread
 
 from scrabblelib import *
-
 
 
 class Player:
