@@ -100,7 +100,7 @@ class Point:
         """Возвращает информацию о текущей точке"""
         return self.info[self.t]
 
-    def __init__(self, x, y, letter=None, t=None):
+    def __init__(self, x, y, letter, t=None):
         """Создает точку
         x, y - координаты
         t - числовой тип
@@ -113,6 +113,15 @@ class Point:
             self.t = GameConfig.map[x][y]
         else:
             self.t = t
+        self.color = Point.info[self.t]["color"]
+        self.multi = Point.info[self.t]["multi"]
+        self.value = Point.info[self.t]["value"]
+        if self.multi == "letter":
+            self.score = GameConfig.letters[self.letter] * self.multi
+            self.multi = 1
+        else:
+            self.score = GameConfig.letters[self.letter]
+            self.multi = self.multi
 
 
 class Message:
@@ -186,8 +195,8 @@ class Matrix:
         # TODO andrsolo21
         return True
 
-    def prov(self, x, y, napr):
-        """проверяет, начие слова в этой ячейке (начало слова)"""
+    def _prov(self, x, y, napr):
+        """проверяет, наличие слова в этой ячейке (начало слова)"""
         flag = 0
         if napr == 2 and y != 14:
             if y != 0:
@@ -204,20 +213,25 @@ class Matrix:
                 if self.map[y][x + 1] != '':
                     flag = 1
         if flag == 1:
-            return self.schit(x, y, napr)
+            return self._schit(x, y, napr)
         else:
             return ['', 0]
 
-    def schit(self, x, y, napr):
+    def _schit(self, x, y, napr):
         """считывает слово"""
         s = ''
         newword = 0
+        score = 0
+        multisc = 1
         if napr == 2:
             a = 1
             while a != 0:
                 koord = [x, y]
                 if koord in self.newkoord:
                     newword = 1
+                point = Point(x, y, self.map[y][x])
+                score += point.score
+                multisc *= point.multi
                 s = s + self.map[y][x]
                 if y == 14:
                     a = 0
@@ -231,6 +245,9 @@ class Matrix:
                 koord = [x, y]
                 if koord in self.newkoord:
                     newword = 1
+                point = Point(x, y, self.map[y][x])
+                score += point.score
+                multisc *= point.multi
                 s = s + self.map[y][x]
                 if x == 14:
                     a = 0
@@ -238,7 +255,7 @@ class Matrix:
                     if self.map[y][x + 1] == '':
                         a = 0
                 x = x + 1
-        return [s, newword]
+        return [s, newword, score * multisc]
 
     def pasteletters(self):
         """вставляет буквы в матрицу"""
@@ -248,44 +265,42 @@ class Matrix:
     def serch(self):
         """ищет слова в матрице
         основная функция"""
-
-        # n = 0
-        # for i in self.temp:
-        #    newletters.append([[i.x], [i.y]])
-        #   self.newkoord.append(i.letter)
-        # self.newkoord = [[4,6],[4,8],[4,9],[4,10]]
-        # self.newletters = ['б','т','о','н']
         # движение по оси x = 1
         # движение по оси y = 2
         outx = []
         outy = []
-        self.chekKoord()
+        score = 0
+        self._chekKoord()
         self.pasteletters()
-        result = MatrixResult()
+        undefined = []
         if self.ValidationKoord():
             self.map = self.tempmap
             for i in range(len(self.map)):
                 for j in range(len(self.map[i])):
                     if (self.map[i][j] != ''):
-                        slx = self.prov(j, i, 1)
-                        sly = self.prov(j, i, 2)
+                        slx = self._prov(j, i, 1)
+                        sly = self._prov(j, i, 2)
                         if (slx[1] == 1):
+                            # проверка слова на наличие в словаре
+                            if slx[0] not in self.dict.dict:
+                                undefined.append(slx[0])
                             outx.append(slx[0])
+                            score += slx[2]
                         if (sly[1] == 1):
+                            # проверка слова на наличие в словаре
+                            if sly[0] not in self.dict.dict:
+                                undefined.append(sly[0])
                             outy.append(sly[0])
-                        """if (slx[0] != ''):
-                            print(slx[0])
-                        if (sly[0] != ''):
-                            print(sly[0])"""
-            return MatrixResult(True,0, outx + outy)
+                            score += sly[2]
+            return MatrixResult(True, score, outx + outy)
         else:
-            return MatrixResult(False,0, outx + outy, '')
+            return MatrixResult(False, 0, outx + outy, '')
 
     def get(self, y, x):
         """Возвращает точку по адресу"""
         return self.map[y][x]
 
-    def chekKoord(self):
+    def _chekKoord(self):
         a = []
         b = []
         for i in range(len(self.newkoord)):
@@ -296,40 +311,32 @@ class Matrix:
         self.newletters = b
         print('проверили новые данные')
 
-    def ValidationCheck(self, koord):
+    def _ValidationCheck(self, koord):
         # poisk sverhy
         if self.matrvalid[koord[0]][koord[1]] == 0:
             self.count += 1
             self.matrvalid[koord[0]][koord[1]] += 1
             if koord[0] != 0:
                 if self.tempmap[koord[0] - 1][koord[1]] != "":
-                    # self.matrvalid[koord[0]][koord[1]] = 1
-
-                    self.ValidationCheck([koord[0] - 1, koord[1]])
+                    self._ValidationCheck([koord[0] - 1, koord[1]])
             # poisk sleva
             if koord[1] != 0:
                 if self.tempmap[koord[0]][koord[1] - 1] != "":
-                    # self.matrvalid[koord[0]][koord[1]] = 1
-                    # self.count += 1
-                    self.ValidationCheck([koord[0], koord[1] - 1])
+                    self._ValidationCheck([koord[0], koord[1] - 1])
             # poisk vnizy
             if koord[0] != 14:
                 if self.tempmap[koord[0] + 1][koord[1]] != "":
-                    # self.matrvalid[koord[0]][koord[1]] = 1
-                    # self.count += 1
-                    self.ValidationCheck([koord[0] + 1, koord[1]])
+                    self._ValidationCheck([koord[0] + 1, koord[1]])
             # poisk sprava
             if koord[1] != 14:
                 if self.tempmap[koord[0]][koord[1] + 1] != "":
-                    # self.matrvalid[koord[0]][koord[1]] = 1
-                    # self.count += 1
-                    self.ValidationCheck([koord[0], koord[1] + 1])
+                    self._ValidationCheck([koord[0], koord[1] + 1])
 
     def ValidationKoord(self):
         self.count = 0
         self.FirstFish = [7, 7]
         if self.tempmap[7][7] != '':
-            self.ValidationCheck(self.FirstFish)
+            self._ValidationCheck(self.FirstFish)
             print('нашел ' + str(self.count) + ' букв')
             for i in range(15):
                 for j in range(15):
@@ -350,6 +357,7 @@ class Matrix:
         self.newkoord = []
         self.newletters = []
         self.matrvalid = [[0 for i in range(15)] for j in range(15)]
+        self.dict = GameDictionary()
 
 
 class GameDictionary:
