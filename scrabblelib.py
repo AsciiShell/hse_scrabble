@@ -161,6 +161,8 @@ class Matrix:
         """Отклоняет временные изменения"""
         self.newkoord = []
         self.newletters = []
+        self.tempmap = [["" for i in range(15)] for j in range(15)]
+        self.matrvalid = [[ 0 for i in range(15)] for j in range(15)]
 
     def check_temp(self):
         """Возвращает True, если временная матрица правильная"""
@@ -224,7 +226,7 @@ class Matrix:
     def pasteletters(self):
         """вставляет буквы в матрицу"""
         for i in range(len(self.newkoord)):
-            self.map[self.newkoord[i][1]][self.newkoord[i][0]] = self.newletters[i]
+            self.tempmap[self.newkoord[i][1]][self.newkoord[i][0]] = self.newletters[i]
 
     def serch(self):
         """ищет слова в матрице"""
@@ -241,19 +243,24 @@ class Matrix:
         self.outy = []
         self.chekKoord()
         self.pasteletters()
-        for i in range(len(self.map)):
-            for j in range(len(self.map[i])):
-                if (self.map[i][j] != ''):
-                    slx = self.prov(j, i, 1)
-                    sly = self.prov(j, i, 2)
-                    if (slx[1] == 1):
-                        self.outx.append(slx[0])
-                    if (sly[1] == 1):
-                        self.outy.append(sly[0])
-                    """if (slx[0] != ''):
-                        print(slx[0])
-                    if (sly[0] != ''):
-                        print(sly[0])"""
+        if self.ValidationKoord():
+            self.map = self.tempmap
+            for i in range(len(self.map)):
+                for j in range(len(self.map[i])):
+                    if (self.map[i][j] != ''):
+                        slx = self.prov(j, i, 1)
+                        sly = self.prov(j, i, 2)
+                        if (slx[1] == 1):
+                            self.outx.append(slx[0])
+                        if (sly[1] == 1):
+                            self.outy.append(sly[0])
+                        """if (slx[0] != ''):
+                            print(slx[0])
+                        if (sly[0] != ''):
+                            print(sly[0])"""
+            return True
+        else:
+            return False
 
     def get(self, y, x):
         """Возвращает точку по адресу"""
@@ -270,11 +277,60 @@ class Matrix:
         self.newletters = b
         print('проверили новые данные')
 
+    def ValidationCheck(self, koord):
+        #poisk sverhy
+        if self.matrvalid[koord[0]][koord[1]] == 0:
+            self.count += 1
+            self.matrvalid[koord[0]][koord[1]] += 1
+            if koord[0] != 0:
+                if self.tempmap[koord[0] - 1][koord[1]] != "":
+                    #self.matrvalid[koord[0]][koord[1]] = 1
+
+                    self.ValidationCheck([koord[0] - 1,koord[1]])
+            #poisk sleva
+            if koord[1] != 0:
+                if self.tempmap[koord[0]][koord[1] - 1] != "":
+                    #self.matrvalid[koord[0]][koord[1]] = 1
+                    #self.count += 1
+                    self.ValidationCheck([koord[0] ,koord[1] - 1])
+            #poisk vnizy
+            if koord[0] != 14:
+                if self.tempmap[koord[0] + 1][koord[1]] != "":
+                    #self.matrvalid[koord[0]][koord[1]] = 1
+                    #self.count += 1
+                    self.ValidationCheck([koord[0] + 1,koord[1]])
+            #poisk sprava
+            if koord[1] != 14:
+                if self.tempmap[koord[0]][koord[1] + 1] != "":
+                    #self.matrvalid[koord[0]][koord[1]] = 1
+                    #self.count += 1
+                    self.ValidationCheck([koord[0] ,koord[1] + 1])
+
+    def ValidationKoord(self):
+        self.count = 0
+        self.FirstFish = [7,7]
+        if self.tempmap[7][7] != '':
+            self.ValidationCheck(self.FirstFish)
+            print('нашел ' + str(self.count) + ' букв')
+            for i in range(15):
+                for j in range(15):
+                    if self.tempmap[i][j] != '':
+                        self.count -= 1
+            print('проверил, осталось: ' + str(self.count) + ' букв')
+            if self.count == 0:
+                return True
+            else:
+                return False
+        else:
+            return False
+
     def __init__(self):
         """Создает новую игровую карту"""
         self.map = [["" for i in range(15)] for j in range(15)]
+        self.tempmap = [["" for i in range(15)] for j in range(15)]
         self.newkoord = []
         self.newletters = []
+        self.matrvalid = [[ 0 for i in range(15)] for j in range(15)]
 
 
 class GameDictionary:

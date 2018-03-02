@@ -5,7 +5,6 @@ from PyQt5.QtGui import QPainter, QColor
 from PyQt5.QtWidgets import QLineEdit
 from PyQt5.QtWidgets import QWidget, QDesktopWidget, QLabel, QMainWindow, QPushButton, QApplication, \
     QGroupBox, QMessageBox, QHBoxLayout
-
 from server import *
 from client import *
 
