@@ -19,6 +19,7 @@ class Fishka(QPushButton):
         self.MyLetter = ''
         self.MyPrice = 0
         self.MyKoord = [None, 0]
+        self.MyStart = 0
 
 
 class GameWindow(QWidget):
@@ -56,20 +57,17 @@ class GameWindow(QWidget):
 
         for i in range(10):
             self.matr.map[i][i + 2] = self.getletter()
-        """Расстановка кнопок, уже имеющихся в таблице"""
-        self.ButMap = [[]]
 
         """for i in range(15):
             l = []
             for j in range(15):
-                l.append(Fishka(self.matr.map[j][i], self))
+                l.append(Fishka(self.matr.map[i][j], self))
             self.ButMap.append(l)
             for j in range(15):
                 self.ButMap[i][j].MyLetter = self.matr.map[j][i]
                 self.ButMap[i][j].MyPrice = GameConfig.letters[self.matr.map[i][j]]['price']
                 self.ButMap[i][j].MyKoord = [j , i]
                 self.ButMap[i][j].setGeometry(self.karta[i][j][0], self.karta[i][j][0] , self.yi, self.yi)"""
-
         """расстановка кнопок для перемещения"""
         self.myletters = []
         self.StartPosition = []
@@ -79,11 +77,13 @@ class GameWindow(QWidget):
             self.myletters[i].MyLetter = gs
             self.myletters[i].MyPrice = GameConfig.letters[gs]['price']
             self.myletters[i].MyKoord = [None, i]
+            self.myletters[i].MyStart = i
             self.StartPosition.append(
                 [self.letterskoord[0] + (self.yi + self.ot) * i + self.ot, self.letterskoord[1] + self.ot])
             self.myletters[i].setGeometry(
                 QRect(self.letterskoord[0] + (self.yi + self.ot) * i + self.ot, self.letterskoord[1] + self.ot, self.yi,
                       self.yi))
+
 
         """line edit/konsol"""
         self.konsol = QLineEdit(self)
@@ -102,7 +102,37 @@ class GameWindow(QWidget):
             self.ShowWords()
         if name[0] == 'help' or name[0] == 'SOS':
             self.Help()
+        if name[0] == 'clear':
+            self.ClearChanges()
+        if name[0] == 'lastletters':
+            self.lastLetters()
         self.konsol.clear()
+
+    def lastLetters(self):
+        """Расстановка кнопок, уже имеющихся в таблице"""
+        self.ButMap = []
+        for i in range(15):
+            st = []
+            for j in range(15):
+                st.append(Fishka(self.matr.map[i][j], self))
+            self.ButMap.append(st)
+            print('создал кнопки')
+            for j in range(15):
+                self.ButMap[i][j].setGeometry(self.karta[i][j][0], self.karta[i][j][1],self.yi,self.yi)
+                print('geometry')
+                self.ButMap[i][j].MyLetter = self.matr.map[i][j]
+                print('letters')
+                self.ButMap[i][j].MyKoord = [j , i]
+                print('koord')
+                #self.ButMap[i][j].MyPrice = GameConfig.letters[self.ButMap[i][j].MyLetter]['price']
+                print('price')
+
+
+    def ClearChanges(self):
+        self.matr.reject_temp()
+        for i in range(len(self.myletters)):
+            self.myletters[i].MyKoord = [None,i]
+            self.myletters[i].move(self.StartPosition[i][0],self.StartPosition[i][1])
 
     def Help(self):
 
@@ -115,11 +145,12 @@ class GameWindow(QWidget):
 
     def ShowWords(self):
         """выводит новые слова"""
-        self.matr.serch()
-        print(self.matr.outx)
-        print(self.matr.outy)
-        for i in self.matr.map:
-            print(i)
+        if self.matr.serch():
+            print(self.matr.outx)
+            print(self.matr.outy)
+            for i in self.matr.map:
+                print(i)
+        else: print('в матрице есть ошибки')
 
     def getletter(self):
         """выбирает случайную букву"""
@@ -129,6 +160,23 @@ class GameWindow(QWidget):
             genletter = random.choice(GameConfig.let)
         GameConfig.letters[genletter]['count'] -= 1
         return (genletter)
+
+
+    """def ProverkaKoordinat1(self,i,x,y):
+        r = [y,x]
+        if self.letters[i].MyKoord[0] == None:
+            if self.matr.tempmap[y,x] != '':
+                for j in self.myletters:
+                    if j.MyKoord == r:
+                        j.move(self.StartPosition[i.MyStart][0], self.StartPosition[i.MyStart][1])
+                        j.MyKoord = [None, self.MyStart]
+            self.matr.tempmap[y,x] = self.letters[i].MyLetter
+            self.myletters[i].move(self.karta[x][y][0], self.karta[x][y][1])
+            self.myletters[i].MyKoord = [y, x]"""
+
+
+
+
 
     def ProverkaKoordinat(self, i, x, y):
         r = [y, x]
@@ -509,10 +557,10 @@ class MainWindow(QMainWindow):
         self.yi = self.widthtotal * (1 - 2 * self.k2) / 15 - self.ot
         """инициализация окна"""
         self.setGeometry(0, 30, self.widthtotal, self.heighttotal)
-        self.startFirst()
+        self.startGame()
 
     def startGame(self):
-        self.gamePrepare.game.start_game()
+        # self.gamePrepare.game.start_game()
         self.GameCreate = GameWindow(self)
         self.setWindowTitle("GameCreate")
         self.setGeometry(0, 30, self.widthtotal, self.heighttotal)
