@@ -1,6 +1,7 @@
 import json
 import random
 import socket
+import warnings
 
 
 def send_broadcast(data, port=8384, ip='255.255.255.255'):
@@ -122,8 +123,24 @@ class Message:
         self.msg = msg
 
 
+class MatrixResult:
+    """Результат проверки матрицы"""
+
+    def __init__(self, stat, score=0, words=None, errmsg=""):
+        self.result = stat
+        if stat:
+            if words is None:
+                warnings.warn("Слова не указаны")
+            self.score = score
+            self.words = words
+        else:
+            self.msg = errmsg
+            self.wordsError = words
+
+
 class Matrix:
     """Класс игрового поля"""
+
     # TODO andrsolo21 создай/укажи 2 метода и назови их красиво
     # первый принимает массив новых букв
     # возвращает структуру состоящую из
@@ -162,7 +179,7 @@ class Matrix:
         self.newkoord = []
         self.newletters = []
         self.tempmap = [["" for i in range(15)] for j in range(15)]
-        self.matrvalid = [[ 0 for i in range(15)] for j in range(15)]
+        self.matrvalid = [[0 for i in range(15)] for j in range(15)]
 
     def check_temp(self):
         """Возвращает True, если временная матрица правильная"""
@@ -278,37 +295,37 @@ class Matrix:
         print('проверили новые данные')
 
     def ValidationCheck(self, koord):
-        #poisk sverhy
+        # poisk sverhy
         if self.matrvalid[koord[0]][koord[1]] == 0:
             self.count += 1
             self.matrvalid[koord[0]][koord[1]] += 1
             if koord[0] != 0:
                 if self.tempmap[koord[0] - 1][koord[1]] != "":
-                    #self.matrvalid[koord[0]][koord[1]] = 1
+                    # self.matrvalid[koord[0]][koord[1]] = 1
 
-                    self.ValidationCheck([koord[0] - 1,koord[1]])
-            #poisk sleva
+                    self.ValidationCheck([koord[0] - 1, koord[1]])
+            # poisk sleva
             if koord[1] != 0:
                 if self.tempmap[koord[0]][koord[1] - 1] != "":
-                    #self.matrvalid[koord[0]][koord[1]] = 1
-                    #self.count += 1
-                    self.ValidationCheck([koord[0] ,koord[1] - 1])
-            #poisk vnizy
+                    # self.matrvalid[koord[0]][koord[1]] = 1
+                    # self.count += 1
+                    self.ValidationCheck([koord[0], koord[1] - 1])
+            # poisk vnizy
             if koord[0] != 14:
                 if self.tempmap[koord[0] + 1][koord[1]] != "":
-                    #self.matrvalid[koord[0]][koord[1]] = 1
-                    #self.count += 1
-                    self.ValidationCheck([koord[0] + 1,koord[1]])
-            #poisk sprava
+                    # self.matrvalid[koord[0]][koord[1]] = 1
+                    # self.count += 1
+                    self.ValidationCheck([koord[0] + 1, koord[1]])
+            # poisk sprava
             if koord[1] != 14:
                 if self.tempmap[koord[0]][koord[1] + 1] != "":
-                    #self.matrvalid[koord[0]][koord[1]] = 1
-                    #self.count += 1
-                    self.ValidationCheck([koord[0] ,koord[1] + 1])
+                    # self.matrvalid[koord[0]][koord[1]] = 1
+                    # self.count += 1
+                    self.ValidationCheck([koord[0], koord[1] + 1])
 
     def ValidationKoord(self):
         self.count = 0
-        self.FirstFish = [7,7]
+        self.FirstFish = [7, 7]
         if self.tempmap[7][7] != '':
             self.ValidationCheck(self.FirstFish)
             print('нашел ' + str(self.count) + ' букв')
@@ -330,7 +347,7 @@ class Matrix:
         self.tempmap = [["" for i in range(15)] for j in range(15)]
         self.newkoord = []
         self.newletters = []
-        self.matrvalid = [[ 0 for i in range(15)] for j in range(15)]
+        self.matrvalid = [[0 for i in range(15)] for j in range(15)]
 
 
 class GameDictionary:
