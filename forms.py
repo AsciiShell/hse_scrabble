@@ -8,6 +8,7 @@ from PyQt5.QtWidgets import QWidget, QDesktopWidget, QLabel, QMainWindow, QPushB
 from server import *
 from client import *
 
+
 class Fishka(QPushButton):
 
     def __init__(self, title, parent):
@@ -83,7 +84,6 @@ class GameWindow(QWidget):
                 QRect(self.letterskoord[0] + (self.yi + self.ot) * i + self.ot, self.letterskoord[1] + self.ot, self.yi,
                       self.yi))
 
-
         """line edit/konsol"""
         self.konsol = QLineEdit(self)
         self.konsol.setGeometry(self.ot, self.ot + self.libh, self.libw - self.ot, 20)
@@ -117,21 +117,22 @@ class GameWindow(QWidget):
             self.ButMap.append(st)
             print('создал кнопки')
             for j in range(15):
-                self.ButMap[i][j].setGeometry(self.karta[i][j][0], self.karta[i][j][1],self.yi,self.yi)
+                self.ButMap[i][j].setGeometry(self.karta[i][j][0], self.karta[i][j][1], self.yi, self.yi)
                 print('geometry')
                 self.ButMap[i][j].MyLetter = self.matr.map[i][j]
+                if self.matr.map[i][j] != '':
+                    self.ButMap[i][j].show()
                 print('letters')
-                self.ButMap[i][j].MyKoord = [j , i]
+                self.ButMap[i][j].MyKoord = [j, i]
                 print('koord')
-                #self.ButMap[i][j].MyPrice = GameConfig.letters[self.ButMap[i][j].MyLetter]['price']
+                # self.ButMap[i][j].MyPrice = GameConfig.letters[self.ButMap[i][j].MyLetter]['price']
                 print('price')
-
 
     def ClearChanges(self):
         self.matr.reject_temp()
         for i in range(len(self.myletters)):
-            self.myletters[i].MyKoord = [None,i]
-            self.myletters[i].move(self.StartPosition[i][0],self.StartPosition[i][1])
+            self.myletters[i].MyKoord = [None, i]
+            self.myletters[i].move(self.StartPosition[i][0], self.StartPosition[i][1])
 
     def Help(self):
 
@@ -149,7 +150,8 @@ class GameWindow(QWidget):
             print(self.matr.outy)
             for i in self.matr.map:
                 print(i)
-        else: print('в матрице есть ошибки')
+        else:
+            print('в матрице есть ошибки')
 
     def getletter(self):
         """выбирает случайную букву"""
@@ -159,7 +161,6 @@ class GameWindow(QWidget):
             genletter = random.choice(GameConfig.let)
         GameConfig.letters[genletter]['count'] -= 1
         return (genletter)
-
 
     """def ProverkaKoordinat1(self,i,x,y):
         r = [y,x]
@@ -172,10 +173,6 @@ class GameWindow(QWidget):
             self.matr.tempmap[y,x] = self.letters[i].MyLetter
             self.myletters[i].move(self.karta[x][y][0], self.karta[x][y][1])
             self.myletters[i].MyKoord = [y, x]"""
-
-
-
-
 
     def ProverkaKoordinat(self, i, x, y):
         r = [y, x]
