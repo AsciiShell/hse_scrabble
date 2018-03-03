@@ -117,10 +117,10 @@ class Point:
         self.multi = Point.info[self.t]["multi"]
         self.value = Point.info[self.t]["value"]
         if self.multi == "letter":
-            self.score = GameConfig.letters[self.letter] * self.multi
+            self.score = GameConfig.letters[self.letter]['price'] * (self.value)
             self.multi = 1
         else:
-            self.score = GameConfig.letters[self.letter]
+            self.score = GameConfig.letters[self.letter]['price']
             self.multi = self.multi
 
 
@@ -136,11 +136,18 @@ class MatrixResult:
     """Результат проверки матрицы"""
 
     def __init__(self, stat, score=0, words=None, errmsg=""):
+        """Из функции выводится:
+        self.result - успешность заполнения матрицы
+        self.words - проверенные слова, найденные в матрице
+        self.score - сумма очков за правильные слова
+        self.wordsError - слова, которых нет в словаре
+        self.msg - причина ошибки
+        """
+        self.score = score
         self.result = stat
         if stat:
             if words is None:
-                warnings.warn("Слова не указаны")
-            self.score = score
+                warnings.warn("Слова не найдены")
             self.words = words
         else:
             self.msg = errmsg
@@ -278,23 +285,36 @@ class Matrix:
             for i in range(len(self.map)):
                 for j in range(len(self.map[i])):
                     if (self.map[i][j] != ''):
+
                         slx = self._prov(j, i, 1)
+
                         sly = self._prov(j, i, 2)
+
                         if (slx[1] == 1):
                             # проверка слова на наличие в словаре
                             if slx[0] not in self.dict.dict:
                                 undefined.append(slx[0])
-                            outx.append(slx[0])
+                            else:
+                                outx.append(slx[0])
                             score += slx[2]
                         if (sly[1] == 1):
                             # проверка слова на наличие в словаре
                             if sly[0] not in self.dict.dict:
                                 undefined.append(sly[0])
-                            outy.append(sly[0])
+                            else:
+                                outy.append(sly[0])
                             score += sly[2]
-            return MatrixResult(True, score, outx + outy)
+            print ('поиск закончен')
+            if len(undefined) == 0:
+                print ('ok')
+                return MatrixResult(True, score, outx + outy)
+            else:
+                print('нопознанные слова')
+                return MatrixResult(False, 1, undefined, 'нопознанные слова' )
+
         else:
-            return MatrixResult(False, 0, outx + outy, '')
+            print('неправильное заполнение матрицы')
+            return MatrixResult(False, 2, outx + outy,'неправильное заполнение матрицы' )
 
     def get(self, y, x):
         """Возвращает точку по адресу"""
@@ -309,7 +329,6 @@ class Matrix:
                 b.append(self.newletters[i])
         self.newkoord = a
         self.newletters = b
-        print('проверили новые данные')
 
     def _ValidationCheck(self, koord):
         # poisk sverhy
@@ -352,6 +371,7 @@ class Matrix:
 
     def __init__(self):
         """Создает новую игровую карту"""
+        self.Mainmap = [["" for i in range(15)] for j in range(15)]
         self.map = [["" for i in range(15)] for j in range(15)]
         self.tempmap = [["" for i in range(15)] for j in range(15)]
         self.newkoord = []
@@ -391,3 +411,13 @@ class GameDictionary:
         """Инициализирует словарь начальным списком слов"""
         with open(self.filename, "r", encoding="utf-8") as f:
             self.dict = f.read().lower().split("\n")
+
+if __name__ == '__main__':
+    matr = Matrix()
+    matr.newkoord = [[7,7], [7,8], [7,9]]
+    matr.newletters = ['З','Е','Б']
+    rez = matr.serch()
+    print(rez.words)
+    print(rez.score)
+
+

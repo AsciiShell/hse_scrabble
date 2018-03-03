@@ -55,19 +55,9 @@ class GameWindow(QWidget):
         self.btnconcreateret.move(self.widthtotal - 120, 50)
         self.setAcceptDrops(True)
 
-        for i in range(10):
-            self.matr.map[i][i + 2] = self.getletter()
+        #for i in range(5):
+        #   self.matr.map[i + 3][7] = self.getletter()
 
-        """for i in range(15):
-            l = []
-            for j in range(15):
-                l.append(Fishka(self.matr.map[i][j], self))
-            self.ButMap.append(l)
-            for j in range(15):
-                self.ButMap[i][j].MyLetter = self.matr.map[j][i]
-                self.ButMap[i][j].MyPrice = GameConfig.letters[self.matr.map[i][j]]['price']
-                self.ButMap[i][j].MyKoord = [j , i]
-                self.ButMap[i][j].setGeometry(self.karta[i][j][0], self.karta[i][j][0] , self.yi, self.yi)"""
         """расстановка кнопок для перемещения"""
         self.myletters = []
         self.StartPosition = []
@@ -105,6 +95,8 @@ class GameWindow(QWidget):
             self.ClearChanges()
         if name[0] == 'lastletters':
             self.lastLetters()
+        if name[0] == 'check':
+            self.CheckMatrix()
         self.konsol.clear()
 
     def lastLetters(self):
@@ -115,18 +107,14 @@ class GameWindow(QWidget):
             for j in range(15):
                 st.append(Fishka(self.matr.map[i][j], self))
             self.ButMap.append(st)
-            print('создал кнопки')
             for j in range(15):
                 self.ButMap[i][j].setGeometry(self.karta[i][j][0], self.karta[i][j][1], self.yi, self.yi)
-                print('geometry')
                 self.ButMap[i][j].MyLetter = self.matr.map[i][j]
                 if self.matr.map[i][j] != '':
                     self.ButMap[i][j].show()
-                print('letters')
                 self.ButMap[i][j].MyKoord = [j, i]
-                print('koord')
                 # self.ButMap[i][j].MyPrice = GameConfig.letters[self.ButMap[i][j].MyLetter]['price']
-                print('price')
+
 
     def ClearChanges(self):
         self.matr.reject_temp()
@@ -143,11 +131,34 @@ class GameWindow(QWidget):
         for i in self.matr.map:
             print(i)
 
+    def CheckMatrix(self):
+        print('начало')
+        self.rez = self.matr.serch()
+        print('начало1')
+        if self.rez.result:
+            #ошибок нет,
+            print('ошибок нет')
+            print ('Найденные слова:')
+            for i in self.rez.words:
+                print(i)
+            print('набранные баллы:')
+            print (self.rez.score)
+        else:
+            if self.rez.score == 1:
+                #в матрице есть неопозанные слова
+                print (self.rez.msg)
+                for i in self.rez.wordsError:
+                    print(i)
+            if self.rez.score == 2:
+                #матрица заполнена неправильно
+                print (self.rez.msg)
+
     def ShowWords(self):
         """выводит новые слова"""
-        if self.matr.serch():
-            print(self.matr.outx)
-            print(self.matr.outy)
+        rez = self.matr.serch()
+        if rez.rezult:
+            print(rez.words)
+            print(rez.score)
             for i in self.matr.map:
                 print(i)
         else:
