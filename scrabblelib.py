@@ -79,7 +79,7 @@ class GameConfig:
                'Я': {'count': 3, 'price': 3},
                '*': {'count': 3, 'price': None}}
     """Начальное число фишек"""
-    startCount = 7
+    startCount = 20
     """Бонус за полное использование фишек"""
     fullBonus = 15
     """Количество пропусков для завершения игры"""
@@ -292,14 +292,14 @@ class Matrix:
 
                         if (slx[1] == 1):
                             # проверка слова на наличие в словаре
-                            if slx[0] not in self.dict.dict:
+                            if slx[0].lower() not in self.dict.dict:
                                 undefined.append(slx[0])
                             else:
                                 outx.append(slx[0])
                             score += slx[2]
                         if (sly[1] == 1):
                             # проверка слова на наличие в словаре
-                            if sly[0] not in self.dict.dict:
+                            if sly[0].lower() not in self.dict.dict:
                                 undefined.append(sly[0])
                             else:
                                 outy.append(sly[0])

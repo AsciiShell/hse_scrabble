@@ -63,7 +63,7 @@ class GameWindow(QWidget):
         self.StartPosition = []
         for i in range(GameConfig.startCount):
             gs = self.getletter()
-            self.myletters.append(Fishka((gs + '(' + str(i) + ')'), self))
+            self.myletters.append(Fishka((gs + ' ' + str(i) ), self))
             self.myletters[i].MyLetter = gs
             self.myletters[i].MyPrice = GameConfig.letters[gs]['price']
             self.myletters[i].MyKoord = [None, i]
