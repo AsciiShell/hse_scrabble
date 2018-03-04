@@ -1,9 +1,7 @@
 import time
-import warnings
 from threading import Thread
 
 from scrabblelib import *
-
 
 
 class Player:
@@ -87,6 +85,11 @@ class PlayerLocal(GamePlayer):
 
 
 class PlayerBot(GamePlayer):
+    class PosStruct:
+        def __init__(self, arr, score):
+            self.letters = arr
+            self.score = score
+
     def __init__(self, name, game):
         self.botEnable = True
         self.thread = Thread(target=self._daemon)
@@ -101,6 +104,49 @@ class PlayerBot(GamePlayer):
     def _is_replaceable(a, b):
         return b == '' or a == b
 
+    def _available(self, word, ind):
+        res = []
+        for i in range(len(self.game.matrix.map)):
+            for j in range(len(self.game.matrix.map[0])):
+                if self.game.matrix.map[i][j] == word[ind]:
+                    # Проверка по горизонтали
+                    let = self.letters.copy()
+                    turn = []
+                    for x in range(len(word)):
+                        if not 0 <= j - ind + x <= len(self.game.matrix.map):
+                            break
+                        if self.game.matrix.map[i][j - ind + x] != word[x]:
+                            if self.game.matrix.map[i][j - ind + x] != '':
+                                break
+                            elif word[x] in let:
+                                turn.append(Point(i, j - ind + x, word[x]))
+                                let.remove(word[x])
+                            else:
+                                break
+                    else:
+                        # TODO andrsolo21 проверить на слова дельту "turn"
+                        score = 0
+                        res.append(self.PosStruct(turn, score))
+                    # Проверка по вертикали
+                    let = self.letters.copy()
+                    turn = []
+                    for x in range(len(word)):
+                        if not 0 <= j - ind + x <= len(self.game.matrix.map):
+                            break
+                        if self.game.matrix.map[i - ind + x][j] != word[x]:
+                            if self.game.matrix.map[i - ind + x][j] != '':
+                                break
+                            elif word[x] in let:
+                                turn.append(Point(i - ind + x, j, word[x]))
+                                let.remove(word[x])
+                            else:
+                                break
+                    else:
+                        # TODO andrsolo21 проверить на слова дельту "turn"
+                        score = 0
+                        res.append(self.PosStruct(turn, score))
+        return res
+
     def cpu(self):
         """Вычисляет информацию для хода"""
         letters = ""
@@ -112,7 +158,28 @@ class PlayerBot(GamePlayer):
             if letters.count(i) == 0:
                 letters += i
         words = self.game.dict.prepare(letters)
-        pass
+        res = []
+        for word in words:
+            for char in range(len(word)):
+                temp = self._available(word, char)
+                if temp:
+                    print(temp)
+                    res += temp
+                    break  # SOME optimize
+        for i in res:
+            print(i.score)
+            for x in range(len(self.game.matrix.map)):
+                for y in range(len(self.game.matrix.map[0])):
+                    for let in i.letters:
+                        if let.x == x and let.y == y:
+                            print(let.letter, end='\t')
+                            break
+                    else:
+                        print(self.game.matrix.map[x][y], end='\t')
+                print()
+            print('\n---------\n')
+
+        return res
 
     def _daemon(self):
         """Демон бота"""
@@ -260,4 +327,10 @@ class GameServer:
 
 
 if __name__ == '__main__':
-    x = GameServer([Player("ADMIN", "local")])
+    game_server = GameServer([Player("BOT", "bot")])
+    game_server.matrix.map[2][3] = "П"
+    game_server.matrix.map[2][4] = "Р"
+    game_server.matrix.map[2][5] = "И"
+    game_server.matrix.map[2][6] = "В"
+    game_server.matrix.map[2][7] = "Е"
+    # game_server.players[0].letters = ["Т", "Т", "Т", "Т", "Т", "Т", "Т"]

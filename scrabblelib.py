@@ -76,8 +76,8 @@ class GameConfig:
                'Ь': {'count': 2, 'price': 5},
                'Э': {'count': 1, 'price': 10},
                'Ю': {'count': 1, 'price': 10},
-               'Я': {'count': 3, 'price': 3},
-               '*': {'count': 3, 'price': None}}
+               'Я': {'count': 3, 'price': 3}, }
+    # '*': {'count': 3, 'price': None}}
     """Начальное число фишек"""
     startCount = 20
     """Бонус за полное использование фишек"""
@@ -400,7 +400,7 @@ class GameDictionary:
         """Подготавливает словарь к допустимым буквам
 
         alphabet - строка допустимых символов"""
-        alphabet = alphabet.lower()
+        alphabet = alphabet.upper()
         if len(alphabet) >= 32:
             return self.dict
 
@@ -416,7 +416,7 @@ class GameDictionary:
     def __init__(self):
         """Инициализирует словарь начальным списком слов"""
         with open(self.filename, "r", encoding="utf-8") as f:
-            self.dict = f.read().lower().split("\n")
+            self.dict = f.read().upper().split("\n")
 
 if __name__ == '__main__':
     matr = Matrix()
