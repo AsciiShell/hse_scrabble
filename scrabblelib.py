@@ -76,8 +76,8 @@ class GameConfig:
                'Ь': {'count': 2, 'price': 5},
                'Э': {'count': 1, 'price': 10},
                'Ю': {'count': 1, 'price': 10},
-               'Я': {'count': 3, 'price': 3}, }
-    # '*': {'count': 3, 'price': None}}
+               'Я': {'count': 3, 'price': 3},
+               '*': {'count': 0, 'price': None}}
     """Начальное число фишек"""
     startCount = 20
     """Бонус за полное использование фишек"""
@@ -305,18 +305,18 @@ class Matrix:
                             else:
                                 outy.append(sly[0])
                             score += sly[2]
-            print ('поиск закончен')
+            print('поиск закончен')
             if len(undefined) == 0:
-                print ('ok')
+                print('ok')
                 return MatrixResult(True, score, outx + outy)
             else:
                 print('нопознанные слова')
                 self.map = self.Mainmap
-                return MatrixResult(False, 1, undefined, 'нопознанные слова' )
+                return MatrixResult(False, 1, undefined, 'нопознанные слова')
 
         else:
             print('неправильное заполнение матрицы1')
-            return MatrixResult(False, 2, outx + outy,'неправильное заполнение матрицы' )
+            return MatrixResult(False, 2, outx + outy, 'неправильное заполнение матрицы')
 
     def get(self, y, x):
         """Возвращает точку по адресу"""
@@ -374,7 +374,6 @@ class Matrix:
         self.Mainmap = self.map
         self.reject_temp()
 
-
     def __init__(self):
         """Создает новую игровую карту"""
         self.Mainmap = [["" for i in range(15)] for j in range(15)]
@@ -385,6 +384,7 @@ class Matrix:
         self.matrvalid = [[0 for i in range(15)] for j in range(15)]
         self.dict = GameDictionary()
         self.FirstFish = [7, 7]
+
 
 class GameDictionary:
     """Словарь слов игры"""
@@ -418,12 +418,11 @@ class GameDictionary:
         with open(self.filename, "r", encoding="utf-8") as f:
             self.dict = f.read().upper().split("\n")
 
+
 if __name__ == '__main__':
     matr = Matrix()
-    matr.newkoord = [[7,7], [7,8], [7,9]]
-    matr.newletters = ['З','Е','Б']
+    matr.newkoord = [[7, 7], [7, 8], [7, 9]]
+    matr.newletters = ['З', 'Е', 'Б']
     rez = matr.serch()
     print(rez.words)
     print(rez.score)
-
-

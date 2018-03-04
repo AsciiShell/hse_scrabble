@@ -5,8 +5,9 @@ from PyQt5.QtGui import QPainter, QColor
 from PyQt5.QtWidgets import QLineEdit
 from PyQt5.QtWidgets import QWidget, QDesktopWidget, QLabel, QMainWindow, QPushButton, QApplication, \
     QGroupBox, QMessageBox, QHBoxLayout
-from server import *
+
 from client import *
+from server import *
 
 
 class Fishka(QPushButton):
@@ -55,7 +56,7 @@ class GameWindow(QWidget):
         self.btnconcreateret.move(self.widthtotal - 120, 50)
         self.setAcceptDrops(True)
 
-        #for i in range(5):
+        # for i in range(5):
         #   self.matr.map[i + 3][7] = self.getletter()
 
         """расстановка кнопок для перемещения"""
@@ -63,7 +64,7 @@ class GameWindow(QWidget):
         self.StartPosition = []
         for i in range(GameConfig.startCount):
             gs = self.getletter()
-            self.myletters.append(Fishka((gs + ' ' + str(i) ), self))
+            self.myletters.append(Fishka((gs + ' ' + str(i)), self))
             self.myletters[i].MyLetter = gs
             self.myletters[i].MyPrice = GameConfig.letters[gs]['price']
             self.myletters[i].MyKoord = [None, i]
@@ -71,7 +72,8 @@ class GameWindow(QWidget):
             self.StartPosition.append(
                 [self.letterskoord[0] + (self.yi + self.ot) * i + self.ot, self.letterskoord[1] + self.ot])
             self.myletters[i].setGeometry(
-                QRect(self.letterskoord[0] + (self.yi + self.ot) * i + self.ot, self.letterskoord[1] + self.ot, self.yi + 1,
+                QRect(self.letterskoord[0] + (self.yi + self.ot) * i + self.ot, self.letterskoord[1] + self.ot,
+                      self.yi + 1,
                       self.yi + 1))
 
         """line edit/konsol"""
@@ -154,22 +156,22 @@ class GameWindow(QWidget):
     def CheckMatrix(self):
         self.rez = self.matr.serch()
         if self.rez.result:
-            #ошибок нет,
+            # ошибок нет,
             print('ошибок нет')
-            print ('Найденные слова:')
+            print('Найденные слова:')
             for i in self.rez.words:
                 print(i)
             print('набранные баллы:')
-            print (self.rez.score)
+            print(self.rez.score)
         else:
             if self.rez.score == 1:
-                #в матрице есть неопозанные слова
-                print (self.rez.msg)
+                # в матрице есть неопозанные слова
+                print(self.rez.msg)
                 for i in self.rez.wordsError:
                     print(i)
             if self.rez.score == 2:
-                #матрица заполнена неправильно
-                print (self.rez.msg)
+                # матрица заполнена неправильно
+                print(self.rez.msg)
 
     def ShowWords(self):
         """выводит новые слова"""
