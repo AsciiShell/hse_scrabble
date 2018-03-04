@@ -77,7 +77,7 @@ class GameConfig:
                'Э': {'count': 1, 'price': 10},
                'Ю': {'count': 1, 'price': 10},
                'Я': {'count': 3, 'price': 3},
-               '*': {'count': 0, 'price': None}}
+               '*': {'count': 3, 'price': None}}
     """Начальное число фишек"""
     startCount = 20
     """Бонус за полное использование фишек"""
@@ -401,14 +401,22 @@ class GameDictionary:
 
         alphabet - строка допустимых символов"""
         alphabet = alphabet.upper()
+        if '*' in alphabet:
+            star = alphabet.count("*")
+        else:
+            star = 0
         if len(alphabet) >= 32:
             return self.dict
 
         temp_dict = []
         for i in self.dict:
+            loc_star = star
             for j in i:
                 if alphabet.count(j) == 0:
-                    break
+                    if loc_star == 0:
+                        break
+                    else:
+                        loc_star -= 1
             else:
                 temp_dict.append(i)
         return temp_dict

@@ -34,6 +34,12 @@ class TestGameDictionary(unittest.TestCase):
     def test_4(self):
         self.assertTrue(len(self.g_dict.prepare("АБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮ")) == len(self.test_dict) - 3)
 
+    def test_star_1(self):
+        self.assertTrue(len(self.g_dict.prepare("ИЗ*ЯН")) == 1)
+
+    def test_star_2(self):
+        self.assertTrue(len(self.g_dict.prepare("*****")) == 4)
+
 
 class TestPoint(unittest.TestCase):
     def test_1(self):
