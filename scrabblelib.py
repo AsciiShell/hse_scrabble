@@ -79,7 +79,7 @@ class GameConfig:
                'Я': {'count': 3, 'price': 3},
                '*': {'count': 3, 'price': None}}
     """Начальное число фишек"""
-    startCount = 20
+    startCount = 7
     """Бонус за полное использование фишек"""
     fullBonus = 15
     """Количество пропусков для завершения игры"""
@@ -285,22 +285,22 @@ class Matrix:
             self.map = self.tempmap
             for i in range(len(self.map)):
                 for j in range(len(self.map[i])):
-                    if (self.map[i][j] != ''):
+                    if self.map[i][j] != '':
 
                         slx = self._prov(j, i, 1)
 
                         sly = self._prov(j, i, 2)
 
-                        if (slx[1] == 1):
+                        if slx[1] == 1:
                             # проверка слова на наличие в словаре
-                            if slx[0].lower() not in self.dict.dict:
+                            if slx[0] not in self.dict.dict:
                                 undefined.append(slx[0])
                             else:
                                 outx.append(slx[0])
                             score += slx[2]
-                        if (sly[1] == 1):
+                        if sly[1] == 1:
                             # проверка слова на наличие в словаре
-                            if sly[0].lower() not in self.dict.dict:
+                            if sly[0] not in self.dict.dict:
                                 undefined.append(sly[0])
                             else:
                                 outy.append(sly[0])
