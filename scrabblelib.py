@@ -266,6 +266,7 @@ class Matrix:
 
     def pasteletters(self):
         """вставляет буквы в матрицу"""
+        self.tempmap = self.Mainmap
         for i in range(len(self.newkoord)):
             self.tempmap[self.newkoord[i][1]][self.newkoord[i][0]] = self.newletters[i]
 
@@ -310,10 +311,11 @@ class Matrix:
                 return MatrixResult(True, score, outx + outy)
             else:
                 print('нопознанные слова')
+                self.map = self.Mainmap
                 return MatrixResult(False, 1, undefined, 'нопознанные слова' )
 
         else:
-            print('неправильное заполнение матрицы')
+            print('неправильное заполнение матрицы1')
             return MatrixResult(False, 2, outx + outy,'неправильное заполнение матрицы' )
 
     def get(self, y, x):
@@ -353,8 +355,7 @@ class Matrix:
 
     def ValidationKoord(self):
         self.count = 0
-        self.FirstFish = [7, 7]
-        if self.tempmap[7][7] != '':
+        if self.tempmap[self.FirstFish[0]][self.FirstFish[1]] != '':
             self._ValidationCheck(self.FirstFish)
             print('нашел ' + str(self.count) + ' букв')
             for i in range(15):
@@ -369,6 +370,11 @@ class Matrix:
         else:
             return False
 
+    def SaveChangesMatr(self):
+        self.Mainmap = self.map
+        self.reject_temp()
+
+
     def __init__(self):
         """Создает новую игровую карту"""
         self.Mainmap = [["" for i in range(15)] for j in range(15)]
@@ -378,7 +384,7 @@ class Matrix:
         self.newletters = []
         self.matrvalid = [[0 for i in range(15)] for j in range(15)]
         self.dict = GameDictionary()
-
+        self.FirstFish = [7, 7]
 
 class GameDictionary:
     """Словарь слов игры"""
