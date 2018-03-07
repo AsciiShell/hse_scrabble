@@ -210,7 +210,7 @@ class GameWindow(QWidget):
         # проверяем, была ли занята эта ячейка до этого хода
         if self.matr.map[x][y] == '':
             # проверяем, откуда перетаскиваем букву, тк могут остаться хвосты
-            if self.myletters[i].MyKoord[0] != None:
+            if self.myletters[i].MyKoord[0] is not None:
                 print('есть хвост')
                 for j in range(len(self.matr.newkoord)):
                     print('начал поиск')
