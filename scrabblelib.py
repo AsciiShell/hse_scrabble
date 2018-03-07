@@ -79,7 +79,7 @@ class GameConfig:
                'Я': {'count': 3, 'price': 3},
                '*': {'count': 3, 'price': None}}
     """Начальное число фишек"""
-    startCount = 10
+    startCount = 7
     """Бонус за полное использование фишек"""
     fullBonus = 15
     """Количество пропусков для завершения игры"""
@@ -222,7 +222,7 @@ class Matrix:
         if flag == 1:
             return self._schit(x, y, napr)
         else:
-            return ['', 0]
+            return ['', 0,0]
 
     def _schit(self, x, y, napr):
         """считывает слово"""
@@ -238,7 +238,7 @@ class Matrix:
                     newword = 1
                 point = Point(x, y, self.map[y][x])
                 score += point.score
-                multisc *= point.multi
+                multisc *= point.value
                 s = s + self.map[y][x]
                 if y == 14:
                     a = 0
@@ -254,7 +254,7 @@ class Matrix:
                     newword = 1
                 point = Point(x, y, self.map[y][x])
                 score += point.score
-                multisc *= point.multi
+                multisc *= point.value
                 s = s + self.map[y][x]
                 if x == 14:
                     a = 0
@@ -307,7 +307,10 @@ class Matrix:
                                 undefined.append(sly[0])
                             else:
                                 outy.append(sly[0])
-                            score += sly[2]
+                            try:
+                                score += sly[2]
+                            except Exception as e:
+                                print(e)
             print('поиск закончен')
             if len(undefined) == 0:
                 print('ok')

@@ -71,10 +71,11 @@ class GamePlayer(Player):
 
     def check_turn(self, arg):
         """Проверяет правильность ввода новых букв"""
-        # TODO andrsolo21 вызов функций класса матрицы
-        # TODO на вход массив буков с координатами
-        self.game.matrix.check_temp()
-        return Message(True)  # + слова/очки и проч
+        self.game.matrix.reject_temp()
+        for _ in arg:
+            self.game.matrix.newkoord.append([_.y, _.x])
+            self.game.matrix.newletters.append(_.letter)
+        return self.game.matrix.serch()
 
     def accept_turn(self, arg):
         """Проверяет правильность ввода новых букв и завершает ход"""
@@ -128,48 +129,46 @@ class PlayerBot(GamePlayer):
                     # Проверка по горизонтали
                     let = self.letters.copy()
                     turn = []
-                    for x in range(len(word)):
-                        if not 0 <= j - ind + x < len(self.game.matrix.Mainmap):
-                            break
-                        if self.game.matrix.Mainmap[i][j - ind + x] != word[x]:
-                            if self.game.matrix.Mainmap[i][j - ind + x] != '':
+                    if (j - ind - 1 < 0 or self.game.matrix.Mainmap[i][j - ind - 1] == '') and \
+                            (j - ind + len(word) >= len(self.game.matrix.Mainmap[0]) or self.game.matrix.Mainmap[i][
+                                j - ind + len(word)] == ''):
+                        for x in range(len(word)):
+                            if not 0 <= j - ind + x < len(self.game.matrix.Mainmap):
                                 break
-                            elif word[x] in let:
-                                turn.append(Point(i, j - ind + x, word[x]))
-                                let.remove(word[x])
-                            else:
-                                break
-                    else:
-                        # TODO asciishell переделать под новый алгоритм
-                        self.game.matrix.reject_temp()
-                        for _ in turn:
-                            self.game.matrix.newkoord.append([_.y, _.x])
-                            self.game.matrix.newletters.append(_.letter)
-                        check = self.game.matrix.serch()
-                        if check.result:
-                            res.append(self.PosStruct(turn, check.score))
+                            if self.game.matrix.Mainmap[i][j - ind + x] != word[x]:
+                                if self.game.matrix.Mainmap[i][j - ind + x] != '':
+                                    break
+                                elif word[x] in let:
+                                    turn.append(Point(i, j - ind + x, word[x]))
+                                    let.remove(word[x])
+                                else:
+                                    break
+                        else:
+                            # TODO asciishell переделать под новый алгоритм
+                            check = self.check_turn(turn)
+                            if check.result:
+                                res.append(self.PosStruct(turn, check.score))
                     # Проверка по вертикали
                     let = self.letters.copy()
-                    for x in range(len(word)):
-                        if not 0 <= i - ind + x < len(self.game.matrix.Mainmap):
-                            break
-                        if self.game.matrix.Mainmap[i - ind + x][j] != word[x]:
-                            if self.game.matrix.Mainmap[i - ind + x][j] != '':
+                    if (i - ind - 1 < 0 or self.game.matrix.Mainmap[i - ind - 1][j] == '') and \
+                            (i - ind + len(word) >= len(self.game.matrix.Mainmap) or
+                             self.game.matrix.Mainmap[i - ind + len(word)][j] == ''):
+                        for x in range(len(word)):
+                            if not 0 <= i - ind + x < len(self.game.matrix.Mainmap):
                                 break
-                            elif word[x] in let:
-                                turn.append(Point(i - ind + x, j, word[x]))
-                                let.remove(word[x])
-                            else:
-                                break
-                    else:
-                        # TODO asciishell переделать под новый алгоритм
-                        self.game.matrix.reject_temp()
-                        for _ in turn:
-                            self.game.matrix.newkoord.append([_.y, _.x])
-                            self.game.matrix.newletters.append(_.letter)
-                        check = self.game.matrix.serch()
-                        if check.result:
-                            res.append(self.PosStruct(turn, check.score))
+                            if self.game.matrix.Mainmap[i - ind + x][j] != word[x]:
+                                if self.game.matrix.Mainmap[i - ind + x][j] != '':
+                                    break
+                                elif word[x] in let:
+                                    turn.append(Point(i - ind + x, j, word[x]))
+                                    let.remove(word[x])
+                                else:
+                                    break
+                        else:
+                            # TODO asciishell переделать под новый алгоритм
+                            check = self.check_turn(turn)
+                            if check.result:
+                                res.append(self.PosStruct(turn, check.score))
         return res
 
     def cpu(self):
@@ -193,11 +192,27 @@ class PlayerBot(GamePlayer):
                     res += temp
                     break  # SOME optimize
         # Print all results
-        for i in res:
-            print(i.score)
+        # for i in res:
+        #     print(i.score)
+        #     for x in range(len(self.game.matrix.Mainmap)):
+        #         for y in range(len(self.game.matrix.Mainmap[0])):
+        #             for let in i.letters:
+        #                 if let.x == x and let.y == y:
+        #                     print(let.letter, end='\t')
+        #                     break
+        #             else:
+        #                 print(self.game.matrix.Mainmap[x][y], end='\t')
+        #         print()
+        #     print('\n---------\n')
+        if res:
+            max_score = 0
+            for i in range(len(res)):
+                if res[i].score > res[max_score].score:
+                    max_score = i
+            print(res[max_score].score)
             for x in range(len(self.game.matrix.Mainmap)):
                 for y in range(len(self.game.matrix.Mainmap[0])):
-                    for let in i.letters:
+                    for let in res[max_score].letters:
                         if let.x == x and let.y == y:
                             print(let.letter, end='\t')
                             break
@@ -205,11 +220,6 @@ class PlayerBot(GamePlayer):
                         print(self.game.matrix.Mainmap[x][y], end='\t')
                 print()
             print('\n---------\n')
-        if res:
-            max_score = 0
-            for i in range(len(res)):
-                if res[i].score > res[max_score].score:
-                    max_score = i
             self.accept_turn(TurnStruct(True, res[max_score].letters))
         else:
             # Reject all letters
@@ -367,4 +377,4 @@ if __name__ == '__main__':
     game_server.matrix.Mainmap[7][9] = "И"
     game_server.matrix.Mainmap[7][10] = "В"
     game_server.matrix.Mainmap[7][11] = "Е"
-    game_server.players[0].letters = ["Т"]
+    # game_server.players[0].letters = ["Т"]
