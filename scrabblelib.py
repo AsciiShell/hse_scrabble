@@ -79,7 +79,7 @@ class GameConfig:
                'Я': {'count': 3, 'price': 3},
                '*': {'count': 3, 'price': None}}
     """Начальное число фишек"""
-    startCount = 7
+    startCount = 10
     """Бонус за полное использование фишек"""
     fullBonus = 15
     """Количество пропусков для завершения игры"""
@@ -266,7 +266,7 @@ class Matrix:
 
     def pasteletters(self):
         """вставляет буквы в матрицу"""
-        self.tempmap = self.Mainmap
+        self.tempmap = [_.copy() for _ in self.Mainmap]
         for i in range(len(self.newkoord)):
             self.tempmap[self.newkoord[i][1]][self.newkoord[i][0]] = self.newletters[i]
 
@@ -282,7 +282,7 @@ class Matrix:
         self.pasteletters()
         undefined = []
         if self.ValidationKoord():
-            self.map = self.tempmap
+            self.map = [_.copy() for _ in self.tempmap]
             for i in range(len(self.map)):
                 for j in range(len(self.map[i])):
                     if self.map[i][j] != '':
@@ -297,7 +297,10 @@ class Matrix:
                                 undefined.append(slx[0])
                             else:
                                 outx.append(slx[0])
-                            score += slx[2]
+                            try:
+                                score += slx[2]
+                            except Exception as e:
+                                print(e)
                         if sly[1] == 1:
                             # проверка слова на наличие в словаре
                             if sly[0] not in self.dict.dict:
@@ -311,7 +314,7 @@ class Matrix:
                 return MatrixResult(True, score, outx + outy)
             else:
                 print('нопознанные слова')
-                self.map = self.Mainmap
+                self.map = [_.copy() for _ in self.Mainmap]
                 return MatrixResult(False, 1, undefined, 'нопознанные слова')
 
         else:
@@ -371,7 +374,7 @@ class Matrix:
             return False
 
     def SaveChangesMatr(self):
-        self.Mainmap = self.map
+        self.Mainmap = [_.copy() for _ in self.map]
         self.reject_temp()
 
     def __init__(self):

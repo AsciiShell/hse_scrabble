@@ -19,6 +19,22 @@ class Player:
         self.ip = ip
 
 
+class TurnStruct:
+    def __init__(self, add_letters, letters=None, pass_letters=None):
+        if add_letters:
+            self.isChanged = True
+            if letters is None:
+                warnings.warn("Letters is None")
+            self.letters = letters
+            self.pass_let = []
+        else:
+            self.isChanged = False
+            if pass_letters is None:
+                warnings.warn("Pass letters is None")
+            self.pass_letters = pass_letters
+            self.letters = []
+
+
 class GamePlayer(Player):
     def __init__(self, name, game, rid=None, dif=None, ip=None):
         self.score = 0
@@ -53,18 +69,18 @@ class GamePlayer(Player):
         self.isTurn = False
         return self.result
 
-    def check_turn(self, *args):
+    def check_turn(self, arg):
         """Проверяет правильность ввода новых букв"""
         # TODO andrsolo21 вызов функций класса матрицы
         # TODO на вход массив буков с координатами
         self.game.matrix.check_temp()
         return Message(True)  # + слова/очки и проч
 
-    def accept_turn(self, *args):
+    def accept_turn(self, arg):
         """Проверяет правильность ввода новых букв и завершает ход"""
         # TODO andrsolo21
         # TODO на вход массив буков с координатами/сброс букв
-        self.check_turn(args)
+        self.check_turn(arg)
         # TODO спец переменная для возврата результата в главнуб функцию
         self.result = "something"
         # Останавливает ход
@@ -125,8 +141,7 @@ class PlayerBot(GamePlayer):
                                 break
                     else:
                         # TODO asciishell переделать под новый алгоритм
-                        self.game.matrix.newkoord = []
-                        self.game.matrix.newletters = []
+                        self.game.matrix.reject_temp()
                         for _ in turn:
                             self.game.matrix.newkoord.append([_.y, _.x])
                             self.game.matrix.newletters.append(_.letter)
@@ -135,7 +150,6 @@ class PlayerBot(GamePlayer):
                             res.append(self.PosStruct(turn, check.score))
                     # Проверка по вертикали
                     let = self.letters.copy()
-                    turn = []
                     for x in range(len(word)):
                         if not 0 <= i - ind + x < len(self.game.matrix.Mainmap):
                             break
@@ -149,8 +163,7 @@ class PlayerBot(GamePlayer):
                                 break
                     else:
                         # TODO asciishell переделать под новый алгоритм
-                        self.game.matrix.newkoord = []
-                        self.game.matrix.newletters = []
+                        self.game.matrix.reject_temp()
                         for _ in turn:
                             self.game.matrix.newkoord.append([_.y, _.x])
                             self.game.matrix.newletters.append(_.letter)
@@ -171,6 +184,7 @@ class PlayerBot(GamePlayer):
                 letters += i
         words = self.game.dict.prepare(letters)
         res = []
+        raw_res = []
         for word in words:
             for char in range(len(word)):
                 temp = self._available(word, char)
@@ -178,6 +192,7 @@ class PlayerBot(GamePlayer):
                     print(temp)
                     res += temp
                     break  # SOME optimize
+        # Print all results
         for i in res:
             print(i.score)
             for x in range(len(self.game.matrix.Mainmap)):
@@ -190,8 +205,15 @@ class PlayerBot(GamePlayer):
                         print(self.game.matrix.Mainmap[x][y], end='\t')
                 print()
             print('\n---------\n')
-
-        return res
+        if res:
+            max_score = 0
+            for i in range(len(res)):
+                if res[i].score > res[max_score].score:
+                    max_score = i
+            self.accept_turn(TurnStruct(True, res[max_score].letters))
+        else:
+            # Reject all letters
+            self.accept_turn(TurnStruct(False, self.letters))
 
     def _daemon(self):
         """Демон бота"""
@@ -345,4 +367,4 @@ if __name__ == '__main__':
     game_server.matrix.Mainmap[7][9] = "И"
     game_server.matrix.Mainmap[7][10] = "В"
     game_server.matrix.Mainmap[7][11] = "Е"
-    # game_server.players[0].letters = ["Т", "Т", "Т", "Т", "Т", "Т", "Т"]
+    game_server.players[0].letters = ["Т"]
