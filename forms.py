@@ -88,9 +88,8 @@ class GameWindow(QWidget):
         name = l.split(" ")
         if name[0] == "move":
             ch = name[1].split(",")
-            self.ProverkaKoordinat(int(ch[0]), int(ch[1]), int(ch[2]))
-        if name[0] == 'show':
-            self.ShowWords()
+            if len(ch) == 3:
+                self.ProverkaKoordinat(int(ch[0]), int(ch[1]), int(ch[2]))
         if name[0] == 'help' or name[0] == 'SOS':
             self.Help()
         if name[0] == 'clear':
@@ -145,9 +144,21 @@ class GameWindow(QWidget):
         self.SeveChangesForm()
 
     def Help(self):
+        s = ''
 
         print('переместить кнопку - move i,x,y (i - номер кнопки,(x, y) - координаты)')
-        print('поиск новых слов - show')
+        s += 'переместить кнопку - move i,x,y (i - номер кнопки,(x, y) - координаты)' + '\n'
+        print('clear - очистить поле и временные данные')
+        s += 'clear - очистить поле и временные данные' + '\n'
+        print('lastletters - отрисовывает буквы, которые проверены')
+        s += 'lastletters - отрисовывает буквы, которые проверены' + '\n'
+        print('check - проверить матрицу и отобразить результат проверки')
+        s += 'check - проверить матрицу и отобразить результат проверки' + '\n'
+        print('save - сохраняет введенные данные и передает ход (при положительном результате функци check)')
+        s += 'save - сохраняет введенные данные и передает ход (при положительном результате функци check)' + '\n'
+        print('endhod - комбинация функций check и save')
+        s += 'endhod - комбинация функций check и save' + '\n'
+        self.Message(s)
         print(self.matr.newletters)
         print(self.matr.newkoord)
         for i in self.matr.map:
@@ -163,26 +174,33 @@ class GameWindow(QWidget):
                 print(i)
             print('набранные баллы:')
             print(self.rez.score)
+            self.Message("ошибок нет\n\nНайденные слова:\n" + " ".join(
+                self.rez.words) + "\n\nнабранные баллы: " + str(self.rez.score))
         else:
             if self.rez.score == 1:
                 # в матрице есть неопозанные слова
+                flag = 1
                 print(self.rez.msg)
-                for i in self.rez.wordsError:
-                    print(i)
+                buttonReply = QMessageBox.question(self, 'Bad Words',
+                                                   "Вы хотите внести новые слова в словарь: " + " ".join(
+                                                       self.rez.wordsError),
+                                                   QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+                if buttonReply == QMessageBox.Yes:
+                    for i in self.rez.wordsError:
+                        buttonReply1 = QMessageBox.question(self, 'Bad Words',
+                                                            "Вы хотите внести это слово в словарь: " + i,
+                                                            QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+                        if buttonReply1 == QMessageBox.Yes:
+                            self.matr.dict.append(i)
+                        else:
+                            flag = 0
+                if flag == 1:
+                    self.CheckMatrix()
+
             if self.rez.score == 2:
                 # матрица заполнена неправильно
                 print(self.rez.msg)
-
-    def ShowWords(self):
-        """выводит новые слова"""
-        rez = self.matr.serch()
-        if rez.rezult:
-            print(rez.words)
-            print(rez.score)
-            for i in self.matr.map:
-                print(i)
-        else:
-            print('в матрице есть ошибки')
+                self.Message(self.rez.msg)
 
     def getletter(self):
         """выбирает случайную букву"""
@@ -192,18 +210,6 @@ class GameWindow(QWidget):
             genletter = random.choice(GameConfig.let)
         GameConfig.letters[genletter]['count'] -= 1
         return (genletter)
-
-    """def ProverkaKoordinat1(self,i,x,y):
-        r = [y,x]
-        if self.letters[i].MyKoord[0] == None:
-            if self.matr.tempmap[y,x] != '':
-                for j in self.myletters:
-                    if j.MyKoord == r:
-                        j.move(self.StartPosition[i.MyStart][0], self.StartPosition[i.MyStart][1])
-                        j.MyKoord = [None, self.MyStart]
-            self.matr.tempmap[y,x] = self.letters[i].MyLetter
-            self.myletters[i].move(self.karta[x][y][0], self.karta[x][y][1])
-            self.myletters[i].MyKoord = [y, x]"""
 
     def ProverkaKoordinat(self, i, x, y):
         r = [y, x]
@@ -242,11 +248,10 @@ class GameWindow(QWidget):
         else:
             pass
 
-    # self.setGeometry(0, 30, self.widthtotal, self.heighttotal)
-    # self.square.setStyleSheet("QWidget { background-color: %s }" % self.col.name())
-    # self.setWindowTitle('Icon')
-    # self.setWindowIcon(QIcon('web.png'))
-    # QToolTip.setFont(QFont('SansSerif', 10))
+    def Message(self, text):
+        buttonReply = QMessageBox.question(self, 'Scrabble',
+                                           text,
+                                           QMessageBox.Ok, QMessageBox.Ok)
 
     def paintEvent(self, e):
         background = QPainter()
@@ -561,15 +566,6 @@ class ThirdWindowCreate(QWidget):
     def __delete__(self, instance):
         self.game.start_game()
 
-    """hbox = QHBoxLayout()
-        hbox.addStretch(1)
-        hbox.addWidget(self.btnconnect)
-        hbox.addWidget(self.btncreate)
-        vbox = QVBoxLayout()
-        vbox.addStretch(1)
-        vbox.addLayout(hbox)"""
-    # self.setLayout(vbox)
-
 
 class MainWindow(QMainWindow):
     def __init__(self, parent=None):
@@ -611,7 +607,6 @@ class MainWindow(QMainWindow):
         self.setGeometry(0, 30, self.widthtotal / 2, self.heighttotal / 2)
         self.setCentralWidget(self.Second)
         self.Second.btnBack.clicked.connect(self.startFirst)
-        # self.Second.btnconcreate.clicked.connect(self.startThirdEx1)
 
         self.show()
 
