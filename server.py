@@ -41,7 +41,6 @@ class GamePlayer(Player):
         self.game = game
         self.letters = []
         self.isTurn = False
-        self.isComplete = False
         self.timeout = 0
         self.input = None
         self.result = None
@@ -58,15 +57,14 @@ class GamePlayer(Player):
     def action(self):
         """Посылает игроку команду на начало действий и ожидает прекращения"""
         self.isTurn = True
-        self.isComplete = False
         self.timeout = GameConfig.turnTime
         self.result = None
         self.my_turn()
-        while not self.isComplete:
+        while self.isTurn:
             time.sleep(1)
             self.timeout -= 1
             if self.timeout <= 0:
-                self.isComplete = True
+                self.isTurn = False
         # TODO ошибка состояния гонки
         self.isTurn = False
         if self.result is None:
@@ -93,7 +91,7 @@ class GamePlayer(Player):
                 self.score += res.score
                 self.result = turn
                 # Останавливает ход
-                self.isComplete = True
+                self.isTurn = False
                 return Message(True, str(res.score))
             else:
                 return Message(False, res.msg)
@@ -101,6 +99,8 @@ class GamePlayer(Player):
             for i in turn.pass_letters:
                 self.letters.remove(i)
             self.result = turn
+            self.isTurn = False
+
             return Message(True, "Пропуск")
 
 
@@ -198,7 +198,6 @@ class PlayerBot(GamePlayer):
                 letters += i
         words = self.game.dict.prepare(letters)
         res = []
-        raw_res = []
         for word in words:
             for char in range(len(word)):
                 temp = self._available(word, char)
@@ -362,8 +361,11 @@ class GameServer:
             for player in self.players:
                 self._give_letter(player)
                 result = player.action()
-                print("Игрок {} закончил ход {}. Набрал {} очков".format(player.name, "Активно" if result.isChanged else "Пассивно", player.score))
-                print("Осталось в руке {} букв. В мешке - {} букв".format(str(len(player.letters)), str(len(self.alphabet))))
+                print("Игрок {} закончил ход {}. Набрал {} очков".format(player.name,
+                                                                         "Активно" if result.isChanged else "Пассивно",
+                                                                         player.score))
+                print("Осталось в руке {} букв. В мешке - {} букв".format(str(len(player.letters)),
+                                                                          str(len(self.alphabet))))
                 if result:
                     # TODO Какая то обработка резульатата и измененние значений
                     pass
