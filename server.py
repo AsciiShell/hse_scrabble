@@ -20,19 +20,12 @@ class Player:
 
 
 class TurnStruct:
-    def __init__(self, add_letters, letters=None, pass_letters=None):
-        if add_letters:
-            self.isChanged = True
-            if letters is None:
-                warnings.warn("Letters is None")
-            self.letters = letters
-            self.pass_letters = []
-        else:
-            self.isChanged = False
-            if pass_letters is None:
-                warnings.warn("Pass letters is None")
-            self.pass_letters = pass_letters
-            self.letters = []
+    def __init__(self, changed=False, letters=None, score=0):
+        if letters is None:
+            letters = []
+        self.changed = changed
+        self.letters = letters
+        self.score = score
 
 
 class GamePlayer(Player):
@@ -56,21 +49,18 @@ class GamePlayer(Player):
 
     def action(self):
         """Посылает игроку команду на начало действий и ожидает прекращения"""
-        self.isTurn = True
         self.timeout = GameConfig.turnTime
         self.result = None
         self.my_turn()
+        self.isTurn = True
         while self.isTurn:
             time.sleep(1)
             self.timeout -= 1
             if self.timeout <= 0:
                 self.isTurn = False
-        # TODO ошибка состояния гонки
-        self.isTurn = False
         if self.result is None:
-            return TurnStruct(False, [], [])
-        else:
-            return self.result
+            self.result = TurnStruct(False, [])
+        return self.result
 
     def check_turn(self, turn):
         """Проверяет правильность ввода новых букв"""
@@ -80,9 +70,9 @@ class GamePlayer(Player):
             self.game.matrix.newletters.append(_.letter)
         return self.game.matrix.serch()
 
-    def accept_turn(self, turn):
+    def accept_turn(self, turn=TurnStruct()):
         """Проверяет правильность ввода новых букв и завершает ход"""
-        if turn.isChanged:
+        if turn.changed:
             res = self.check_turn(turn.letters)
             if res.result:
                 for i in turn.letters:
@@ -96,7 +86,7 @@ class GamePlayer(Player):
             else:
                 return Message(False, res.msg)
         else:
-            for i in turn.pass_letters:
+            for i in turn.letters:
                 self.letters.remove(i)
             self.result = turn
             self.isTurn = False
@@ -117,11 +107,6 @@ class PlayerLocal(GamePlayer):
 
 
 class PlayerBot(GamePlayer):
-    class PosStruct:
-        def __init__(self, arr, score):
-            self.letters = arr
-            self.score = score
-
     def __init__(self, name, game):
         self.botEnable = True
         self.thread = Thread(target=self._daemon)
@@ -132,9 +117,14 @@ class PlayerBot(GamePlayer):
         self.botEnable = False
         self.thread.join(1)
 
-    @staticmethod
-    def _is_replaceable(a, b):
-        return b == '' or a == b
+    def _empty(self, x, y):
+        if not 0 <= x < len(self.game.matrix.Mainmap):
+            return True
+        if not 0 <= y < len(self.game.matrix.Mainmap[0]):
+            return True
+        if self.game.matrix.Mainmap[x][y] == '':
+            return True
+        return False
 
     def _available(self, word, ind):
         res = []
@@ -144,9 +134,7 @@ class PlayerBot(GamePlayer):
                     # Проверка по горизонтали
                     let = self.letters.copy()
                     turn = []
-                    if (j - ind - 1 < 0 or self.game.matrix.Mainmap[i][j - ind - 1] == '') and \
-                            (j - ind + len(word) >= len(self.game.matrix.Mainmap[0]) or self.game.matrix.Mainmap[i][
-                                j - ind + len(word)] == ''):
+                    if self._empty(i, j - ind - 1) and self._empty(i, j - ind + len(word)):
                         for x in range(len(word)):
                             if not 0 <= j - ind + x < len(self.game.matrix.Mainmap):
                                 break
@@ -159,15 +147,12 @@ class PlayerBot(GamePlayer):
                                 else:
                                     break
                         else:
-                            # TODO asciishell переделать под новый алгоритм
                             check = self.check_turn(turn)
-                            if check.result:
-                                res.append(self.PosStruct(turn, check.score))
+                            if check.result and check.score != 0:
+                                res.append(TurnStruct(True, turn, check.score))
                     # Проверка по вертикали
                     let = self.letters.copy()
-                    if (i - ind - 1 < 0 or self.game.matrix.Mainmap[i - ind - 1][j] == '') and \
-                            (i - ind + len(word) >= len(self.game.matrix.Mainmap) or
-                             self.game.matrix.Mainmap[i - ind + len(word)][j] == ''):
+                    if self._empty(i - ind - 1, j) and self._empty(i - ind + len(word), j):
                         for x in range(len(word)):
                             if not 0 <= i - ind + x < len(self.game.matrix.Mainmap):
                                 break
@@ -180,10 +165,9 @@ class PlayerBot(GamePlayer):
                                 else:
                                     break
                         else:
-                            # TODO asciishell переделать под новый алгоритм
                             check = self.check_turn(turn)
-                            if check.result:
-                                res.append(self.PosStruct(turn, check.score))
+                            if check.result and check.score != 0:
+                                res.append(TurnStruct(True, turn, check.score))
         return res
 
     def cpu(self):
@@ -224,7 +208,7 @@ class PlayerBot(GamePlayer):
             self.accept_turn(TurnStruct(True, res[max_score].letters))
         else:
             # Reject all letters
-            self.accept_turn(TurnStruct(False, pass_letters=self.letters))
+            self.accept_turn(TurnStruct(False, self.letters.copy()))
 
     def _daemon(self):
         """Демон бота"""
@@ -358,26 +342,20 @@ class GameServer:
 
     def _game_loop(self):
         while self.playStatus:
-            for player in self.players:
-                self._give_letter(player)
-                result = player.action()
-                print("Игрок {} закончил ход {}. Набрал {} очков".format(player.name,
-                                                                         "Активно" if result.isChanged else "Пассивно",
-                                                                         player.score))
-                print("Осталось в руке {} букв. В мешке - {} букв".format(str(len(player.letters)),
+            for player in range(len(self.players)):
+                self._give_letter(self.players[player])
+                result = self.players[player].action()
+                print("Игрок {} закончил ход {}. Набрал {} очков".format(self.players[player].name,
+                                                                         "Активно" if result.changed else "Пассивно",
+                                                                         self.players[player].score))
+                print("Осталось в руке {} букв. В мешке - {} букв".format(str(len(self.players[player].letters)),
                                                                           str(len(self.alphabet))))
-                if result:
-                    # TODO Какая то обработка резульатата и измененние значений
-                    pass
                 for i in self.players:
                     i.turn_end()
 
 
-# send_broadcast({'action': 'connectGame', 'rid': 'qwмty', 'name': 'BOSS'}, 8383)
-
-
 if __name__ == '__main__':
-    game_server = GameServer([Player("BOT", "bot")])
+    game_server = GameServer([Player("BOT1", "bot"), Player("BOT2", "bot")])
     game_server.matrix.Mainmap[7][7] = "П"
     game_server.matrix.Mainmap[7][8] = "Р"
     game_server.matrix.Mainmap[7][9] = "И"
