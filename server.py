@@ -26,7 +26,7 @@ class TurnStruct:
             if letters is None:
                 warnings.warn("Letters is None")
             self.letters = letters
-            self.pass_let = []
+            self.pass_letters = []
         else:
             self.isChanged = False
             if pass_letters is None:
@@ -60,33 +60,48 @@ class GamePlayer(Player):
         self.isTurn = True
         self.isComplete = False
         self.timeout = GameConfig.turnTime
+        self.result = None
         self.my_turn()
         while not self.isComplete:
             time.sleep(1)
             self.timeout -= 1
             if self.timeout <= 0:
                 self.isComplete = True
+        # TODO ошибка состояния гонки
         self.isTurn = False
-        return self.result
+        if self.result is None:
+            return TurnStruct(False, [], [])
+        else:
+            return self.result
 
-    def check_turn(self, arg):
+    def check_turn(self, turn):
         """Проверяет правильность ввода новых букв"""
         self.game.matrix.reject_temp()
-        for _ in arg:
+        for _ in turn:
             self.game.matrix.newkoord.append([_.y, _.x])
             self.game.matrix.newletters.append(_.letter)
         return self.game.matrix.serch()
 
-    def accept_turn(self, arg):
+    def accept_turn(self, turn):
         """Проверяет правильность ввода новых букв и завершает ход"""
-        # TODO andrsolo21
-        # TODO на вход массив буков с координатами/сброс букв
-        self.check_turn(arg)
-        # TODO спец переменная для возврата результата в главнуб функцию
-        self.result = "something"
-        # Останавливает ход
-        self.isComplete = True
-        return Message(True)  # + the same
+        if turn.isChanged:
+            res = self.check_turn(turn.letters)
+            if res.result:
+                for i in turn.letters:
+                    self.game.matrix.Mainmap[i.x][i.y] = i.letter
+                    self.letters.remove(i.letter)
+                self.score += res.score
+                self.result = turn
+                # Останавливает ход
+                self.isComplete = True
+                return Message(True, str(res.score))
+            else:
+                return Message(False, res.msg)
+        else:
+            for i in turn.pass_letters:
+                self.letters.remove(i)
+            self.result = turn
+            return Message(True, "Пропуск")
 
 
 class PlayerLocal(GamePlayer):
@@ -188,22 +203,9 @@ class PlayerBot(GamePlayer):
             for char in range(len(word)):
                 temp = self._available(word, char)
                 if temp:
-                    print(temp)
                     res += temp
                     break  # SOME optimize
-        # Print all results
-        # for i in res:
-        #     print(i.score)
-        #     for x in range(len(self.game.matrix.Mainmap)):
-        #         for y in range(len(self.game.matrix.Mainmap[0])):
-        #             for let in i.letters:
-        #                 if let.x == x and let.y == y:
-        #                     print(let.letter, end='\t')
-        #                     break
-        #             else:
-        #                 print(self.game.matrix.Mainmap[x][y], end='\t')
-        #         print()
-        #     print('\n---------\n')
+
         if res:
             max_score = 0
             for i in range(len(res)):
@@ -223,7 +225,7 @@ class PlayerBot(GamePlayer):
             self.accept_turn(TurnStruct(True, res[max_score].letters))
         else:
             # Reject all letters
-            self.accept_turn(TurnStruct(False, self.letters))
+            self.accept_turn(TurnStruct(False, pass_letters=self.letters))
 
     def _daemon(self):
         """Демон бота"""
@@ -360,6 +362,8 @@ class GameServer:
             for player in self.players:
                 self._give_letter(player)
                 result = player.action()
+                print("Игрок {} закончил ход {}. Набрал {} очков".format(player.name, "Активно" if result.isChanged else "Пассивно", player.score))
+                print("Осталось в руке {} букв. В мешке - {} букв".format(str(len(player.letters)), str(len(self.alphabet))))
                 if result:
                     # TODO Какая то обработка резульатата и измененние значений
                     pass
