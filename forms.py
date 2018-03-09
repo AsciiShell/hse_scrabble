@@ -21,8 +21,11 @@ class Fishka(QPushButton):
         self.MyStart = 0
 
 
-class GameWindow(QWidget):
+class Communicate(QObject):
+    redraw = pyqtSignal()
 
+
+class GameWindow(QWidget):
     class PlayerLocal(GamePlayer):
         def my_turn(self):
             # TODO andrsolo21 перерисовываем интерфес
@@ -59,8 +62,12 @@ class GameWindow(QWidget):
         for player in range(len(self.serv.players)):
             if self.serv.players[player].name == "Admin":
                 self.me = self.serv.players[player]
+                # self.me.my_turn = self.my_hod
+                break
         self.threadonstart = Thread(target=self._hoddaemon)
         self.threadonstart.start()
+        self.progressed = Communicate()
+        self.progressed.redraw.connect(self.my_hod)
         self.newkoord = []
         self.newletters = []
         self.initUI()
@@ -129,7 +136,7 @@ class GameWindow(QWidget):
     def SeveChangesForm(self):
         points = []
         for p in range(len(self.newletters)):
-            points.append(Point(self.newkoord[p][1],self.newkoord[p][0],self.newletters[p]))
+            points.append(Point(self.newkoord[p][1], self.newkoord[p][0], self.newletters[p]))
         self.me.accept_turn(points)
         # if self.rez.result:
         #     self.serv.matrix.SaveChangesMatr()
@@ -150,7 +157,7 @@ class GameWindow(QWidget):
             self.myletters[i].move(self.StartPosition[i][0], self.StartPosition[i][1])
 
     def EndMyHod(self):
-        #TODO
+        # TODO
         pass
         # self.CheckMatrix()
         # self.SeveChangesForm()
@@ -170,7 +177,7 @@ class GameWindow(QWidget):
                     QRect(self.letterskoord[0] + (self.yi + self.ot) * i + self.ot, self.letterskoord[1] + self.ot,
                           self.yi + 1,
                           self.yi + 1))
-                self.myletters[i].show()
+                # self.myletters[i].show()
         else:
             for i in self.me.letters:
                 if i.MyKoord[0] != None:
@@ -204,7 +211,7 @@ class GameWindow(QWidget):
     def CheckMatrix(self):
         points = []
         for p in range(len(self.newletters)):
-            points.append(Point(self.newkoord[p][1],self.newkoord[p][0],self.newletters[p]))
+            points.append(Point(self.newkoord[p][1], self.newkoord[p][0], self.newletters[p]))
         self.rez = self.me.check_turn(points)
         if self.rez.result:
             # ошибок нет,
@@ -236,7 +243,7 @@ class GameWindow(QWidget):
                             flag = 0
                 if flag == 1:
                     pass
-                    #self.CheckMatrix()
+                    # self.CheckMatrix()
 
             if self.rez.score == 2:
                 # матрица заполнена неправильно
@@ -296,15 +303,16 @@ class GameWindow(QWidget):
 
     def my_hod(self):
         self.Message("твой ход!!!")
+        # TODO andrsolo21 Перерисовку вызывай здесь
+        self.lastLetters()
+        self.Pererisovka()
 
     def _hoddaemon(self):
         while 1:
             if self.me.alert:
-                print ('xdghjkfckvclc ')
-                self.Pererisovka()
-                #self.my_hod()
+                self.progressed.redraw.emit()
                 self.me.alert = False
-            time.sleep(5)
+            time.sleep(1)
 
     def paintEvent(self, e):
         background = QPainter()
