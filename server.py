@@ -104,8 +104,6 @@ class PlayerLocal(GamePlayer):
 
     def my_turn(self):
         self.alert = True
-        # TODO andrsolo21 перерисовываем интерфес
-        # мб эту функцию переопределить в Form.py?
         pass
 
     def turn_end(self):

@@ -177,9 +177,10 @@ class GameWindow(QWidget):
                     QRect(self.letterskoord[0] + (self.yi + self.ot) * i + self.ot, self.letterskoord[1] + self.ot,
                           self.yi + 1,
                           self.yi + 1))
-                # self.myletters[i].show()
+                self.myletters[i].show()
         else:
             for i in self.me.letters:
+                # TODO andrsolo21 падает исключение
                 if i.MyKoord[0] != None:
                     i.MyKoord = [None, i.MyStart]
                     i.move(self.StartPosition[i.MyStart][0], self.StartPosition[i.MyStart][1])
@@ -303,7 +304,7 @@ class GameWindow(QWidget):
 
     def my_hod(self):
         self.Message("твой ход!!!")
-        # TODO andrsolo21 Перерисовку вызывай здесь
+        # TODO andrsolo21 Перерисовку вызывай здес
         self.lastLetters()
         self.Pererisovka()
 
