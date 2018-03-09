@@ -1,6 +1,7 @@
 import json
 import random
 import socket
+import sys
 import warnings
 import os
 
@@ -223,7 +224,7 @@ class Matrix:
         if flag == 1:
             return self._schit(x, y, napr)
         else:
-            return ['', 0]
+            return ['', 0, 0]
 
     def _schit(self, x, y, napr):
         """считывает слово"""
@@ -310,13 +311,19 @@ class Matrix:
                                 undefined.append(sly[0])
                             else:
                                 outy.append(sly[0])
-                            score += sly[2]
-            print('поиск закончен')
+                            try:
+                                score += sly[2]
+                            except Exception as e:
+                                print(e)
+            if not sys.argv[0].endswith("server.py"):
+                print('поиск закончен')
             if len(undefined) == 0:
-                print('ok')
+                if not sys.argv[0].endswith("server.py"):
+                    print('ok')
                 return MatrixResult(True, score, outx + outy)
             else:
-                print('нопознанные слова')
+                if not sys.argv[0].endswith("server.py"):
+                    print('нопознанные слова')
                 self.map = [_.copy() for _ in self.Mainmap]
                 return MatrixResult(False, 1, undefined, 'нопознанные слова')
 
@@ -363,12 +370,14 @@ class Matrix:
         self.count = 0
         if self.tempmap[self.FirstFish[0]][self.FirstFish[1]] != '':
             self._ValidationCheck(self.FirstFish)
-            print('нашел ' + str(self.count) + ' букв')
+            if not sys.argv[0].endswith("server.py"):
+                print('нашел ' + str(self.count) + ' букв')
             for i in range(15):
                 for j in range(15):
                     if self.tempmap[i][j] != '':
                         self.count -= 1
-            print('проверил, осталось: ' + str(self.count) + ' букв')
+            if not sys.argv[0].endswith("server.py"):
+                print('проверил, осталось: ' + str(self.count) + ' букв')
             if self.count == 0:
                 return True
             else:
