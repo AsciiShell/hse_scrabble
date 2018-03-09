@@ -79,7 +79,7 @@ class GameConfig:
                'Э': {'count': 1, 'price': 10},
                'Ю': {'count': 1, 'price': 10},
                'Я': {'count': 3, 'price': 3},
-               '*': {'count': 3, 'price': None}}
+               '*': {'count': 0, 'price': None}}
     """Начальное число фишек"""
     startCount = 20
     """Бонус за полное использование фишек"""
@@ -318,20 +318,20 @@ class Matrix:
                                 score += sly[2]
                             except Exception as e:
                                 print(e)
-            if not sys.argv[0].endswith("server.py"):
-                print('поиск закончен')
+            # if not sys.argv[0].endswith("server.py"):
+            #     print('поиск закончен')
             if len(undefined) == 0:
-                if not sys.argv[0].endswith("server.py"):
-                    print('ok')
+                # if not sys.argv[0].endswith("server.py"):
+                #     print('ok')
                 return MatrixResult(True, score, outx + outy)
             else:
-                if not sys.argv[0].endswith("server.py"):
-                    print('нопознанные слова')
+                # if not sys.argv[0].endswith("server.py"):
+                #     print('нопознанные слова')
                 self.map = [_.copy() for _ in self.Mainmap]
                 return MatrixResult(False, 1, undefined, 'нопознанные слова')
 
         else:
-            print('неправильное заполнение матрицы1')
+            # print('неправильное заполнение матрицы1')
             return MatrixResult(False, 2, outx + outy, 'неправильное заполнение матрицы')
 
     def get(self, y, x):
@@ -373,14 +373,14 @@ class Matrix:
         self.count = 0
         if self.tempmap[self.FirstFish[0]][self.FirstFish[1]] != '':
             self._ValidationCheck(self.FirstFish)
-            if not sys.argv[0].endswith("server.py"):
-                print('нашел ' + str(self.count) + ' букв')
+            # if not sys.argv[0].endswith("server.py"):
+            #     print('нашел ' + str(self.count) + ' букв')
             for i in range(15):
                 for j in range(15):
                     if self.tempmap[i][j] != '':
                         self.count -= 1
-            if not sys.argv[0].endswith("server.py"):
-                print('проверил, осталось: ' + str(self.count) + ' букв')
+            # if not sys.argv[0].endswith("server.py"):
+            #     print('проверил, осталось: ' + str(self.count) + ' букв')
             if self.count == 0:
                 return True
             else:

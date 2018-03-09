@@ -98,7 +98,12 @@ class GamePlayer(Player):
 
 
 class PlayerLocal(GamePlayer):
+    def __init__(self, name, game):
+        self.alert = False
+        super().__init__(name, game)
+
     def my_turn(self):
+        self.alert = True
         # TODO andrsolo21 перерисовываем интерфес
         # мб эту функцию переопределить в Form.py?
         pass
