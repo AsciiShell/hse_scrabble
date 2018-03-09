@@ -2,6 +2,7 @@ import json
 import random
 import socket
 import warnings
+import os
 
 
 def send_broadcast(data, port=8384, ip='255.255.255.255'):
@@ -79,7 +80,7 @@ class GameConfig:
                'Я': {'count': 3, 'price': 3},
                '*': {'count': 3, 'price': None}}
     """Начальное число фишек"""
-    startCount = 10
+    startCount = 20
     """Бонус за полное использование фишек"""
     fullBonus = 15
     """Количество пропусков для завершения игры"""
@@ -238,7 +239,7 @@ class Matrix:
                     newword = 1
                 point = Point(x, y, self.map[y][x])
                 score += point.score
-                multisc *= point.multi
+                multisc *= point.value
                 s = s + self.map[y][x]
                 if y == 14:
                     a = 0
@@ -254,7 +255,7 @@ class Matrix:
                     newword = 1
                 point = Point(x, y, self.map[y][x])
                 score += point.score
-                multisc *= point.multi
+                multisc *= point.value
                 s = s + self.map[y][x]
                 if x == 14:
                     a = 0
@@ -277,6 +278,8 @@ class Matrix:
         # движение по оси y = 2
         outx = []
         outy = []
+        self.tempmap = [["" for i in range(15)] for j in range(15)]
+        self.matrvalid = [[0 for i in range(15)] for j in range(15)]
         score = 0
         self._chekKoord()
         self.pasteletters()
@@ -392,11 +395,12 @@ class Matrix:
 class GameDictionary:
     """Словарь слов игры"""
     filename = "dictionary"
+    filetemp = "dictionarytemp"
 
     def append(self, item):
         """Добавляет новое слово в словарь"""
         self.dict.append(item)
-        with open(self.filename, "r", encoding="utf-8") as f:
+        with open(self.filetemp, "w+", encoding="utf-8") as f:
             f.write(item + "\n")
 
     def prepare(self, alphabet):
@@ -426,8 +430,12 @@ class GameDictionary:
 
     def __init__(self):
         """Инициализирует словарь начальным списком слов"""
+        if not os.path.exists(self.filetemp):
+            with open(self.filetemp, 'w'): pass
         with open(self.filename, "r", encoding="utf-8") as f:
             self.dict = f.read().upper().split("\n")
+        with open(self.filetemp, "r", encoding="utf-8") as f:
+            self.dict += f.read().upper().split("\n")
 
 
 if __name__ == '__main__':
