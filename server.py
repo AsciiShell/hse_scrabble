@@ -77,7 +77,10 @@ class GamePlayer(Player):
             if res.result:
                 for i in turn.letters:
                     self.game.matrix.Mainmap[i.x][i.y] = i.letter
-                    self.letters.remove(i.letter)
+                    if i.letter in self.letters:
+                        self.letters.remove(i.letter)
+                    else:
+                        self.letters.remove('*')
                 self.score += res.score
                 self.result = turn
                 # Останавливает ход
@@ -144,6 +147,9 @@ class PlayerBot(GamePlayer):
                                 elif word[x] in let:
                                     turn.append(Point(i, j - ind + x, word[x]))
                                     let.remove(word[x])
+                                elif '*' in let:
+                                    turn.append(Point(i, j - ind + x, word[x]))
+                                    let.remove('*')
                                 else:
                                     break
                         else:
@@ -162,6 +168,9 @@ class PlayerBot(GamePlayer):
                                 elif word[x] in let:
                                     turn.append(Point(i - ind + x, j, word[x]))
                                     let.remove(word[x])
+                                elif '*' in let:
+                                    turn.append(Point(i, j - ind + x, word[x]))
+                                    let.remove('*')
                                 else:
                                     break
                         else:
@@ -180,6 +189,8 @@ class PlayerBot(GamePlayer):
         for i in self.letters:
             if letters.count(i) == 0:
                 letters += i
+        if '*' in letters:
+            print("Hi")
         words = self.game.dict.prepare(letters)
         res = []
         for word in words:
@@ -333,6 +344,11 @@ class GameServer:
         self.thread = Thread(target=self._game_loop)
         self.thread.start()
 
+    def __del__(self):
+        while len(self.players) > 0:
+            del self.players[0]
+        self.thread.join(1)
+        
     def _give_letter(self, player):
         """Выдает игроку недостающие фишки"""
         while len(player.letters) < GameConfig.startCount and len(self.alphabet) > 0:
@@ -341,10 +357,17 @@ class GameServer:
             self.alphabet = self.alphabet.replace(i, "", 1)
 
     def _game_loop(self):
+        skip = 0
         while self.playStatus:
             for player in range(len(self.players)):
                 self._give_letter(self.players[player])
                 result = self.players[player].action()
+                if result.changed:
+                    skip = 0
+                else:
+                    skip += 1
+                if result.changed and len(result.letters) == GameConfig.startCount:
+                    self.players[player].score += GameConfig.fullBonus
                 print("Игрок {} закончил ход {}. Набрал {} очков".format(self.players[player].name,
                                                                          "Активно" if result.changed else "Пассивно",
                                                                          self.players[player].score))
@@ -352,6 +375,15 @@ class GameServer:
                                                                           str(len(self.alphabet))))
                 for i in self.players:
                     i.turn_end()
+                if len(self.alphabet) == 0 or skip >= GameConfig.skipEnd * len(self.players):
+                    self.playStatus = False
+                    break
+        print("Игра окончена")
+        for i in self.players:
+            print("Игрок {} набрал {} очков".format(i.name, i.score))
+        # START destructing
+        while len(self.players) > 0:
+            del self.players[0]
 
 
 if __name__ == '__main__':

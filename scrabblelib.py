@@ -112,7 +112,10 @@ class Point:
         self.y = y
         self.letter = letter
         if t is None:
-            self.t = GameConfig.map[x][y]
+            try:
+                self.t = GameConfig.map[x][y]
+            except Exception:
+                print("Error")
         else:
             self.t = t
         self.color = Point.info[self.t]["color"]
@@ -444,7 +447,9 @@ class GameDictionary:
         with open(self.filename, "r", encoding="utf-8") as f:
             self.dict = f.read().upper().split("\n")
         with open(self.filetemp, "r", encoding="utf-8") as f:
-            self.dict += f.read().upper().split("\n")
+            temp = f.read().upper()
+            if temp != "":
+                self.dict += temp.split("\n")
 
 
 if __name__ == '__main__':
