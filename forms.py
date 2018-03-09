@@ -23,6 +23,17 @@ class Fishka(QPushButton):
 
 class GameWindow(QWidget):
 
+    class PlayerLocal(GamePlayer):
+        def my_turn(self):
+            # TODO andrsolo21 перерисовываем интерфес
+            # мб эту функцию переопределить в Form.py?
+            pass
+
+        def turn_end(self):
+            # TODO andrsolo21 перерисовываем интерфес
+            # мб эту функцию переопределить в Form.py?
+            pass
+
     def __init__(self, parent=None):
         super(GameWindow, self).__init__(parent)
         self.koef = 1
@@ -38,14 +49,23 @@ class GameWindow(QWidget):
         """инициализация окна"""
         self.btnconcreateret = QPushButton("назад", self)
         self.btnconcreateret.move(self.widthtotal - 120, 50)
-        # self.stolfishki =
 
-        # CreateFishka(self.let,self.poi,100 + (self.yi + self.ot) * self.pos, 90,self.fishka1,1)
-
+        self.serv = GameServer([Player("BOT", "bot"), Player("Admin", "local")])
+        self.serv.matrix.Mainmap[7][7] = "П"
+        self.serv.matrix.Mainmap[7][8] = "Р"
+        self.serv.matrix.Mainmap[7][9] = "И"
+        self.serv.matrix.Mainmap[7][10] = "В"
+        self.serv.matrix.Mainmap[7][11] = "Е"
+        for player in range(len(self.serv.players)):
+            if self.serv.players[player].name == "Admin":
+                self.me = self.serv.players[player]
+        self.threadonstart = Thread(target=self._hoddaemon)
+        self.threadonstart.start()
+        self.newkoord = []
+        self.newletters = []
         self.initUI()
 
     def initUI(self):
-        self.matr = Matrix()
         """основная часть создания элементов формы"""
         # self.list = QListWidget()
         # self.list.setGeometry(self.ot, self.ot + self.libh + 20, self.libw - self.ot,2 * self.libh - self.ot - self.ot - 20)
@@ -55,24 +75,12 @@ class GameWindow(QWidget):
         self.setAcceptDrops(True)
 
         # for i in range(5):
-        #   self.matr.map[i + 3][7] = self.getletter()
+        #   self.serv.matrix.map[i + 3][7] = self.getletter()
 
         """расстановка кнопок для перемещения"""
         self.myletters = []
         self.StartPosition = []
-        for i in range(GameConfig.startCount):
-            gs = self.getletter()
-            self.myletters.append(Fishka((gs + ' ' + str(i)), self))
-            self.myletters[i].MyLetter = gs
-            self.myletters[i].MyPrice = GameConfig.letters[gs]['price']
-            self.myletters[i].MyKoord = [None, i]
-            self.myletters[i].MyStart = i
-            self.StartPosition.append(
-                [self.letterskoord[0] + (self.yi + self.ot) * i + self.ot, self.letterskoord[1] + self.ot])
-            self.myletters[i].setGeometry(
-                QRect(self.letterskoord[0] + (self.yi + self.ot) * i + self.ot, self.letterskoord[1] + self.ot,
-                      self.yi + 1,
-                      self.yi + 1))
+        self.Pererisovka()
 
         """line edit/konsol"""
         self.konsol = QLineEdit(self)
@@ -108,42 +116,73 @@ class GameWindow(QWidget):
         for i in range(15):
             st = []
             for j in range(15):
-                st.append(Fishka(self.matr.Mainmap[i][j], self))
+                st.append(Fishka(self.serv.matrix.Mainmap[i][j], self))
             self.ButMap.append(st)
             for j in range(15):
                 self.ButMap[i][j].setGeometry(self.karta[i][j][0], self.karta[i][j][1], self.yi, self.yi)
-                self.ButMap[i][j].MyLetter = self.matr.Mainmap[i][j]
-                if self.matr.Mainmap[i][j] != '':
+                self.ButMap[i][j].MyLetter = self.serv.matrix.Mainmap[i][j]
+                if self.serv.matrix.Mainmap[i][j] != '':
                     self.ButMap[i][j].show()
                 self.ButMap[i][j].MyKoord = [j, i]
                 # self.ButMap[i][j].MyPrice = GameConfig.letters[self.ButMap[i][j].MyLetter]['price']
 
     def SeveChangesForm(self):
-        if self.rez.result:
-            self.matr.SaveChangesMatr()
-            self.lastLetters()
-            for i in self.myletters:
-                if i.MyKoord[0] != None:
-                    i.MyKoord = [None, i.MyStart]
-                    i.move(self.StartPosition[i.MyStart][0], self.StartPosition[i.MyStart][1])
-                    gs = self.getletter()
-                    i.MyLetter = gs
-                    i.MyPrice = GameConfig.letters[gs]['price']
-                    i.setText(gs + ' ' + str(i.MyStart))
+        points = []
+        for p in range(len(self.newletters)):
+            points.append(Point(self.newkoord[p][1],self.newkoord[p][0],self.newletters[p]))
+        self.me.accept_turn(points)
+        # if self.rez.result:
+        #     self.serv.matrix.SaveChangesMatr()
+        #     self.lastLetters()
+        #     for i in self.myletters:
+        #         if i.MyKoord[0] != None:
+        #             i.MyKoord = [None, i.MyStart]
+        #             i.move(self.StartPosition[i.MyStart][0], self.StartPosition[i.MyStart][1])
+        #             gs = self.getletter()
+        #             i.MyLetter = gs
+        #             i.MyPrice = GameConfig.letters[gs]['price']
+        #             i.setText(gs + ' ' + str(i.MyStart))
 
     def ClearChanges(self):
-        self.matr.reject_temp()
+        self.serv.matrix.reject_temp()
         for i in range(len(self.myletters)):
             self.myletters[i].MyKoord = [None, i]
             self.myletters[i].move(self.StartPosition[i][0], self.StartPosition[i][1])
 
     def EndMyHod(self):
-        self.CheckMatrix()
-        self.SeveChangesForm()
+        #TODO
+        pass
+        # self.CheckMatrix()
+        # self.SeveChangesForm()
+
+    def Pererisovka(self):
+        if len(self.myletters) == 0:
+            for i in range(len(self.me.letters)):
+                gs = self.me.letters[i]
+                self.myletters.append(Fishka((gs + ' ' + str(i)), self))
+                self.myletters[i].MyLetter = gs
+                self.myletters[i].MyPrice = GameConfig.letters[gs]['price']
+                self.myletters[i].MyKoord = [None, i]
+                self.myletters[i].MyStart = i
+                self.StartPosition.append(
+                    [self.letterskoord[0] + (self.yi + self.ot) * i + self.ot, self.letterskoord[1] + self.ot])
+                self.myletters[i].setGeometry(
+                    QRect(self.letterskoord[0] + (self.yi + self.ot) * i + self.ot, self.letterskoord[1] + self.ot,
+                          self.yi + 1,
+                          self.yi + 1))
+                self.myletters[i].show()
+        else:
+            for i in self.me.letters:
+                if i.MyKoord[0] != None:
+                    i.MyKoord = [None, i.MyStart]
+                    i.move(self.StartPosition[i.MyStart][0], self.StartPosition[i.MyStart][1])
+                    gs = self.me.letters[i]
+                    i.MyLetter = gs
+                    i.MyPrice = GameConfig.letters[gs]['price']
+                    i.setText(gs + ' ' + str(i.MyStart))
 
     def Help(self):
         s = ''
-
         print('переместить кнопку - move i,x,y (i - номер кнопки,(x, y) - координаты)')
         s += 'переместить кнопку - move i,x,y (i - номер кнопки,(x, y) - координаты)' + '\n'
         print('clear - очистить поле и временные данные')
@@ -157,13 +196,16 @@ class GameWindow(QWidget):
         print('endhod - комбинация функций check и save')
         s += 'endhod - комбинация функций check и save' + '\n'
         self.Message(s)
-        print(self.matr.newletters)
-        print(self.matr.newkoord)
-        for i in self.matr.map:
+        print(self.newletters)
+        print(self.newkoord)
+        for i in self.serv.matrix.Mainmap:
             print(i)
 
     def CheckMatrix(self):
-        self.rez = self.matr.serch()
+        points = []
+        for p in range(len(self.newletters)):
+            points.append(Point(self.newkoord[p][1],self.newkoord[p][0],self.newletters[p]))
+        self.rez = self.me.check_turn(points)
         if self.rez.result:
             # ошибок нет,
             print('ошибок нет')
@@ -189,11 +231,12 @@ class GameWindow(QWidget):
                                                             "Вы хотите внести это слово в словарь: " + i,
                                                             QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
                         if buttonReply1 == QMessageBox.Yes:
-                            self.matr.dict.append(i)
+                            self.serv.matrix.dict.append(i)
                         else:
                             flag = 0
                 if flag == 1:
-                    self.CheckMatrix()
+                    pass
+                    #self.CheckMatrix()
 
             if self.rez.score == 2:
                 # матрица заполнена неправильно
@@ -212,20 +255,20 @@ class GameWindow(QWidget):
     def ProverkaKoordinat(self, i, x, y):
         r = [y, x]
         # проверяем, была ли занята эта ячейка до этого хода
-        if self.matr.map[x][y] == '':
+        if self.serv.matrix.Mainmap[x][y] == '':
             # проверяем, откуда перетаскиваем букву, тк могут остаться хвосты
             if self.myletters[i].MyKoord[0] is not None:
                 print('есть хвост')
-                for j in range(len(self.matr.newkoord)):
+                for j in range(len(self.newkoord)):
                     print('начал поиск')
-                    print(self.matr.newkoord[j])
+                    print(self.newkoord[j])
                     print(self.myletters[i].MyKoord)
-                    if self.matr.newkoord[j][0] == self.myletters[i].MyKoord[0]:
+                    if self.newkoord[j][0] == self.myletters[i].MyKoord[0]:
                         print('нашли хвост')
-                        self.matr.newkoord[j] = [None, None]
+                        self.newkoord[j] = [None, None]
                         print('убрали хвост')
             # проверяем, ставили ли мы букву на новое место на этом ходу
-            if r in self.matr.newkoord:
+            if r in self.newkoord:
                 # да, ставили, освобождаем для нее место
                 for j in range(len(self.myletters)):
                     # ищем какую букву сьавили
@@ -233,13 +276,13 @@ class GameWindow(QWidget):
                         self.myletters[j].move(self.StartPosition[j][0], self.StartPosition[j][1])
                         self.myletters[j].MyKoord = [None, j]
                         print('нашли')
-                for j in range(len(self.matr.newkoord)):
+                for j in range(len(self.newkoord)):
                     # ищем на какую позицию записана старая буква
-                    if r == self.matr.newkoord[j]:
-                        self.matr.newletters[j] = self.myletters[i].MyLetter
+                    if r == self.newkoord[j]:
+                        self.newletters[j] = self.myletters[i].MyLetter
             else:
-                self.matr.newletters.append(self.myletters[i].MyLetter)
-                self.matr.newkoord.append([y, x])
+                self.newletters.append(self.myletters[i].MyLetter)
+                self.newkoord.append([y, x])
             # перемещаем новую кнопкуна новое место
             self.myletters[i].move(self.karta[x][y][0], self.karta[x][y][1])
             self.myletters[i].MyKoord = [y, x]
@@ -250,6 +293,18 @@ class GameWindow(QWidget):
         buttonReply = QMessageBox.question(self, 'Scrabble',
                                            text,
                                            QMessageBox.Ok, QMessageBox.Ok)
+
+    def my_hod(self):
+        self.Message("твой ход!!!")
+
+    def _hoddaemon(self):
+        while 1:
+            if self.me.alert:
+                print ('xdghjkfckvclc ')
+                self.Pererisovka()
+                #self.my_hod()
+                self.me.alert = False
+            time.sleep(5)
 
     def paintEvent(self, e):
         background = QPainter()
