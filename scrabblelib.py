@@ -1,9 +1,9 @@
 import json
+import os
 import random
 import socket
 import sys
 import warnings
-import os
 
 
 def send_broadcast(data, port=8384, ip='255.255.255.255'):
