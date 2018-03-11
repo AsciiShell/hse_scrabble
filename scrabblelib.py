@@ -412,7 +412,7 @@ class GameDictionary:
     def append(self, item):
         """Добавляет новое слово в словарь"""
         self.dict.append(item)
-        with open(self.filetemp, "w+", encoding="utf-8") as f:
+        with open(self.filetemp, "a", encoding="utf-8") as f:
             f.write(item + "\n")
 
     def prepare(self, alphabet):

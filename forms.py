@@ -133,10 +133,14 @@ class GameWindow(QWidget):
             points.append(Point(self.newkoord[p][1], self.newkoord[p][0], self.newletters[p]))
 
         #self.me.accept_turn(TurnStruct(True, points))
-        a = self.me.accept_turn(TurnStruct(True, points))
-        if a.res:
-            self.Message(a.msg)
-            self.EndMyHod()
+        b = self.me.check_turn( points)
+        if b.result:
+            a = self.me.accept_turn(TurnStruct(True, points))
+            if a.res:
+                self.Message(a.msg)
+                self.EndMyHod()
+        elif b.score == 1:
+            self.dobavlenie(b.wordsError)
         # if self.rez.result:
         #     self.serv.matrix.SaveChangesMatr()
         #     self.lastLetters()
@@ -301,7 +305,8 @@ class GameWindow(QWidget):
             self.EndMyHod()
 
     def DisabledSet(self,t):
-        self.konsol.setDisabled(t)
+        #self.konsol.setDisabled(t)
+        pass
 
     def my_hod(self):
         self.Message("твой ход!!!")
