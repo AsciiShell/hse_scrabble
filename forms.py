@@ -22,21 +22,11 @@ class Fishka(QPushButton):
 
 
 class Communicate(QObject):
-    redraw = pyqtSignal()
+    redrawMe = pyqtSignal()
+    redrawEnd = pyqtSignal()
 
 
 class GameWindow(QWidget):
-    class PlayerLocal(GamePlayer):
-        def my_turn(self):
-            # TODO andrsolo21 перерисовываем интерфес
-            # мб эту функцию переопределить в Form.py?
-            pass
-
-        def turn_end(self):
-            # TODO andrsolo21 перерисовываем интерфес
-            # мб эту функцию переопределить в Form.py?
-            pass
-
     def __init__(self, parent=None):
         super(GameWindow, self).__init__(parent)
         self.koef = 1
@@ -59,6 +49,7 @@ class GameWindow(QWidget):
         self.serv.matrix.Mainmap[7][9] = "И"
         self.serv.matrix.Mainmap[7][10] = "В"
         self.serv.matrix.Mainmap[7][11] = "Е"
+        self.serv.matrix.Mainmap[7][12] = "Т"
         for player in range(len(self.serv.players)):
             if self.serv.players[player].name == "Admin":
                 self.me = self.serv.players[player]
@@ -67,7 +58,8 @@ class GameWindow(QWidget):
         self.threadonstart = Thread(target=self._hoddaemon)
         self.threadonstart.start()
         self.progressed = Communicate()
-        self.progressed.redraw.connect(self.my_hod)
+        self.progressed.redrawMe.connect(self.my_hod)
+        self.progressed.redrawEnd.connect(self.end_hod)
         self.newkoord = []
         self.newletters = []
         self.initUI()
@@ -308,11 +300,21 @@ class GameWindow(QWidget):
         self.lastLetters()
         self.Pererisovka()
 
+    def end_hod(self):
+        self.Message("Окончен ход")
+        # TODO andrsolo21 Перерисовку вызывай здес
+        self.lastLetters()
+        self.Pererisovka()
+
     def _hoddaemon(self):
         while 1:
-            if self.me.alert:
-                self.progressed.redraw.emit()
-                self.me.alert = False
+            if self.me.alertMe:
+                self.progressed.redrawMe.emit()
+                self.me.alertMe = False
+                self.me.alertEnd = False
+            if self.me.alertEnd:
+                self.progressed.redrawEnd.emit()
+                self.me.alertEnd = False
             time.sleep(1)
 
     def paintEvent(self, e):

@@ -103,17 +103,15 @@ class GamePlayer(Player):
 
 class PlayerLocal(GamePlayer):
     def __init__(self, name, game):
-        self.alert = False
+        self.alertMe = False
+        self.alertEnd = False
         super().__init__(name, game)
 
     def my_turn(self):
-        self.alert = True
-        pass
+        self.alertMe = True
 
     def turn_end(self):
-        # TODO andrsolo21 перерисовываем интерфес
-        # мб эту функцию переопределить в Form.py?
-        pass
+        self.alertEnd = True
 
 
 class PlayerBot(GamePlayer):
@@ -202,7 +200,7 @@ class PlayerBot(GamePlayer):
                 letters += i
         if '*' in letters:
             print("Hi")
-        words = self.game.dict.prepare(letters)
+        words = self.game.matrix.dict.prepare(letters)
         res = []
         for word in words:
             for char in range(len(word)):
@@ -351,7 +349,6 @@ class GameServer:
         self.playStatus = True
         self.alphabet = ""
         self.matrix = Matrix()
-        self.dict = GameDictionary()
         for key, value in GameConfig.letters.items():
             self.alphabet += key * value["count"]
         self.thread = Thread(target=self._game_loop)
