@@ -8,14 +8,14 @@ class Player:
     """Абстрактный класс игрока"""
     lastID = 0
 
-    def __init__(self, name, t, rid=None, dif=None, ip=None):
+    def __init__(self, name, t, rid=None, diff=None, ip=None):
         """Создает нового игрока с указанным именем"""
         self.name = name
         self.type = t
         self.id = Player.lastID
         Player.lastID += 1
         self.rid = rid
-        self.dif = dif
+        self.diff = diff
         self.ip = ip
 
 
@@ -29,7 +29,7 @@ class TurnStruct:
 
 
 class GamePlayer(Player):
-    def __init__(self, name, game, rid=None, dif=None, ip=None):
+    def __init__(self, name, game, rid=None, diff=None, ip=None):
         self.score = 0
         self.game = game
         self.letters = []
@@ -37,7 +37,7 @@ class GamePlayer(Player):
         self.timeout = 0
         self.input = None
         self.result = None
-        super().__init__(name, None, rid, dif, ip)
+        super().__init__(name, None, rid, diff, ip)
 
     def turn_end(self):
         """Срабатывает при завершении хода любого игрока. Перерисовка"""
@@ -59,7 +59,7 @@ class GamePlayer(Player):
             if self.timeout <= 0:
                 self.isTurn = False
         if self.result is None:
-            self.result = TurnStruct(False, [])
+            self.accept_turn()
         return self.result
 
     def check_turn(self, turn):
@@ -72,29 +72,33 @@ class GamePlayer(Player):
 
     def accept_turn(self, turn=TurnStruct()):
         """Проверяет правильность ввода новых букв и завершает ход"""
-        if turn.changed:
-            res = self.check_turn(turn.letters)
-            if res.result:
-                for i in turn.letters:
-                    self.game.matrix.Mainmap[i.x][i.y] = i.letter
-                    if i.letter in self.letters:
-                        self.letters.remove(i.letter)
-                    else:
-                        self.letters.remove('*')
-                self.score += res.score
-                self.result = turn
-                # Останавливает ход
-                self.isTurn = False
-                return Message(True, str(res.score))
+        if self.isTurn:
+            if turn.changed:
+                res = self.check_turn(turn.letters)
+                if res.result:
+                    for i in turn.letters:
+                        self.game.matrix.Mainmap[i.x][i.y] = i.letter
+                        if i.letter in self.letters:
+                            self.letters.remove(i.letter)
+                        else:
+                            self.letters.remove('*')
+                    self.score += res.score
+                    self.result = turn
+                    # Останавливает ход
+                    self.isTurn = False
+                    return Message(True, str(res.score))
+                else:
+                    return Message(False, res.msg)
             else:
-                return Message(False, res.msg)
-        else:
-            for i in turn.letters:
-                self.letters.remove(i)
-            self.result = turn
-            self.isTurn = False
+                for i in turn.letters:
+                    self.letters.remove(i)
+                self.result = turn
+                self.isTurn = False
 
-            return Message(True, "Пропуск")
+                return Message(True, "Пропуск")
+        else:
+            self.result = TurnStruct(False, [])
+            return Message(True, "Время вышло")
 
 
 class PlayerLocal(GamePlayer):
@@ -113,10 +117,14 @@ class PlayerLocal(GamePlayer):
 
 
 class PlayerBot(GamePlayer):
-    def __init__(self, name, game):
+    def __init__(self, name, game, diff=None):
         self.botEnable = True
         self.thread = Thread(target=self._daemon)
         super().__init__(name, game)
+        if diff is None:
+            self.diff = 0.5
+        else:
+            self.diff = diff
         self.thread.start()
 
     def __del__(self):
@@ -202,16 +210,18 @@ class PlayerBot(GamePlayer):
                 if temp:
                     res += temp
                     break  # SOME optimize
+            if self.timeout < 30:
+                break
 
         if res:
-            max_score = 0
-            for i in range(len(res)):
-                if res[i].score > res[max_score].score:
-                    max_score = i
-            print(res[max_score].score)
+            res = sorted(res, key=lambda item: item.score)
+            index = round(len(res) * self.diff)
+            if index > 0:
+                index -= 1
+            print(res[index].score)
             for x in range(len(self.game.matrix.Mainmap)):
                 for y in range(len(self.game.matrix.Mainmap[0])):
-                    for let in res[max_score].letters:
+                    for let in res[index].letters:
                         if let.x == x and let.y == y:
                             print(let.letter, end='\t')
                             break
@@ -219,7 +229,7 @@ class PlayerBot(GamePlayer):
                         print(self.game.matrix.Mainmap[x][y], end='\t')
                 print()
             print('\n---------\n')
-            self.accept_turn(TurnStruct(True, res[max_score].letters))
+            self.accept_turn(TurnStruct(True, res[index].letters))
         else:
             # Reject all letters
             self.accept_turn(TurnStruct(False, self.letters.copy()))
@@ -335,7 +345,7 @@ class GameServer:
             if player.type == "local":
                 self.players.append(PlayerLocal(player.name, self))
             elif player.type == "bot":
-                self.players.append(PlayerBot(player.name, self))
+                self.players.append(PlayerBot(player.name, self, player.diff))
             else:
                 warnings.warn("Тип не найден" + player.type)
         self.playStatus = True
@@ -351,7 +361,7 @@ class GameServer:
         while len(self.players) > 0:
             del self.players[0]
         self.thread.join(1)
-        
+
     def _give_letter(self, player):
         """Выдает игроку недостающие фишки"""
         while len(player.letters) < GameConfig.startCount and len(self.alphabet) > 0:
@@ -390,7 +400,7 @@ class GameServer:
 
 
 if __name__ == '__main__':
-    game_server = GameServer([Player("BOT1", "bot"), Player("BOT2", "bot")])
+    game_server = GameServer([Player("BOT1", "bot", diff=0.5), Player("BOT2", "bot", diff=1)])
     game_server.matrix.Mainmap[7][7] = "П"
     game_server.matrix.Mainmap[7][8] = "Р"
     game_server.matrix.Mainmap[7][9] = "И"
