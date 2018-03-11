@@ -115,6 +115,8 @@ class GameWindow(QWidget):
             self.SeveChangesForm()
         if name[0] == 'endhod':
             self.EndMyHod()
+        if name[0] == 'drop':
+            self.Drop(name[1].split(','))
         self.konsol.clear()
 
     def lastLetters(self):
@@ -137,7 +139,12 @@ class GameWindow(QWidget):
         points = []
         for p in range(len(self.newletters)):
             points.append(Point(self.newkoord[p][1], self.newkoord[p][0], self.newletters[p]))
-        self.me.accept_turn(points)
+
+        #self.me.accept_turn(TurnStruct(True, points))
+        a = self.me.accept_turn(TurnStruct(True, points))
+        if a.res:
+            self.Message(a.msg)
+            self.EndMyHod()
         # if self.rez.result:
         #     self.serv.matrix.SaveChangesMatr()
         #     self.lastLetters()
@@ -146,12 +153,13 @@ class GameWindow(QWidget):
         #             i.MyKoord = [None, i.MyStart]
         #             i.move(self.StartPosition[i.MyStart][0], self.StartPosition[i.MyStart][1])
         #             gs = self.getletter()
-        #             i.MyLetter = gs
+        #             i.MyLetter = gs я занят
         #             i.MyPrice = GameConfig.letters[gs]['price']
         #             i.setText(gs + ' ' + str(i.MyStart))
 
     def ClearChanges(self):
-        self.serv.matrix.reject_temp()
+        self.newletters = []
+        self.newkoord = []
         for i in range(len(self.myletters)):
             self.myletters[i].MyKoord = [None, i]
             self.myletters[i].move(self.StartPosition[i][0], self.StartPosition[i][1])
@@ -159,35 +167,26 @@ class GameWindow(QWidget):
     def EndMyHod(self):
         # TODO
         pass
+        self.DisabledSet(True)
         # self.CheckMatrix()
         # self.SeveChangesForm()
 
     def Pererisovka(self):
-        if len(self.myletters) == 0:
-            for i in range(len(self.me.letters)):
-                gs = self.me.letters[i]
-                self.myletters.append(Fishka((gs + ' ' + str(i)), self))
-                self.myletters[i].MyLetter = gs
-                self.myletters[i].MyPrice = GameConfig.letters[gs]['price']
-                self.myletters[i].MyKoord = [None, i]
-                self.myletters[i].MyStart = i
-                self.StartPosition.append(
-                    [self.letterskoord[0] + (self.yi + self.ot) * i + self.ot, self.letterskoord[1] + self.ot])
-                self.myletters[i].setGeometry(
-                    QRect(self.letterskoord[0] + (self.yi + self.ot) * i + self.ot, self.letterskoord[1] + self.ot,
-                          self.yi + 1,
-                          self.yi + 1))
-                self.myletters[i].show()
-        else:
-            for i in self.me.letters:
-                # TODO andrsolo21 падает исключение
-                if i.MyKoord[0] != None:
-                    i.MyKoord = [None, i.MyStart]
-                    i.move(self.StartPosition[i.MyStart][0], self.StartPosition[i.MyStart][1])
-                    gs = self.me.letters[i]
-                    i.MyLetter = gs
-                    i.MyPrice = GameConfig.letters[gs]['price']
-                    i.setText(gs + ' ' + str(i.MyStart))
+        self.myletters.clear()
+        for i in range(len(self.me.letters)):
+            gs = self.me.letters[i]
+            self.myletters.append(Fishka((gs + ' ' + str(i)), self))
+            self.myletters[i].MyLetter = gs
+            self.myletters[i].MyPrice = GameConfig.letters[gs]['price']
+            self.myletters[i].MyKoord = [None, i]
+            self.myletters[i].MyStart = i
+            self.StartPosition.append(
+                [self.letterskoord[0] + (self.yi + self.ot) * i + self.ot, self.letterskoord[1] + self.ot])
+            self.myletters[i].setGeometry(
+                QRect(self.letterskoord[0] + (self.yi + self.ot) * i + self.ot, self.letterskoord[1] + self.ot,
+                      self.yi + 1,
+                      self.yi + 1))
+            self.myletters[i].show()
 
     def Help(self):
         s = ''
@@ -227,24 +226,7 @@ class GameWindow(QWidget):
         else:
             if self.rez.score == 1:
                 # в матрице есть неопозанные слова
-                flag = 1
-                print(self.rez.msg)
-                buttonReply = QMessageBox.question(self, 'Bad Words',
-                                                   "Вы хотите внести новые слова в словарь: " + " ".join(
-                                                       self.rez.wordsError),
-                                                   QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
-                if buttonReply == QMessageBox.Yes:
-                    for i in self.rez.wordsError:
-                        buttonReply1 = QMessageBox.question(self, 'Bad Words',
-                                                            "Вы хотите внести это слово в словарь: " + i,
-                                                            QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
-                        if buttonReply1 == QMessageBox.Yes:
-                            self.serv.matrix.dict.append(i)
-                        else:
-                            flag = 0
-                if flag == 1:
-                    pass
-                    # self.CheckMatrix()
+                self.dobavlenie(words)
 
             if self.rez.score == 2:
                 # матрица заполнена неправильно
@@ -266,15 +248,11 @@ class GameWindow(QWidget):
         if self.serv.matrix.Mainmap[x][y] == '':
             # проверяем, откуда перетаскиваем букву, тк могут остаться хвосты
             if self.myletters[i].MyKoord[0] is not None:
-                print('есть хвост')
                 for j in range(len(self.newkoord)):
-                    print('начал поиск')
                     print(self.newkoord[j])
                     print(self.myletters[i].MyKoord)
                     if self.newkoord[j][0] == self.myletters[i].MyKoord[0]:
-                        print('нашли хвост')
                         self.newkoord[j] = [None, None]
-                        print('убрали хвост')
             # проверяем, ставили ли мы букву на новое место на этом ходу
             if r in self.newkoord:
                 # да, ставили, освобождаем для нее место
@@ -283,7 +261,6 @@ class GameWindow(QWidget):
                     if self.myletters[j].MyKoord == r:
                         self.myletters[j].move(self.StartPosition[j][0], self.StartPosition[j][1])
                         self.myletters[j].MyKoord = [None, j]
-                        print('нашли')
                 for j in range(len(self.newkoord)):
                     # ищем на какую позицию записана старая буква
                     if r == self.newkoord[j]:
@@ -297,14 +274,47 @@ class GameWindow(QWidget):
         else:
             pass
 
+    def dobavlenie(self, words):
+        flag = 1
+        # print(self.rez.msg)
+        buttonReply = QMessageBox.question(self, 'Bad Words',
+                                           "Вы хотите внести новые слова в словарь: " + " ".join(
+                                               words),
+                                           QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+        if buttonReply == QMessageBox.Yes:
+            for i in words:
+                buttonReply1 = QMessageBox.question(self, 'Bad Words',
+                                                    "Вы хотите внести это слово в словарь: " + i,
+                                                    QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+                if buttonReply1 == QMessageBox.Yes:
+                    self.serv.matrix.dict.append(i)
+                else:
+                    flag = 0
+        if flag == 1:
+            pass
+            # self.CheckMatrix()
+
     def Message(self, text):
         buttonReply = QMessageBox.question(self, 'Scrabble',
                                            text,
                                            QMessageBox.Ok, QMessageBox.Ok)
 
+    def Drop(self, dr):
+        drlet = []
+        for i in dr:
+            drlet.append(self.myletters[int(i)].MyLetter)
+        a = self.me.accept_turn(TurnStruct(False, drlet))
+        if a.res:
+            self.Message(a.msg)
+            self.EndMyHod()
+
+    def DisabledSet(self,t):
+        self.konsol.setDisabled(t)
+
     def my_hod(self):
         self.Message("твой ход!!!")
         # TODO andrsolo21 Перерисовку вызывай здес
+        self.DisabledSet(False)
         self.lastLetters()
         self.Pererisovka()
 
