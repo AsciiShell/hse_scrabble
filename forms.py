@@ -168,6 +168,8 @@ class GameWindow(QWidget):
         # self.SeveChangesForm()
 
     def Pererisovka(self):
+        for i in self.myletters:
+            i.deleteLater()
         self.myletters.clear()
         for i in range(len(self.me.letters)):
             gs = self.me.letters[i]
@@ -222,7 +224,8 @@ class GameWindow(QWidget):
         else:
             if self.rez.score == 1:
                 # в матрице есть неопозанные слова
-                self.dobavlenie(words)
+                #self.dobavlenie(words)
+                pass
 
             if self.rez.score == 2:
                 # матрица заполнена неправильно
