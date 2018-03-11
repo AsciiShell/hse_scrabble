@@ -53,7 +53,7 @@ class GameWindow(QWidget):
         self.btnconcreateret = QPushButton("назад", self)
         self.btnconcreateret.move(self.widthtotal - 120, 50)
 
-        self.serv = GameServer([Player("BOT", "bot"), Player("Admin", "local")])
+        self.serv = GameServer([Player("BOT", "bot", 0.2), Player("Admin", "local")])
         self.serv.matrix.Mainmap[7][7] = "П"
         self.serv.matrix.Mainmap[7][8] = "Р"
         self.serv.matrix.Mainmap[7][9] = "И"

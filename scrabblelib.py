@@ -87,7 +87,7 @@ class GameConfig:
     """Количество пропусков для завершения игры"""
     skipEnd = 2
     """Время хода"""
-    turnTime = 60
+    turnTime = 60 * 2
 
 
 class Point:
