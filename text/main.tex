@@ -1,0 +1,92 @@
+%!TEX TS-program = xelatex
+
+% Шаблон документа LaTeX создан в 2018 году
+% Алексеем Подчезерцевым
+% В качестве исходных использованы шаблоны
+% 	Данилом Фёдоровых (danil@fedorovykh.ru) 
+%		https://www.writelatex.com/coursera/latex/5.2.2
+%	LaTeX-шаблон для русской кандидатской диссертации и её автореферата.
+%		https://github.com/AndreyAkinshin/Russian-Phd-LaTeX-Dissertation-Template
+
+\documentclass[a4paper,14pt]{article}
+
+\input{data/preambular.tex}
+\input{data/algo.tex}
+\begin{document} % конец преамбулы, начало документа
+\input{data/title.tex}
+\tableofcontents
+\pagebreak
+\section{Аннотация}
+	Разрабатываем игрушку
+	\pagebreak
+\section{Словарь игры}
+	\subsection{Условие задачи}
+	Дан исходный массив слов и набор букв, которые уже есть на поле и у игрока. Необходимо выбрать из исходного списка слов такие, которые теоретически можно составить из данных букв
+	\subsection{Постановка задачи}
+	\underline{Дано:}
+	
+	$Words[0:n-1]$ - строки
+	
+	$Letters[0:m-1]$ - символьные
+	
+	\underline{Результат:}
+	
+	$NewWords[0:k-1]$ - строки
+	
+	\underline{При:}
+	
+	$n \ge 1, 1 \le m \le 32$
+	
+	\underline{Связь:}
+	
+	$k = n, NewWords[0:k-1] = Words[0:n-1]$, если $m = 32$ 
+	
+	$i=\overline{0, k-1}$
+	
+	$j=\overline{0, n-1}$
+	
+	$NewWords[i] = Words[j]$, если $\forall Words[j][e], \exists C, C \in Letters и Words[j][e] = C $
+	
+	\subsection{Внешняя спецификация}
+	Данная функция не предусматривает взаимодействие программы с пользователем
+	\pagebreak
+	\subsection{Описание алгоритмов}	
+	\begin{algorithm*}[!htp]
+	\caption{Подготовка словаря}
+	\begin{algorithmic}
+		\State $k := 0$
+		\For{$i:=0$ \textbf{\underline{до}} $n-1$}
+			\State $flag := true$
+			\State $j := 0$
+			\While{$j<\text{длина}(Words[i])$ \textbf{\underline{и}} $flag$} 
+				\If{$Words[i][j] \in Letters$}
+					\State $j := j + 1$
+				\Else
+					\State $flag := false$
+				\EndIf				
+			\EndWhile
+			\If{$flag$}
+				\State $NewWords[k] := Words[i]$
+				\State $k := k + 1$
+			\EndIf
+		\EndFor
+	\end{algorithmic}
+	\end{algorithm*}
+	\subsection{Тесты}
+	Тестовый словарь:
+	
+	биосфера блюз дворянство домолачивание заковывание изъян киноведение колеровщик координированность митраизм налавливание неминуемость одухотворенность окраина плавсостав поборник подхват приматывание пролысина сипловатость солододробилка топаз трином трехсотлетие умывание хранилище централизация шейх 
+
+	Тесты обрабатывают тестовый словарь и проверяют длину итогового массива
+	
+	\begin{tabular}{|c|c|}
+		\hline
+		         Входные данные          & Контрольное значение \\ \hline
+		АБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ &    Длина словаря     \\ \hline
+		               А                 &          0           \\ \hline
+		              БЛЮЗ               &          1           \\ \hline
+		АБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮ  &  Длина словаря - 3   \\ \hline
+	\end{tabular}
+	
+\end{document} % конец документа
+
