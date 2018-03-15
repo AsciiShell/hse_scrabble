@@ -285,7 +285,7 @@ class Matrix:
         self.tempmap = [["" for i in range(15)] for j in range(15)]
         self.matrvalid = [[0 for i in range(15)] for j in range(15)]
         score = 0
-        self._chekKoord()
+        self._ChekKoord()
         self.pasteletters()
         undefined = []
         if self.ValidationKoord():
@@ -338,7 +338,7 @@ class Matrix:
         """Возвращает точку по адресу"""
         return self.map[y][x]
 
-    def _chekKoord(self):
+    def _ChekKoord(self):
         a = []
         b = []
         for i in range(len(self.newkoord)):

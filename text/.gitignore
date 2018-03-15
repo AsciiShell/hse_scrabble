@@ -1,0 +1,12 @@
+
+*.toc
+
+*.gz
+
+*.aux
+
+*.log
+
+*.out
+
+*.pdf
