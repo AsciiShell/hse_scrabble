@@ -122,7 +122,13 @@ Every day people spend a lot of time trying to brighten up the expectation, for 
 	
 	Класс $GameWindow$ наследуется от класса из библиотеки $PyQt$ $QWidget$.	
 	Функция $\_\_init\_\_$  иницилизирует переменные, вычисляет размеры и создает окно.	
-	Далее происходит отрисовка фона. Выполняют функции $paintEvent$ и $drawBackground$.	
+	Далее происходит отрисовка фона. Выполняют функции $paintEvent$ и $drawBackground$.
+	\begin{figure}[H]
+		\centering
+		\caption{задний фон}
+		\includegraphics[width=\linewidth]{bigpole.png}
+	\end{figure}
+		
 	В функции $initUI$ создаются виджеты кнопок (QPushButton) и виджет изменения строки (QLineEdet), который будет использоваться в качестве консоли.
 		
 	После ввода текста в консоль и нажатия кнопки "Enter"\ вызывается функция $enter$.
@@ -134,11 +140,27 @@ Every day people spend a lot of time trying to brighten up the expectation, for 
 	\item $lastLetters$ (lastLetters()) - отрисовывает буквы, которые вносились в матрицу ранее.
 	\item $ClearChanges$ (ClearChanges()) - очищает временные переменные, возвращает на места буквы, переставленные на этом ходу.
 	\item $SeveChangesForm$ (SeveChangesForm()) - отправляет данные на проверку.
-	\item $dobavlenie$ (dobavlenie(words)) - с разрешения пользователя добавляет новые слова в словарь.
+	\item $dobavlenie$ (dobavlenie(words)) - с разрешения пользователя добавляет новые слова в словарь. Пример такого уведомления можно пронаблюдать на рисунке \ref{img:dob}.
+	\begin{figure}[H]
+		\centering
+		\caption{запрос на добавление нового слова}
+		\includegraphics[width=0.3\linewidth]{dobavlenie.png}\label{img:dob}
+	\end{figure}
 	\item $Drop$ (Drop(dr)) - сбрасывает буквы, номера которых находятся в массиве dr.
 	\end {itemize}
 	
 	Для вывода уведомлений для пользователя использовалась функция $Message$ (Message(text)), котрая при помощи виджета QMessageBox выводит уведомление ползователю.
+	\begin{figure}[H]
+		\centering
+		\caption{уведомление о начале хода}
+		\includegraphics[scale=1]{myhod.png}
+	\end{figure}
+	\begin{figure}[H]
+		\centering
+		\caption{уведомление о конце хода}
+		\includegraphics[scale=1]{endhod.png}
+	\end{figure}
+
 		
 \section{Тестирование}
 	Процесс разработки большого коллективного проекта достаточно сложный. Легко допустить ошибку, найти причину которой, а порой и заметить эффект, достаточно сложно. Поэтому были созданы специальные модульные тесты, проверяющие работу некоторых функций, тестировать которые в ручную было бы утомительно.
