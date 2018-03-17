@@ -100,3 +100,12 @@
 \usepackage{tikz} % Работа с графикой
 \usepackage{pgfplots}
 \usepackage{pgfplotstable}
+
+% ГОСТ заголовки
+\usepackage[font=small]{caption}
+%\captionsetup[table]{justification=centering, labelsep = newline} % Таблицы по правобу краю
+%\captionsetup[figure]{justification=centering} % Картинки по центру
+
+
+\newcommand{\tablecaption}[1]{\addtocounter{table}{1}\small \begin{flushright}\tablename \ \thetable\end{flushright}%	
+\begin{center}#1\end{center}}

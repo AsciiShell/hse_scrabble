@@ -125,8 +125,8 @@ Every day people spend a lot of time trying to brighten up the expectation, for 
 	Далее происходит отрисовка фона. Выполняют функции $paintEvent$ и $drawBackground$.
 	\begin{figure}[H]
 		\centering
-		\caption{задний фон}
 		\includegraphics[width=\linewidth]{bigpole.png}
+		\caption{задний фон}
 	\end{figure}
 		
 	В функции $initUI$ создаются виджеты кнопок (QPushButton) и виджет изменения строки (QLineEdet), который будет использоваться в качестве консоли.
@@ -143,8 +143,9 @@ Every day people spend a lot of time trying to brighten up the expectation, for 
 	\item $dobavlenie$ (dobavlenie(words)) - с разрешения пользователя добавляет новые слова в словарь. Пример такого уведомления можно пронаблюдать на рис. \ref{img:dob}.
 	\begin{figure}[bhtp]
 		\centering
+		\includegraphics[width=0.3\linewidth]{dobavlenie.png}
 		\caption{запрос на добавление нового слова}
-		\includegraphics[width=0.3\linewidth]{dobavlenie.png}\label{img:dob}
+		\label{img:dob}
 	\end{figure}
 	\item $Drop$ (Drop(dr)) - сбрасывает буквы, номера которых находятся в массиве dr.
 	\end {itemize}
@@ -152,13 +153,13 @@ Every day people spend a lot of time trying to brighten up the expectation, for 
 	Для вывода уведомлений для пользователя использовалась функция $Message$ (Message(text)), коротая при помощи виджета QMessageBox выводит уведомление пользователю.
 	\begin{figure}[H]
 		\centering
-		\caption{уведомление о начале хода}
 		\includegraphics[scale=1]{myhod.png}
+		\caption{уведомление о начале хода}
 	\end{figure}
 	\begin{figure}[H]
 		\centering
-		\caption{уведомление о конце хода}
 		\includegraphics[scale=1]{endhod.png}
+		\caption{уведомление о конце хода}
 	\end{figure}
 
 
@@ -173,8 +174,9 @@ Every day people spend a lot of time trying to brighten up the expectation, for 
 	
 	\begin{figure}[bhtp]
 		\centering
+		\includegraphics[width=0.5\linewidth]{game.png}
 		\caption{Результат модульного тестирования}
-		\includegraphics[width=0.5\linewidth]{game.png}\label{img:game}
+		\label{img:game}
 	\end{figure}
 
 	\subsection{Завершение игры}
@@ -182,8 +184,8 @@ Every day people spend a lot of time trying to brighten up the expectation, for 
 	
 	\begin{figure}[bhtp]
 		\centering
-		\caption{Итог игры}
-		\includegraphics{gameresult.png}\label{img:gameresult}
+		\includegraphics{gameresult.png}
+		\caption{Итог игры}\label{img:gameresult}
 	\end{figure}
 \section{Тестирование}
 	Процесс разработки большого коллективного проекта достаточно сложный. Легко допустить ошибку, найти причину которой, а порой и заметить эффект, достаточно сложно. Поэтому были созданы специальные модульные тесты, проверяющие работу некоторых функций, тестировать которые в ручную было бы утомительно.
@@ -194,7 +196,10 @@ Every day people spend a lot of time trying to brighten up the expectation, for 
 	Список слов: биосфера, блюз, дворянство, домолачивание, заковывание, изъян, киноведение, колеровщик, координированность, митраизм, налавливание, неминуемость, одухотворенность, окраина, плавсостав, поборник, подхват, приматывание, пролысина, сипловатость, солододробилка, топаз, трином, трехсотлетие, умывание, хранилище, централизация, шейх.
 	\begin{table}[!h]
 		\begin{center}
-		\caption{Тестирование словаря}
+		\begin{flushleft}
+			\tablecaption{Тестирование словаря}			
+		\end{flushleft}
+		
 		\begin{tabular}{|c|c|}
 			\hline
 			         Входные данные          & Контрольное значение \\ \hline
@@ -211,7 +216,7 @@ Every day people spend a lot of time trying to brighten up the expectation, for 
 	
 	\begin{table}[!h]
 		\begin{center}
-			\caption{Тестирование фишки на игровом поле}
+			\tablecaption{Тестирование фишки на игровом поле}
 			\begin{tabular}{|c|c|}
 				\hline
 				Входные данные          & Контрольное значение \\ \hline
@@ -229,9 +234,9 @@ Every day people spend a lot of time trying to brighten up the expectation, for 
 	
 	\subsection{Обработка результатов}
 	\begin{figure}[bhtp]
-		\centering
-		\caption{Результат модульного тестирования}
-		\includegraphics[scale=0.8]{unittests.png}\label{img:tests}
+		\centering		
+		\includegraphics[scale=0.8]{unittests.png}
+		\caption{Результат модульного тестирования}\label{img:tests}
 	\end{figure}
 	
 	На рис. \ref{img:tests} показан результат успешного тестирования. Нет ни одного с ошибкой, показано игровое поле, которое заполнили два компьютерных соперника, играющие друг против друга.
