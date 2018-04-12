@@ -4,8 +4,7 @@ from PyQt5.QtWidgets import QLineEdit
 from PyQt5.QtWidgets import QWidget, QDesktopWidget, QLabel, QMainWindow, QPushButton, QApplication, \
     QGroupBox, QMessageBox, QHBoxLayout
 
-from client import *
-from server import *
+from server_old import *
 
 
 class Fishka(QPushButton):

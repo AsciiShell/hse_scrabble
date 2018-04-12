@@ -1,7 +1,7 @@
 import unittest
 import os
 from time import sleep
-from server import *
+from server_old import *
 
 
 class TestGameServer(unittest.TestCase):

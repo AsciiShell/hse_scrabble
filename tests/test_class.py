@@ -1,7 +1,7 @@
 import unittest
 from os import remove
 
-from server import *
+from server_old import *
 
 
 class TestGameDictionary(unittest.TestCase):
