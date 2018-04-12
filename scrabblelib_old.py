@@ -203,14 +203,14 @@ class Matrix:
                                 score += sly[2]
                             except Exception as e:
                                 print(e)
-            # if not sys.argv[0].endswith("server.py"):
+            # if not sys.argv[0].endswith("server_old.py"):
             #     print('поиск закончен')
             if len(undefined) == 0:
-                # if not sys.argv[0].endswith("server.py"):
+                # if not sys.argv[0].endswith("server_old.py"):
                 #     print('ok')
                 return MatrixResult(True, score, outx + outy)
             else:
-                # if not sys.argv[0].endswith("server.py"):
+                # if not sys.argv[0].endswith("server_old.py"):
                 #     print('нопознанные слова')
                 self.map = [_.copy() for _ in self.Mainmap]
                 return MatrixResult(False, 1, undefined, 'нопознанные слова')
@@ -258,13 +258,13 @@ class Matrix:
         self.count = 0
         if self.tempmap[self.FirstFish[0]][self.FirstFish[1]] != '':
             self._ValidationCheck(self.FirstFish)
-            # if not sys.argv[0].endswith("server.py"):
+            # if not sys.argv[0].endswith("server_old.py"):
             #     print('нашел ' + str(self.count) + ' букв')
             for i in range(15):
                 for j in range(15):
                     if self.tempmap[i][j] != '':
                         self.count -= 1
-            # if not sys.argv[0].endswith("server.py"):
+            # if not sys.argv[0].endswith("server_old.py"):
             #     print('проверил, осталось: ' + str(self.count) + ' букв')
             if self.count == 0:
                 return True
