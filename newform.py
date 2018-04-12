@@ -48,7 +48,7 @@ class DragButton(QPushButton):
             globalPos = event.globalPos()
             diff = globalPos - self.__mouseMovePos
             newPos = self.mapFromGlobal(currPos + diff)
-            pos = self.RoundKoord(newPos.x ,newPos.y )
+            pos = self.RoundKoord(newPos.x() ,newPos.y() )
             newPos.setX(pos[0])
             newPos.setY(pos[1])
             self.move(newPos)
@@ -61,12 +61,12 @@ class DragButton(QPushButton):
     def RoundKoord(self, posx, posy):
         nkx = self.size.karta[0][0][0] // 1
         nky = self.size.karta[0][0][1] // 1
-        x = (posx - nkx) // (self.size.yi + self.size.ot)
-        y = (posy - nky) // (self.size.yi + self.size.ot)
+        x = int((posx - nkx) // round(self.size.yi + self.size.ot))
+        y = int((posy - nky) // round(self.size.yi + self.size.ot))
         if  (x < 15) and (x >= 0) and (y < 15) and (y >= 0):
-            return {self.size.karta[x][y][0],self.size.karta[x][y][1]}
+            return self.size.karta[x][y][0],self.size.karta[x][y][1]
         else:
-            return {self.StartPosition[self.MyStart][0], self.StartPosition[self.MyStart][0]}
+            return self.size.StartPosition[self.MyStart][0], self.size.StartPosition[self.MyStart][0]
 
 
 
