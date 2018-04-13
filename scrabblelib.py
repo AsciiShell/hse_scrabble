@@ -1,116 +1,149 @@
 import os
-import random
 import warnings
-import time
-from threading import Thread
-
-def rand(length=4):
-    alphabet = 'abcdefghijklmnopqrstuvwxyz0123456789'
-    return ''.join([alphabet[random.randrange(len(alphabet))] for _ in range(length)])
+from typing import List, Dict, Union
 
 
 class GameConfig:
     """Конфигурация игры"""
-    map = [[4, 0, 0, 1, 0, 0, 0, 4, 0, 0, 0, 1, 0, 0, 4],
-           [0, 2, 0, 0, 0, 3, 0, 0, 0, 3, 0, 0, 0, 2, 0],
-           [0, 0, 2, 0, 0, 0, 1, 0, 1, 0, 0, 0, 2, 0, 0],
-           [1, 0, 0, 2, 0, 0, 0, 1, 0, 0, 0, 2, 0, 0, 1],
-           [0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0],
-           [0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0],
-           [0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0],
-           [4, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 4],
-           [0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0],
-           [0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0],
-           [0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0],
-           [1, 0, 0, 2, 0, 0, 0, 1, 0, 0, 0, 2, 0, 0, 1],
-           [0, 0, 2, 0, 0, 0, 1, 0, 1, 0, 0, 0, 2, 0, 0],
-           [0, 2, 0, 0, 0, 3, 0, 0, 0, 3, 0, 0, 0, 2, 0],
-           [4, 0, 0, 1, 0, 0, 0, 4, 0, 0, 0, 1, 0, 0, 4]]
-    letters = {'А': {'count': 10, 'price': 1},
-               'Б': {'count': 3, 'price': 3},
-               'В': {'count': 5, 'price': 2},
-               'Г': {'count': 3, 'price': 3},
-               'Д': {'count': 5, 'price': 2},
-               'Е': {'count': 9, 'price': 1},
-               'Ж': {'count': 2, 'price': 5},
-               'З': {'count': 2, 'price': 5},
-               'И': {'count': 8, 'price': 1},
-               'Й': {'count': 4, 'price': 2},
-               'К': {'count': 6, 'price': 2},
-               'Л': {'count': 4, 'price': 2},
-               'М': {'count': 5, 'price': 2},
-               'Н': {'count': 8, 'price': 1},
-               'О': {'count': 10, 'price': 1},
-               'П': {'count': 6, 'price': 2},
-               'Р': {'count': 6, 'price': 2},
-               'С': {'count': 6, 'price': 2},
-               'Т': {'count': 5, 'price': 2},
-               'У': {'count': 3, 'price': 3},
-               'Ф': {'count': 1, 'price': 10},
-               'Х': {'count': 2, 'price': 5},
-               'Ц': {'count': 1, 'price': 10},
-               'Ч': {'count': 2, 'price': 5},
-               'Ш': {'count': 1, 'price': 10},
-               'Щ': {'count': 1, 'price': 10},
-               'Ъ': {'count': 1, 'price': 10},
-               'Ы': {'count': 2, 'price': 5},
-               'Ь': {'count': 2, 'price': 5},
-               'Э': {'count': 1, 'price': 10},
-               'Ю': {'count': 1, 'price': 10},
-               'Я': {'count': 3, 'price': 3},
-               '*': {'count': 0, 'price': None}}
+    map: List[List[int]] = \
+        [[4, 0, 0, 1, 0, 0, 0, 4, 0, 0, 0, 1, 0, 0, 4],
+         [0, 2, 0, 0, 0, 3, 0, 0, 0, 3, 0, 0, 0, 2, 0],
+         [0, 0, 2, 0, 0, 0, 1, 0, 1, 0, 0, 0, 2, 0, 0],
+         [1, 0, 0, 2, 0, 0, 0, 1, 0, 0, 0, 2, 0, 0, 1],
+         [0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0],
+         [0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0],
+         [0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0],
+         [4, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 4],
+         [0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0],
+         [0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0],
+         [0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0],
+         [1, 0, 0, 2, 0, 0, 0, 1, 0, 0, 0, 2, 0, 0, 1],
+         [0, 0, 2, 0, 0, 0, 1, 0, 1, 0, 0, 0, 2, 0, 0],
+         [0, 2, 0, 0, 0, 3, 0, 0, 0, 3, 0, 0, 0, 2, 0],
+         [4, 0, 0, 1, 0, 0, 0, 4, 0, 0, 0, 1, 0, 0, 4]]
+    """Карта поля"""
+    letters: Dict[str, Dict[str, int]] = \
+        {'А': {'count': 10, 'price': 1},
+         'Б': {'count': 3, 'price': 3},
+         'В': {'count': 5, 'price': 2},
+         'Г': {'count': 3, 'price': 3},
+         'Д': {'count': 5, 'price': 2},
+         'Е': {'count': 9, 'price': 1},
+         'Ж': {'count': 2, 'price': 5},
+         'З': {'count': 2, 'price': 5},
+         'И': {'count': 8, 'price': 1},
+         'Й': {'count': 4, 'price': 2},
+         'К': {'count': 6, 'price': 2},
+         'Л': {'count': 4, 'price': 2},
+         'М': {'count': 5, 'price': 2},
+         'Н': {'count': 8, 'price': 1},
+         'О': {'count': 10, 'price': 1},
+         'П': {'count': 6, 'price': 2},
+         'Р': {'count': 6, 'price': 2},
+         'С': {'count': 6, 'price': 2},
+         'Т': {'count': 5, 'price': 2},
+         'У': {'count': 3, 'price': 3},
+         'Ф': {'count': 1, 'price': 10},
+         'Х': {'count': 2, 'price': 5},
+         'Ц': {'count': 1, 'price': 10},
+         'Ч': {'count': 2, 'price': 5},
+         'Ш': {'count': 1, 'price': 10},
+         'Щ': {'count': 1, 'price': 10},
+         'Ъ': {'count': 1, 'price': 10},
+         'Ы': {'count': 2, 'price': 5},
+         'Ь': {'count': 2, 'price': 5},
+         'Э': {'count': 1, 'price': 10},
+         'Ю': {'count': 1, 'price': 10},
+         'Я': {'count': 3, 'price': 3},
+         '*': {'count': 0, 'price': None}}
+    """Список всех букв с ценой и количеством"""
+    startCount: int = 10
     """Начальное число фишек"""
-    startCount = 10
+    fullBonus: int = 15
     """Бонус за полное использование фишек"""
-    fullBonus = 15
+    skipEnd: int = 2
     """Количество пропусков для завершения игры"""
-    skipEnd = 2
+    turnTime: int = 120
     """Время хода"""
-    turnTime = 120
+
 
 class Point:
-    """Класс ячейки поля
-    TODO переделать"""
-    info = [{'color': 'white', 'multi': 'letter', 'value': 1},
-            {'color': 'green', 'multi': 'letter', 'value': 2},
-            {'color': 'blue', 'multi': 'word', 'value': 2},
-            {'color': 'yellow', 'multi': 'letter', 'value': 3},
-            {'color': 'red', 'multi': 'word', 'value': 3}, ]
+    """Класс ячейки поля"""
+    info: List[Dict[str, Union[str, int]]] = \
+        [{'color': 'white', 'multi': 'letter', 'value': 1},
+         {'color': 'green', 'multi': 'letter', 'value': 2},
+         {'color': 'blue', 'multi': 'word', 'value': 2},
+         {'color': 'yellow', 'multi': 'letter', 'value': 3},
+         {'color': 'red', 'multi': 'word', 'value': 3}, ]
 
-    def get_info(self):
-        """Возвращает информацию о текущей точке"""
+    @property
+    def get_info(self) -> Dict[str, Union[str, int]]:
+        """Возвращает информацию о текущей точке
+
+        :rtype: Dict[str, Union[str, int]]
+        """
         return self.info[self.t]
 
-    def __init__(self, x, y, letter, t=None):
-        """Создает точку
-        x, y - координаты
-        t - числовой тип
-        letter - буква
+    @property
+    def get_score(self) -> int:
+        """Возвращает стоимость буквы на поле
+
+        :rtype: int
+        """
+        if self.multi == "letter":
+            return GameConfig.letters[self.letter]['price'] * self.value
+        else:
+            return GameConfig.letters[self.letter]['price']
+
+    @property
+    def get_multi(self) -> int:
+        """
+
+        :return: Множитель слова
+        :rtype: int
+        """
+        if self.multi == "letter":
+            return 1
+        else:
+            return self.value
+
+    def __init__(self, x: int, y: int, letter: str) -> None:
+        """Создает букву по указанным координатам
+
+        :param x: Х координата
+        :type x: int
+
+        :param y: У координата
+        :type y: int
+
+        :param letter: Буква
+        :type letter: str
         """
         self.x = x
         self.y = y
         self.letter = letter
-        if t is None:
-            try:
-                self.t = GameConfig.map[x][y]
-            except Exception:
-                print("Error")
-        else:
-            self.t = t
+
+        try:
+            self.t = GameConfig.map[x][y]
+        except Exception:
+            print("Error")
         self.color = Point.info[self.t]["color"]
         self.multi = Point.info[self.t]["multi"]
         self.value = Point.info[self.t]["value"]
-        if self.multi == "letter":
-            self.score = GameConfig.letters[self.letter]['price'] * (self.value)
-            self.multi = 1
-        else:
-            self.score = GameConfig.letters[self.letter]['price']
-            self.multi = self.multi
+
 
 class Message:
     """Класс возвращаемых сообщений"""
 
-    def __init__(self, res=False, msg=""):
+    def __init__(self, res: bool = False, msg: str = "") -> None:
+        """
+
+        :param res: Статус операции
+        :type res: int
+
+        :param msg: Сообщение
+        :type msg: str
+        """
         self.res = res
         self.msg = msg
 
@@ -118,13 +151,20 @@ class Message:
 class MatrixResult:
     """Результат проверки матрицы"""
 
-    def __init__(self, stat: bool, score: int = 0, words: list = None, errmsg: str = "") -> object:
+    def __init__(self, stat: bool, score: int = 0, words: List[str] = None, errmsg: str = "") -> None:
         """
 
-        :param stat:
-        :param score:
-        :param words:
-        :param errmsg:
+        :param stat: Результат проверки
+        :type stat: bool
+
+        :param score: Сумма очков
+        :type score: int
+
+        :param words: Список найденных или ошибочных слов
+        :type words: List[str]
+
+        :param errmsg: Сообщение об ошибке
+        :type errmsg: str
         """
         self.score = score
         self.result = stat
@@ -385,18 +425,30 @@ class Matrix:
 class GameDictionary:
     """Словарь слов игры"""
     filename = "dictionary"
+    """Имя файла словаря"""
     filetemp = "dictionarytemp"
+    """Имя файла пользовательского словаря"""
 
-    def append(self, item):
-        """Добавляет новое слово в словарь"""
+    def append(self, item: str) -> None:
+        """
+        Добавляет новое слово в словарь
+
+        :param item: Слово
+        :type item: str
+        """
         self.dict.append(item)
         with open(self.filetemp, "a", encoding="utf-8") as f:
             f.write(item + "\n")
 
-    def prepare(self, alphabet):
-        """Подготавливает словарь к допустимым буквам
+    def prepare(self, alphabet: str) -> List[str]:
+        """Подготавливает словарь для дальнейшей обработки
 
-        alphabet - строка допустимых символов"""
+        :param alphabet: Список доступных букв
+        :type alphabet: str
+
+        :return: Список слов
+        :rtype: List[str]
+        """
         alphabet = alphabet.upper()
         if '*' in alphabet:
             star = alphabet.count("*")
@@ -418,8 +470,12 @@ class GameDictionary:
                 temp_dict.append(i)
         return temp_dict
 
-    def __init__(self, test_mode=False):
-        """Инициализирует словарь начальным списком слов"""
+    def __init__(self, test_mode: bool = False) -> None:
+        """Инициализирует словарь начальным списком слов
+
+        :param test_mode: Указывает на процесс тестирования словаря
+        :type test_mode: bool
+        """
         if not os.path.exists(self.filetemp):
             with open(self.filetemp, 'w'): pass
         with open(self.filename, "r", encoding="utf-8") as f:
@@ -429,3 +485,7 @@ class GameDictionary:
                 temp = f.read().upper()
                 if temp != "":
                     self.dict += temp.split("\n")
+
+
+a = GameDictionary()
+a.append("Asd")

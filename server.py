@@ -1,8 +1,15 @@
 from scrabblelib import *
+from typing import List, Callable,Dict,Any, AnyStr
 
 
 class GamePlayer:
     def __init__(self, name: str) -> None:
+        """
+        Создает нового игрока
+
+        :param name: Имя
+        :type name: str
+        """
         self.name = name
         self.score = 0
         self.letters = []
@@ -13,21 +20,37 @@ class GamePlayer:
         self.list_call_end = []
         self.list_call_start = []
 
-    def event_end(self, callback: function) -> None:
-        """Срабатывает при завершении хода любого игрока. Перерисовка"""
+    def event_end(self, callback: Callable) -> None:
+        """Срабатывает при завершении хода любого игрока. Перерисовка
+
+        :param callback: Функция, которую необходимо вызвать при завершении хода игрока
+        :type callback: Callable
+        """
         self.list_call_end.append(callback)
 
-    def event_start(self, callback: function) -> None:
-        """Предупреждает игрока о начале его хода. Активирует игровой интерфейс"""
+    def event_start(self, callback: Callable) -> None:
+        """Предупреждает игрока о начале его хода. Активирует игровой интерфейс
+
+        :param callback: Функция, которую необходимо вызвать при начале хода
+        :type callback: Callable
+        """
         self.list_call_start.append(callback)
 
-    def call_end(self, *args, **kwargs):
-        """Оповещает все события о конце хода"""
+    def call_end(self, *args, **kwargs) -> None:
+        """Оповещает все события о конце хода
+
+        :param args: Параметры
+        :param kwargs: Параметры по имени
+        """
         for i in self.list_call_end:
             i(args, kwargs)
 
-    def call_start(self, *args, **kwargs):
-        """Оповещает игрока о начале хода"""
+    def call_start(self, *args, **kwargs) -> None:
+        """Оповещает игрока о начале хода
+
+        :param args: Параметры
+        :param kwargs: Параметры по имени
+        """
         for i in self.list_call_start:
             i(args, kwargs)
 
