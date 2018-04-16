@@ -64,15 +64,11 @@ class DragButton(QPushButton):
         x = int((posx - nkx) // round(self.size.yi + self.size.ot))
         y = int((posy - nky) // round(self.size.yi + self.size.ot))
         if  (x < 15) and (x >= 0) and (y < 15) and (y >= 0):
-            return self.size.karta[x][y][0],self.size.karta[x][y][1]
+            self.MyKoord = [self.size.karta[y][x][0],self.size.karta[y][x][1]]
+            return self.size.karta[y][x][0],self.size.karta[y][x][1]
         else:
-            return self.size.StartPosition[self.MyStart][0], self.size.StartPosition[self.MyStart][0]
-
-
-
-
-
-
+            self.MyKoord = [None,self.MyStart]
+            return self.size.StartPosition[self.MyStart][0], self.size.StartPosition[self.MyStart][1]
 
 def clicked():
     print("click as normal!")
@@ -157,11 +153,10 @@ class GameWindow(QWidget):
         self.progressed.redrawMe.connect(self.my_hod)
         self.progressed.redrawEnd.connect(self.end_hod)
         self.newkoord = []
-        self.newletters = []
-        button = DragButton("Drag", self)
-        button.clicked.connect(clicked)
-        button1 = DragButton("Drag1", self)
-        button1.clicked.connect(clicked)
+        self.newletters = []"""
+        self.burtton = QPushButton("Collect", self)
+        self.burtton.clicked.connect(self.CollectLetters())
+        #button.setGeometry(QRect(500,500,50,50))"""
         self.initUI()
 
     def initUI(self):
@@ -185,6 +180,14 @@ class GameWindow(QWidget):
         self.konsol = QLineEdit(self)
         self.konsol.setGeometry(self.ot, self.ot + self.libh, self.libw - self.ot, 20)
         self.konsol.returnPressed.connect(self.enter)
+
+    def CollectLetters(self):
+        out = []
+        for i in self.myletters:
+            if i.MyKoord[0] != None:
+                out.append(i.MyKoord)
+        print(out)
+        return out
 
     def enter(self):
         """функция обработки строки консоли"""
