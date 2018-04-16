@@ -153,10 +153,11 @@ class GameWindow(QWidget):
         self.progressed.redrawMe.connect(self.my_hod)
         self.progressed.redrawEnd.connect(self.end_hod)
         self.newkoord = []
-        self.newletters = []"""
-        self.burtton = QPushButton("Collect", self)
-        self.burtton.clicked.connect(self.CollectLetters())
-        #button.setGeometry(QRect(500,500,50,50))"""
+        self.newletters = []
+
+        # self.burtton = QPushButton("Collect", self)
+        # self.burtton.clicked.connect(self.CollectLetters())
+        #button.setGeometry(QRect(500,500,50,50))
         self.initUI()
 
     def initUI(self):
