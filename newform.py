@@ -61,10 +61,10 @@ class DragButton(QPushButton):
     def RoundKoord(self, posx, posy):
         nkx = self.size.karta[0][0][0] // 1
         nky = self.size.karta[0][0][1] // 1
-        x = int((posx - nkx) // round(self.size.yi + self.size.ot))
-        y = int((posy - nky) // round(self.size.yi + self.size.ot))
+        x = int((posx - nkx + (self.size.yi/2)) // round(self.size.yi + self.size.ot))
+        y = int((posy - nky + (self.size.yi/2)) // round(self.size.yi + self.size.ot))
         if  (x < 15) and (x >= 0) and (y < 15) and (y >= 0):
-            self.MyKoord = [self.size.karta[y][x][0],self.size.karta[y][x][1]]
+            self.MyKoord = [y,x]
             return self.size.karta[y][x][0],self.size.karta[y][x][1]
         else:
             self.MyKoord = [None,self.MyStart]
@@ -155,9 +155,7 @@ class GameWindow(QWidget):
         self.newkoord = []
         self.newletters = []
 
-        # self.burtton = QPushButton("Collect", self)
-        # self.burtton.clicked.connect(self.CollectLetters())
-        #button.setGeometry(QRect(500,500,50,50))
+
         self.initUI()
 
     def initUI(self):
@@ -171,6 +169,10 @@ class GameWindow(QWidget):
 
         # for i in range(5):
         #   self.serv.matrix.map[i + 3][7] = self.getletter()
+
+        self.burtton = QPushButton("Collect", self)
+        self.burtton.clicked.connect(self.CollectLetters)
+        self.burtton.setGeometry(450,600,50,50)
 
         """расстановка кнопок для перемещения"""
         self.myletters = []
