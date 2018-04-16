@@ -112,10 +112,8 @@ class Point:
 
         :param x: Х координата
         :type x: int
-
         :param y: У координата
         :type y: int
-
         :param letter: Буква
         :type letter: str
         """
@@ -140,7 +138,6 @@ class Message:
 
         :param res: Статус операции
         :type res: int
-
         :param msg: Сообщение
         :type msg: str
         """
@@ -156,13 +153,10 @@ class MatrixResult:
 
         :param stat: Результат проверки
         :type stat: bool
-
         :param score: Сумма очков
         :type score: int
-
         :param words: Список найденных или ошибочных слов
         :type words: List[str]
-
         :param errmsg: Сообщение об ошибке
         :type errmsg: str
         """
@@ -177,48 +171,109 @@ class MatrixResult:
             self.wordsError = words
 
 
+class MatrixMergeException(Exception):
+    """Генерирует исключение при ошибке создания временной матрицы"""
+    pass
+
+class GameDictionary:
+    """Словарь слов игры"""
+    filename = "dictionary"
+    """Имя файла словаря"""
+    filetemp = "dictionarytemp"
+    """Имя файла пользовательского словаря"""
+
+    def append(self, item: str) -> None:
+        """
+        Добавляет новое слово в словарь
+
+        :param item: Слово
+        :type item: str
+        """
+        self.dict.append(item)
+        with open(self.filetemp, "a", encoding="utf-8") as f:
+            f.write(item + "\n")
+
+    def prepare(self, alphabet: str) -> List[str]:
+        """Подготавливает словарь для дальнейшей обработки
+
+        :param alphabet: Список доступных букв
+        :type alphabet: str
+        :return: Список слов
+        :rtype: List[str]
+        """
+        alphabet = alphabet.upper()
+        if '*' in alphabet:
+            star = alphabet.count("*")
+        else:
+            star = 0
+        if len(alphabet) >= 32:
+            return self.dict
+
+        temp_dict = []
+        for i in self.dict:
+            loc_star = star
+            for j in i:
+                if alphabet.count(j) == 0:
+                    if loc_star == 0:
+                        break
+                    else:
+                        loc_star -= 1
+            else:
+                temp_dict.append(i)
+        return temp_dict
+
+    def __init__(self, test_mode: bool = False) -> None:
+        """Инициализирует словарь начальным списком слов
+
+        :param test_mode: Указывает на процесс тестирования словаря
+        :type test_mode: bool
+        """
+        if not os.path.exists(self.filetemp):
+            with open(self.filetemp, 'w'): pass
+        with open(self.filename, "r", encoding="utf-8") as f:
+            self.dict = f.read().upper().split("\n")
+        if not test_mode:
+            with open(self.filetemp, "r", encoding="utf-8") as f:
+                temp = f.read().upper()
+                if temp != "":
+                    self.dict += temp.split("\n")
+
+
 class Matrix:
     """Класс игрового поля"""
+    dict: GameDictionary
+    validMatrix: List[List[int]]
+    tempMap: List[List[str]]
+    map: List[List[str]]
+    tempPoint: List[Point]
 
-    # TODO andrsolo21 создай/укажи 2 метода и назови их красиво
-    # первый принимает массив новых букв
-    # возвращает структуру состоящую из
-    #     a)успеха,
-    #     b)суммы очков,
-    #     c)найденные слова,
-    #     или
-    #     d)список ошибок (клетка занята), слово не существует в словаре
-    #
-    #     ошибки больше нужны для человека
-    # второй принимает все то же самое,
-    # вызывает первую функцию а затем, в случае успеха, фиксирует изменения
-    # По идее все методы есть, их надо красиво скомпоновать
-    # те сделать newkoord и newletters локальными, убрать обращение к ним извне и передавать как параметр
-    #
-    # P.S.
-    # TODO думаю словарь хранить тоже в матрице, так как там он и обрабатывается. Как думаешь?
-    # TODO P.P.S в этом файле ошибки только в этом классе
-    def add_temporary(self, arr):
-        """Добавляет несколько элементов во временную матрицу"""
-        if type(arr) is list:
-            self.temp.extend(arr)
-        elif type(arr) is int:
-            self.temp.append(arr)
-        else:
-            raise Exception('Wrong type' + str(arr))
+    def add_temporary(self, arr: List[Point]) -> None:
+        """Добавляет несколько элементов во временную матрицу
+
+        :param arr: Массив букв с координатами
+        :type arr: List[Point]
+
+        :raise MatrixMergeException: Генерирует исключение при наложении временной матрицы на основную
+        """
+        self.reject_temp()
+        self.tempPoint = arr
+        for i in self.tempPoint:
+            if self.map[i.x][i.y] == "":
+                self.tempMap[i.x][i.y] = i.letter
+            else:
+                raise MatrixMergeException(i.x, i.y)
 
     def accept_temp(self):
         """Принимает временные изменения"""
-        for i in self.temp:
-            self.map[i.x][i.y] = i
+        for i in self.tempPoint:
+            self.map[i.x][i.y] = i.letter
         self.reject_temp()
 
     def reject_temp(self):
         """Отклоняет временные изменения"""
-        self.newkoord = []
-        self.newletters = []
-        self.tempmap = [["" for i in range(15)] for j in range(15)]
-        self.matrvalid = [[0 for i in range(15)] for j in range(15)]
+        self.tempPoint = []
+        self.tempMap = [["" for i in range(15)] for j in range(15)]
+        self.validMatrix = [[0 for i in range(15)] for j in range(15)]
 
     def check_temp(self):
         """Возвращает True, если временная матрица правильная"""
@@ -257,7 +312,7 @@ class Matrix:
             a = 1
             while a != 0:
                 koord = [x, y]
-                if koord in self.newkoord:
+                if koord in self.newCoords:
                     newword = 1
                 point = Point(x, y, self.map[y][x])
                 score += point.score
@@ -273,7 +328,7 @@ class Matrix:
             a = 1
             while a != 0:
                 koord = [x, y]
-                if koord in self.newkoord:
+                if koord in self.newCoords:
                     newword = 1
                 point = Point(x, y, self.map[y][x])
                 score += point.score
@@ -289,9 +344,9 @@ class Matrix:
 
     def pasteletters(self):
         """вставляет буквы в матрицу"""
-        self.tempmap = [_.copy() for _ in self.Mainmap]
-        for i in range(len(self.newkoord)):
-            self.tempmap[self.newkoord[i][1]][self.newkoord[i][0]] = self.newletters[i]
+        self.tempMap = [_.copy() for _ in self.Mainmap]
+        for i in range(len(self.newCoords)):
+            self.tempMap[self.newCoords[i][1]][self.newCoords[i][0]] = self.newLetters[i]
 
     def serch(self):
         """ищет слова в матрице
@@ -300,14 +355,14 @@ class Matrix:
         # движение по оси y = 2
         outx = []
         outy = []
-        self.tempmap = [["" for i in range(15)] for j in range(15)]
-        self.matrvalid = [[0 for i in range(15)] for j in range(15)]
+        self.tempMap = [["" for i in range(15)] for j in range(15)]
+        self.validMatrix = [[0 for i in range(15)] for j in range(15)]
         score = 0
         self._ChekKoord()
         self.pasteletters()
         undefined = []
         if self.ValidationKoord():
-            self.map = [_.copy() for _ in self.tempmap]
+            self.map = [_.copy() for _ in self.tempMap]
             for i in range(len(self.map)):
                 for j in range(len(self.map[i])):
                     if self.map[i][j] != '':
@@ -352,50 +407,58 @@ class Matrix:
             # print('неправильное заполнение матрицы1')
             return MatrixResult(False, 2, outx + outy, 'неправильное заполнение матрицы')
 
-    def get(self, y, x):
-        """Возвращает точку по адресу"""
+    def get(self, y: int, x: int) -> str:
+        """Возвращает точку по адресу
+
+        :param y: координата Y
+        :type y: int
+        :param x: координата X
+        :type x: int
+        :return: Буква на  позиции
+        :rtype: str
+        """
         return self.map[y][x]
 
     def _ChekKoord(self):
         a = []
         b = []
-        for i in range(len(self.newkoord)):
-            if self.newkoord[i][1] != None and self.newkoord[i][0] != None:
-                a.append(self.newkoord[i])
-                b.append(self.newletters[i])
-        self.newkoord = a
-        self.newletters = b
+        for i in range(len(self.newCoords)):
+            if self.newCoords[i][1] != None and self.newCoords[i][0] != None:
+                a.append(self.newCoords[i])
+                b.append(self.newLetters[i])
+        self.newCoords = a
+        self.newLetters = b
 
     def _ValidationCheck(self, koord):
         # poisk sverhy
-        if self.matrvalid[koord[0]][koord[1]] == 0:
+        if self.validMatrix[koord[0]][koord[1]] == 0:
             self.count += 1
-            self.matrvalid[koord[0]][koord[1]] += 1
+            self.validMatrix[koord[0]][koord[1]] += 1
             if koord[0] != 0:
-                if self.tempmap[koord[0] - 1][koord[1]] != "":
+                if self.tempMap[koord[0] - 1][koord[1]] != "":
                     self._ValidationCheck([koord[0] - 1, koord[1]])
             # poisk sleva
             if koord[1] != 0:
-                if self.tempmap[koord[0]][koord[1] - 1] != "":
+                if self.tempMap[koord[0]][koord[1] - 1] != "":
                     self._ValidationCheck([koord[0], koord[1] - 1])
             # poisk vnizy
             if koord[0] != 14:
-                if self.tempmap[koord[0] + 1][koord[1]] != "":
+                if self.tempMap[koord[0] + 1][koord[1]] != "":
                     self._ValidationCheck([koord[0] + 1, koord[1]])
             # poisk sprava
             if koord[1] != 14:
-                if self.tempmap[koord[0]][koord[1] + 1] != "":
+                if self.tempMap[koord[0]][koord[1] + 1] != "":
                     self._ValidationCheck([koord[0], koord[1] + 1])
 
     def ValidationKoord(self):
         self.count = 0
-        if self.tempmap[self.FirstFish[0]][self.FirstFish[1]] != '':
+        if self.tempMap[self.FirstFish[0]][self.FirstFish[1]] != '':
             self._ValidationCheck(self.FirstFish)
             # if not sys.argv[0].endswith("server_old.py"):
             #     print('нашел ' + str(self.count) + ' букв')
             for i in range(15):
                 for j in range(15):
-                    if self.tempmap[i][j] != '':
+                    if self.tempMap[i][j] != '':
                         self.count -= 1
             # if not sys.argv[0].endswith("server_old.py"):
             #     print('проверил, осталось: ' + str(self.count) + ' букв')
@@ -410,81 +473,19 @@ class Matrix:
         self.Mainmap = [_.copy() for _ in self.map]
         self.reject_temp()
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Создает новую игровую карту"""
-        self.Mainmap = [["" for i in range(15)] for j in range(15)]
         self.map = [["" for i in range(15)] for j in range(15)]
-        self.tempmap = [["" for i in range(15)] for j in range(15)]
-        self.newkoord = []
-        self.newletters = []
-        self.matrvalid = [[0 for i in range(15)] for j in range(15)]
+        """Главная матрица"""
+        self.tempMap = [["" for i in range(15)] for j in range(15)]
+        """Временная матрица"""
+        self.tempPoint = []
+        """Список новых точек"""
+        self.validMatrix = [[0 for i in range(15)] for j in range(15)]
+        """Матрица валидных точек"""
         self.dict = GameDictionary()
+        """Словарь игры"""
         self.FirstFish = [7, 7]
-
-
-class GameDictionary:
-    """Словарь слов игры"""
-    filename = "dictionary"
-    """Имя файла словаря"""
-    filetemp = "dictionarytemp"
-    """Имя файла пользовательского словаря"""
-
-    def append(self, item: str) -> None:
-        """
-        Добавляет новое слово в словарь
-
-        :param item: Слово
-        :type item: str
-        """
-        self.dict.append(item)
-        with open(self.filetemp, "a", encoding="utf-8") as f:
-            f.write(item + "\n")
-
-    def prepare(self, alphabet: str) -> List[str]:
-        """Подготавливает словарь для дальнейшей обработки
-
-        :param alphabet: Список доступных букв
-        :type alphabet: str
-
-        :return: Список слов
-        :rtype: List[str]
-        """
-        alphabet = alphabet.upper()
-        if '*' in alphabet:
-            star = alphabet.count("*")
-        else:
-            star = 0
-        if len(alphabet) >= 32:
-            return self.dict
-
-        temp_dict = []
-        for i in self.dict:
-            loc_star = star
-            for j in i:
-                if alphabet.count(j) == 0:
-                    if loc_star == 0:
-                        break
-                    else:
-                        loc_star -= 1
-            else:
-                temp_dict.append(i)
-        return temp_dict
-
-    def __init__(self, test_mode: bool = False) -> None:
-        """Инициализирует словарь начальным списком слов
-
-        :param test_mode: Указывает на процесс тестирования словаря
-        :type test_mode: bool
-        """
-        if not os.path.exists(self.filetemp):
-            with open(self.filetemp, 'w'): pass
-        with open(self.filename, "r", encoding="utf-8") as f:
-            self.dict = f.read().upper().split("\n")
-        if not test_mode:
-            with open(self.filetemp, "r", encoding="utf-8") as f:
-                temp = f.read().upper()
-                if temp != "":
-                    self.dict += temp.split("\n")
 
 
 a = GameDictionary()
