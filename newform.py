@@ -19,6 +19,9 @@ class DragButton(QPushButton):
         self.MyKoord = [None, 0]
         self.MyStart = 0
 
+    def getmass(self,mass):
+        self.mass = mass
+
 
     def mousePressEvent(self, event):
         self.__mousePressPos = None
@@ -37,7 +40,6 @@ class DragButton(QPushButton):
             diff = globalPos - self.__mouseMovePos
             newPos = self.mapFromGlobal(currPos + diff)
             self.move(newPos)
-
             self.__mouseMovePos = globalPos
 
         super(DragButton, self).mouseMoveEvent(event)
@@ -63,7 +65,7 @@ class DragButton(QPushButton):
         nky = self.size.karta[0][0][1] // 1
         x = int((posx - nkx + (self.size.yi/2)) // round(self.size.yi + self.size.ot))
         y = int((posy - nky + (self.size.yi/2)) // round(self.size.yi + self.size.ot))
-        if  (x < 15) and (x >= 0) and (y < 15) and (y >= 0):
+        if  (x < 15) and (x >= 0) and (y < 15) and (y >= 0) and self.mass[y][x] == '':
             self.MyKoord = [y,x]
             return self.size.karta[y][x][0],self.size.karta[y][x][1]
         else:
@@ -84,8 +86,6 @@ class Fishka(QPushButton):
         self.MyPrice = 0
         self.MyKoord = [None, 0]
         self.MyStart = 0
-
-
 
 class Communicate(QObject):
     redrawMe = pyqtSignal()
@@ -155,7 +155,6 @@ class GameWindow(QWidget):
         self.newkoord = []
         self.newletters = []
 
-
         self.initUI()
 
     def initUI(self):
@@ -167,12 +166,17 @@ class GameWindow(QWidget):
         self.btnconcreateret.move(self.widthtotal - 120, 50)
         self.setAcceptDrops(True)
 
-        # for i in range(5):
-        #   self.serv.matrix.map[i + 3][7] = self.getletter()
+        self.burttoncollect = QPushButton("Collect", self)
+        self.burttoncollect.clicked.connect(self.CollectLetters)
+        self.burttoncollect.setGeometry(450,600,50,50)
 
-        self.burtton = QPushButton("Collect", self)
-        self.burtton.clicked.connect(self.CollectLetters)
-        self.burtton.setGeometry(450,600,50,50)
+        self.burttonsave = QPushButton("Seve\nChanges", self)
+        self.burttonsave.clicked.connect(self.SeveChangesForm)
+        self.burttonsave.setGeometry(550,600,50,50)
+
+        self.burttoncheck = QPushButton("Check", self)
+        self.burttoncheck.clicked.connect(self.CheckMatrix)
+        self.burttoncheck.setGeometry(650,600,50,50)
 
         """расстановка кнопок для перемещения"""
         self.myletters = []
@@ -188,8 +192,8 @@ class GameWindow(QWidget):
         out = []
         for i in self.myletters:
             if i.MyKoord[0] != None:
-                out.append(i.MyKoord)
-        print(out)
+                out.append([i.MyKoord[0],i.MyKoord[1],i.MyLetter])
+
         return out
 
     def enter(self):
@@ -235,8 +239,9 @@ class GameWindow(QWidget):
 
     def SeveChangesForm(self):
         points = []
-        for p in range(len(self.newletters)):
-            points.append(Point(self.newkoord[p][1], self.newkoord[p][0], self.newletters[p]))
+        out = self.CollectLetters()
+        for p in range(len(out)):
+            points.append(Point(out[p][0], out[p][1], out[p][2]))
 
         #self.me.accept_turn(TurnStruct(True, points))
         b = self.me.check_turn( points)
@@ -284,6 +289,7 @@ class GameWindow(QWidget):
             self.myletters[i].MyPrice = GameConfig.letters[gs]['price']
             self.myletters[i].MyKoord = [None, i]
             self.myletters[i].MyStart = i
+            self.myletters[i].getmass(self.serv.matrix.Mainmap)
             self.StartPosition.append(
                 [self.letterskoord[0] + (self.yi + self.ot) * i + self.ot, self.letterskoord[1] + self.ot])
             self.myletters[i].setGeometry(
@@ -314,8 +320,9 @@ class GameWindow(QWidget):
 
     def CheckMatrix(self):
         points = []
-        for p in range(len(self.newletters)):
-            points.append(Point(self.newkoord[p][1], self.newkoord[p][0], self.newletters[p]))
+        out = self.CollectLetters()
+        for p in range(len(out)):
+            points.append(Point(out[p][0], out[p][1], out[p][2]))
         self.rez = self.me.check_turn(points)
         if self.rez.result:
             # ошибок нет,
