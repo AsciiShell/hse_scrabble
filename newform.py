@@ -243,8 +243,9 @@ class GameWindow(QWidget):
         if b.result:
             a = self.me.accept_turn(TurnStruct(True, points))
             if a.res:
-                self.Message(a.msg)
                 self.EndMyHod()
+                self.Message("Счет за ход: " + a.msg)
+
         elif b.score == 1:
             self.dobavlenie(b.wordsError)
         # if self.rez.result:
@@ -421,14 +422,14 @@ class GameWindow(QWidget):
         pass
 
     def my_hod(self):
-        self.Message("твой ход!!!")
+        # self.Message("твой ход!!!")
         # TODO andrsolo21 Перерисовку вызывай здес
         self.DisabledSet(False)
         self.lastLetters()
         self.Pererisovka()
 
     def end_hod(self):
-        self.Message("Окончен ход")
+        # self.Message("Окончен ход")
         # TODO andrsolo21 Перерисовку вызывай здес
         self.lastLetters()
         self.Pererisovka()
