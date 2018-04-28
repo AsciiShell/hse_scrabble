@@ -132,9 +132,6 @@ class GameWindow(QWidget):
         self.yi = self.size.yi
         self.letterskoord = self.size.letterskoord
         """инициализация окна"""
-        self.btnconcreateret = QPushButton("назад", self)
-        self.btnconcreateret.move(self.widthtotal - 120, 50)
-
         self.serv = GameServer([Player("BOT", "bot", 0.2), Player("Admin", "local")])
         self.serv.matrix.Mainmap[7][7] = "П"
         self.serv.matrix.Mainmap[7][8] = "Р"
@@ -162,21 +159,19 @@ class GameWindow(QWidget):
         # self.list = QListWidget()
         # self.list.setGeometry(self.ot, self.ot + self.libh + 20, self.libw - self.ot,2 * self.libh - self.ot - self.ot - 20)
         """Buttons"""
-        self.btnconcreateret = QPushButton("назад", self)
-        self.btnconcreateret.move(self.widthtotal - 120, 50)
         self.setAcceptDrops(True)
 
         self.burttoncollect = QPushButton("Collect", self)
         self.burttoncollect.clicked.connect(self.CollectLetters)
-        self.burttoncollect.setGeometry(450,600,50,50)
+        self.burttoncollect.setGeometry(450, 600, 50, 50)
 
-        self.burttonsave = QPushButton("Seve\nChanges", self)
+        self.burttonsave = QPushButton("Save\nChanges", self)
         self.burttonsave.clicked.connect(self.SeveChangesForm)
-        self.burttonsave.setGeometry(550,600,50,50)
+        self.burttonsave.setGeometry(550, 600, 50, 50)
 
         self.burttoncheck = QPushButton("Check", self)
         self.burttoncheck.clicked.connect(self.CheckMatrix)
-        self.burttoncheck.setGeometry(650,600,50,50)
+        self.burttoncheck.setGeometry(650, 600, 50, 50)
 
         """расстановка кнопок для перемещения"""
         self.myletters = []
@@ -326,23 +321,24 @@ class GameWindow(QWidget):
         self.rez = self.me.check_turn(points)
         if self.rez.result:
             # ошибок нет,
-            print('ошибок нет')
-            print('Найденные слова:')
-            for i in self.rez.words:
-                print(i)
-            print('набранные баллы:')
-            print(self.rez.score)
+            # print('ошибок нет')
+            # print('Найденные слова:')
+            # for i in self.rez.words:
+            #     print(i)
+            # print('набранные баллы:')
+            # print(self.rez.score)
             self.Message("ошибок нет\n\nНайденные слова:\n" + " ".join(
                 self.rez.words) + "\n\nнабранные баллы: " + str(self.rez.score))
         else:
             if self.rez.score == 1:
                 # в матрице есть неопозанные слова
-                #self.dobavlenie(words)
-                pass
+                # self.dobavlenie(words)
+                self.Message("Ошибка\n\nНе найденные слова:\n" + " ".join(
+                    self.rez.wordsError))
 
             if self.rez.score == 2:
                 # матрица заполнена неправильно
-                print(self.rez.msg)
+                # print(self.rez.msg)
                 self.Message(self.rez.msg)
 
     def getletter(self):
@@ -775,34 +771,6 @@ class MainWindow(QMainWindow):
         self.setGeometry(0, 30, self.widthtotal, self.heighttotal)
         self.setCentralWidget(self.GameCreate)
         # self.GameCreate.btnFirst.clicked.connect(self.startFirst)
-        self.GameCreate.btnconcreateret.clicked.connect(self.startGamePrepare)
-        self.show()
-
-    def startGamePrepare(self):
-        self.gamePrepare = ThirdWindowCreate(self)
-        self.setWindowTitle("Создание игры")
-        self.setGeometry(self.widthtotal / 4, 30, self.widthtotal / 2, self.heighttotal)
-        self.setCentralWidget(self.gamePrepare)
-        self.gamePrepare.btnBack.clicked.connect(self.startFirst)
-        self.gamePrepare.btnStart.clicked.connect(self.startGame)
-        self.show()
-
-    def startSecond(self):
-        self.Second = SecondWindow(self)
-        self.setWindowTitle("Подключение к серверу")
-        self.setGeometry(0, 30, self.widthtotal / 2, self.heighttotal / 2)
-        self.setCentralWidget(self.Second)
-        self.Second.btnBack.clicked.connect(self.startFirst)
-
-        self.show()
-
-    def startFirst(self):
-        self.First = FirstWindow(self)
-        self.setWindowTitle("FirstWindow")
-        self.setGeometry(300, 300, 260, 150)
-        self.setCentralWidget(self.First)
-        self.First.btnconnect.clicked.connect(self.startSecond)
-        self.First.btncreate.clicked.connect(self.startGamePrepare)
         self.show()
 
 
