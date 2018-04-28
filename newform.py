@@ -2,7 +2,7 @@ from PyQt5.QtCore import *
 from PyQt5.QtGui import QPainter, QColor
 from PyQt5.QtWidgets import QLineEdit
 from PyQt5.QtWidgets import QWidget, QDesktopWidget, QLabel, QMainWindow, QPushButton, QApplication, \
-    QGroupBox, QMessageBox, QHBoxLayout
+    QGroupBox, QMessageBox, QHBoxLayout, QTextBrowser
 
 from client import *
 from server import *
@@ -161,10 +161,6 @@ class GameWindow(QWidget):
         """Buttons"""
         self.setAcceptDrops(True)
 
-        self.burttoncollect = QPushButton("Collect", self)
-        self.burttoncollect.clicked.connect(self.CollectLetters)
-        self.burttoncollect.setGeometry(450, 600, 50, 50)
-
         self.burttonsave = QPushButton("Save\nChanges", self)
         self.burttonsave.clicked.connect(self.SeveChangesForm)
         self.burttonsave.setGeometry(550, 600, 50, 50)
@@ -179,9 +175,15 @@ class GameWindow(QWidget):
         self.Pererisovka()
 
         """line edit/konsol"""
-        self.konsol = QLineEdit(self)
-        self.konsol.setGeometry(self.ot, self.ot + self.libh, self.libw - self.ot, 20)
-        self.konsol.returnPressed.connect(self.enter)
+        # self.konsol = QLineEdit(self)
+        # self.konsol.setGeometry(self.ot, self.ot + self.libh, self.libw - self.ot, 20)
+        # self.konsol.returnPressed.connect(self.enter)
+
+        """Logs"""
+        self.logs = QTextBrowser(self)
+        self.logs.setGeometry(self.ot, self.ot + self.libh, self.libw - self.ot, 2 * self.libh - self.ot - self.ot)
+        self.logs.setFontPointSize(10)
+        
 
     def CollectLetters(self):
         out = []
@@ -244,7 +246,7 @@ class GameWindow(QWidget):
             a = self.me.accept_turn(TurnStruct(True, points))
             if a.res:
                 self.EndMyHod()
-                self.Message("Счет за ход: " + a.msg)
+                self.add_to_console("Счет за ход: " + a.msg)
 
         elif b.score == 1:
             self.dobavlenie(b.wordsError)
@@ -424,6 +426,7 @@ class GameWindow(QWidget):
     def my_hod(self):
         # self.Message("твой ход!!!")
         # TODO andrsolo21 Перерисовку вызывай здес
+        self.add_to_console("Ваш ход!")
         self.DisabledSet(False)
         self.lastLetters()
         self.Pererisovka()
@@ -431,9 +434,16 @@ class GameWindow(QWidget):
     def end_hod(self):
         # self.Message("Окончен ход")
         # TODO andrsolo21 Перерисовку вызывай здес
+        self.add_to_console("Окончен ход")
         self.lastLetters()
         self.Pererisovka()
 
+    def add_to_console(self, text, score=True):
+        text += "\n"
+        if score:
+            for pl in self.serv.players:
+                text += pl.name + ": " + str(pl.score) + "\n"
+        self.logs.setText(text + "\n" + self.logs.toPlainText())
     def _hoddaemon(self):
         while 1:
             if self.me.alertMe:
