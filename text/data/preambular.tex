@@ -88,12 +88,40 @@
 	linkcolor=black,          % внутренние ссылки
 	citecolor=black,        % на библиографию
 	filecolor=magenta,      % на файлы
-	urlcolor=cyan           % на URL
+	urlcolor=black           % на URL
 }
 
-\usepackage{csquotes} % Еще инструменты для ссылок
+%\usepackage{csquotes} % Еще инструменты для ссылок
+%
+%\usepackage[style=authoryear,
+%style
+%maxcitenames=2,
+%backend=biber,
+%sorting=nty
+%]{biblatex}
 
-%\usepackage[style=authoryear,maxcitenames=2,backend=biber,sorting=nty]{biblatex}
+\usepackage[% 
+backend=biber, %подключение пакета biber (тоже нужен)
+bibstyle=gost-numeric, %подключение одного из четырех главных стилей biblatex-gost 
+%citestyle=numeric-comp, %подключение стиля стиля (а вот!) 
+language=auto, %указание сортировки языков
+babel=other, %указание языков
+sorting=ntvy, %тип сортировки в библиографии
+doi=false, 
+eprint=false, 
+isbn=false, 
+dashed=false, 
+url=false %все false выключают отображение полей, заполненных в библиографической базе, но не актуальных для печатного листа
+]{biblatex}
+\usepackage{bibentry} %пакет, отвечающий за отображение ссылок при использовании BibTex 
+\DeclareFieldFormat{postnote}{#1} %убирает с. и p. 
+\renewcommand*{\multicitedelim}{\addsemicolon\space} % добавляет точку с запятой и пробел (; ) в перечислении
+\renewcommand*{\postnotedelim}{\addcolon\space} % добавляет двоеточие и пробел (: ) перед номером страницы
+
+\DeclareFieldFormat{url}{%
+	\mkbibacro{URL}\addcolon\space
+	\href{#1}{\nolinkurl{\thefield{urlraw}}}}
+\addbibresource{data/books.bib}
 
 \usepackage{multicol} % Несколько колонок
 
