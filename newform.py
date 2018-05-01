@@ -7,6 +7,7 @@ from PyQt5.QtWidgets import QWidget, QDesktopWidget, QLabel, QMainWindow, QPushB
 from client import *
 from server import *
 
+
 class DragButton(QPushButton):
     def __init__(self, title, parent):
         super().__init__(title, parent)
@@ -19,21 +20,22 @@ class DragButton(QPushButton):
         self.MyKoord = [None, 0]
         self.MyStart = 0
 
-    def getmass(self,mass):
+    def getmass(self, mass, tempmass, dropmass):
         self.mass = mass
-
+        self.tempmass = tempmass
+        self.dropmass = dropmass
 
     def mousePressEvent(self, event):
         self.__mousePressPos = None
         self.__mouseMovePos = None
-        if event.button() == Qt.LeftButton:
+        if event.button() == Qt.LeftButton :
             self.__mousePressPos = event.globalPos()
             self.__mouseMovePos = event.globalPos()
 
         super(DragButton, self).mousePressEvent(event)
 
     def mouseMoveEvent(self, event):
-        if event.buttons() == Qt.LeftButton:
+        if event.buttons() == Qt.LeftButton :
             # adjust offset from clicked point to origin of widget
             currPos = self.mapToGlobal(self.pos())
             globalPos = event.globalPos()
@@ -50,7 +52,7 @@ class DragButton(QPushButton):
             globalPos = event.globalPos()
             diff = globalPos - self.__mouseMovePos
             newPos = self.mapFromGlobal(currPos + diff)
-            pos = self.RoundKoord(newPos.x() ,newPos.y() )
+            pos = self.RoundKoord(newPos.x(), newPos.y())
             newPos.setX(pos[0])
             newPos.setY(pos[1])
             self.move(newPos)
@@ -60,17 +62,33 @@ class DragButton(QPushButton):
                 return
 
         super(DragButton, self).mouseReleaseEvent(event)
+
     def RoundKoord(self, posx, posy):
         nkx = self.size.karta[0][0][0] // 1
         nky = self.size.karta[0][0][1] // 1
-        x = int((posx - nkx + (self.size.yi/2)) // round(self.size.yi + self.size.ot))
-        y = int((posy - nky + (self.size.yi/2)) // round(self.size.yi + self.size.ot))
-        if  (x < 15) and (x >= 0) and (y < 15) and (y >= 0) and self.mass[y][x] == '':
-            self.MyKoord = [y,x]
-            return self.size.karta[y][x][0],self.size.karta[y][x][1]
+        x = int((posx - nkx + (self.size.yi / 2)) // round(self.size.yi + self.size.ot))
+        y = int((posy - nky + (self.size.yi / 2)) // round(self.size.yi + self.size.ot))
+        if  self.MyKoord[0] != None and self.MyKoord[1] != None:
+            self.tempmass.remove(self.MyKoord)
+        if self.MyKoord[1] == None:
+            self.dropmass.remove(self.MyStart)
+        if (x < 15) and (x >= 0) and (y < 15) and (y >= 0) and self.mass[y][x] == '' and ([y, x] not in self.tempmass and self.dropmass == []):
+            self.MyKoord = [y, x]
+            self.tempmass.append([y, x])
+            return self.size.karta[y][x][0], self.size.karta[y][x][1]
         else:
-            self.MyKoord = [None,self.MyStart]
+            if (posx + (self.size.yi / 2) > self.size.letterskoord[0] + 15 * (
+                    self.size.ot + self.size.yi) - self.size.ot - self.size.dropx - self.size.ot + 1) and (
+                    posx + (self.size.yi / 2) < self.size.letterskoord[0] + 15 * (
+                    self.size.ot + self.size.yi) - self.size.ot - self.size.dropx - self.size.ot + 1 + self.size.dropx) and (
+                    posy + (self.size.yi / 2) > self.size.letterskoord[1] + self.size.ot + 1) and (
+                    posy + (self.size.yi / 2) < self.size.letterskoord[1] + self.size.ot + 1 + self.size.dropy) and self.tempmass == []:
+                self.MyKoord = [self.MyStart,None]
+                self.dropmass.append(self.MyStart)
+                return posx, posy
+            self.MyKoord = [None, self.MyStart]
             return self.size.StartPosition[self.MyStart][0], self.size.StartPosition[self.MyStart][1]
+
 
 def clicked():
     print("click as normal!")
@@ -104,6 +122,8 @@ class SizeSettings:
         self.yi = self.widthtotal * (1 - 2 * self.k2) / 15 - self.ot
         self.letterskoord = [self.libw + self.ot, 15 * (self.ot + self.yi) + self.ot]
         self.karta = [0] * 15
+        self.dropx = 150
+        self.dropy = 100
         for i in range(15):
             self.karta[i] = [0] * 15
         for i in range(15):
@@ -131,6 +151,9 @@ class GameWindow(QWidget):
         self.libh = self.size.libh
         self.yi = self.size.yi
         self.letterskoord = self.size.letterskoord
+        self.dropaccept = 1;
+        self.dropx = self.size.dropx
+        self.dropy = self.size.dropy
         """инициализация окна"""
         self.btnconcreateret = QPushButton("назад", self)
         self.btnconcreateret.move(self.widthtotal - 120, 50)
@@ -166,17 +189,24 @@ class GameWindow(QWidget):
         self.btnconcreateret.move(self.widthtotal - 120, 50)
         self.setAcceptDrops(True)
 
-        self.burttoncollect = QPushButton("Collect", self)
-        self.burttoncollect.clicked.connect(self.CollectLetters)
-        self.burttoncollect.setGeometry(450,600,50,50)
+        self.burttoncollect = QPushButton("Clear", self)
+        self.burttoncollect.clicked.connect(self.ClearChanges)
+        self.burttoncollect.setGeometry(450, 600, 51, 50)
 
         self.burttonsave = QPushButton("Seve\nChanges", self)
         self.burttonsave.clicked.connect(self.SeveChangesForm)
-        self.burttonsave.setGeometry(550,600,50,50)
+        self.burttonsave.setGeometry(550, 600, 50, 50)
 
         self.burttoncheck = QPushButton("Check", self)
         self.burttoncheck.clicked.connect(self.CheckMatrix)
-        self.burttoncheck.setGeometry(650,600,50,50)
+        self.burttoncheck.setGeometry(650, 600, 50, 50)
+
+        self.burttoncheck = QPushButton("drop", self)
+        self.burttoncheck.clicked.connect(self.Drop)
+        self.burttoncheck.setGeometry(self.letterskoord[0] + 15 * (self.ot + self.yi) - self.ot - self.dropx - self.ot,
+                                      self.letterskoord[1] + self.ot + self.dropy,
+                                      self.dropx,
+                                      self.heighttotal - 15 * (self.ot + self.yi) - 2 * self.ot - self.dropy - 1)
 
         """расстановка кнопок для перемещения"""
         self.myletters = []
@@ -192,7 +222,7 @@ class GameWindow(QWidget):
         out = []
         for i in self.myletters:
             if i.MyKoord[0] != None:
-                out.append([i.MyKoord[0],i.MyKoord[1],i.MyLetter])
+                out.append([i.MyKoord[0], i.MyKoord[1], i.MyLetter])
 
         return out
 
@@ -243,8 +273,8 @@ class GameWindow(QWidget):
         for p in range(len(out)):
             points.append(Point(out[p][0], out[p][1], out[p][2]))
 
-        #self.me.accept_turn(TurnStruct(True, points))
-        b = self.me.check_turn( points)
+        # self.me.accept_turn(TurnStruct(True, points))
+        b = self.me.check_turn(points)
         if b.result:
             a = self.me.accept_turn(TurnStruct(True, points))
             if a.res:
@@ -265,8 +295,8 @@ class GameWindow(QWidget):
         #             i.setText(gs + ' ' + str(i.MyStart))
 
     def ClearChanges(self):
-        self.newletters = []
-        self.newkoord = []
+        self.dropmass = []
+        self.tempmap = []
         for i in range(len(self.myletters)):
             self.myletters[i].MyKoord = [None, i]
             self.myletters[i].move(self.StartPosition[i][0], self.StartPosition[i][1])
@@ -282,6 +312,9 @@ class GameWindow(QWidget):
         for i in self.myletters:
             i.deleteLater()
         self.myletters.clear()
+        self.tempmap = []
+        self.dropmass = []
+        self.acceptdrop = [0]
         for i in range(len(self.me.letters)):
             gs = self.me.letters[i]
             self.myletters.append(DragButton((gs + ' ' + str(i)), self))
@@ -289,7 +322,7 @@ class GameWindow(QWidget):
             self.myletters[i].MyPrice = GameConfig.letters[gs]['price']
             self.myletters[i].MyKoord = [None, i]
             self.myletters[i].MyStart = i
-            self.myletters[i].getmass(self.serv.matrix.Mainmap)
+            self.myletters[i].getmass(self.serv.matrix.Mainmap, self.tempmap, self.dropmass)
             self.StartPosition.append(
                 [self.letterskoord[0] + (self.yi + self.ot) * i + self.ot, self.letterskoord[1] + self.ot])
             self.myletters[i].setGeometry(
@@ -337,7 +370,7 @@ class GameWindow(QWidget):
         else:
             if self.rez.score == 1:
                 # в матрице есть неопозанные слова
-                #self.dobavlenie(words)
+                # self.dobavlenie(words)
                 pass
 
             if self.rez.score == 2:
@@ -411,17 +444,21 @@ class GameWindow(QWidget):
                                            text,
                                            QMessageBox.Ok, QMessageBox.Ok)
 
-    def Drop(self, dr):
-        drlet = []
-        for i in dr:
-            drlet.append(self.myletters[int(i)].MyLetter)
-        a = self.me.accept_turn(TurnStruct(False, drlet))
-        if a.res:
-            self.Message(a.msg)
-            self.EndMyHod()
+    def DropButton(self):
+        pass
 
-    def DisabledSet(self,t):
-        #self.konsol.setDisabled(t)
+    def Drop(self):
+        if self.dropmass != []:
+            drlet = []
+            for i in self.dropmass:
+                drlet.append(self.myletters[int(i)].MyLetter)
+            a = self.me.accept_turn(TurnStruct(False, drlet))
+            if a.res:
+                self.Message(a.msg)
+                self.EndMyHod()
+
+    def DisabledSet(self, t):
+        # self.konsol.setDisabled(t)
         pass
 
     def my_hod(self):
@@ -496,14 +533,22 @@ class GameWindow(QWidget):
         """закрашивает квадратик по координатам"""
         background.setBrush(QColor(200, 200, 200))
         background.drawRect(self.karta[7][7][0], self.karta[7][7][1], self.yi, self.yi)
+        # Drop place
+        background.setBrush(QColor(255, 0, 0))
+        background.drawRect(self.letterskoord[0] + 15 * (self.ot + self.yi) - self.ot - self.dropx - self.ot - 1,
+                            self.letterskoord[1] + self.ot - 1, self.dropx + 1,
+                            self.dropy + 1 + self.heighttotal - 15 * (self.ot + self.yi) - 2 * self.ot - self.dropy - 1)
+        background.setBrush(QColor(200, 200, 200))
+        background.drawRect(self.letterskoord[0] + 15 * (self.ot + self.yi) - self.ot - self.dropx - self.ot + 1,
+                            self.letterskoord[1] + self.ot + 1, self.dropx - 3, self.dropy)
+        # 15 * (self.ot + self.yi) - self.ot,
+        # self.heighttotal - 15 * (self.ot + self.yi) - 2 * self.ot)
+
         """for i in range(15):
             for j in range(15):
                 background.setPen(QColor(255, 255, 255))
                 background.setFont(QFont('Decorative', 10))
                 background.drawText(self.karta[i][j][0][0],self.karta[i][j][1][0], self.yi,self.yi,Qt.AlignCenter, Point.info[GameConfig.map[i][j]]['multi'])"""
-
-
-
 
 
 class FirstWindow(QWidget):
