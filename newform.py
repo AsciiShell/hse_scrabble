@@ -1,6 +1,7 @@
+import sys
+
 from PyQt5.QtCore import *
 from PyQt5.QtGui import QPainter, QColor
-from PyQt5.QtWidgets import QLineEdit
 from PyQt5.QtWidgets import QWidget, QDesktopWidget, QLabel, QMainWindow, QPushButton, QApplication, \
     QGroupBox, QMessageBox, QHBoxLayout, QTextBrowser
 
@@ -28,14 +29,14 @@ class DragButton(QPushButton):
     def mousePressEvent(self, event):
         self.__mousePressPos = None
         self.__mouseMovePos = None
-        if event.button() == Qt.LeftButton :
+        if event.button() == Qt.LeftButton:
             self.__mousePressPos = event.globalPos()
             self.__mouseMovePos = event.globalPos()
 
         super(DragButton, self).mousePressEvent(event)
 
     def mouseMoveEvent(self, event):
-        if event.buttons() == Qt.LeftButton :
+        if event.buttons() == Qt.LeftButton:
             # adjust offset from clicked point to origin of widget
             currPos = self.mapToGlobal(self.pos())
             globalPos = event.globalPos()
@@ -68,11 +69,12 @@ class DragButton(QPushButton):
         nky = self.size.karta[0][0][1] // 1
         x = int((posx - nkx + (self.size.yi / 2)) // round(self.size.yi + self.size.ot))
         y = int((posy - nky + (self.size.yi / 2)) // round(self.size.yi + self.size.ot))
-        if  self.MyKoord[0] != None and self.MyKoord[1] != None:
+        if self.MyKoord[0] != None and self.MyKoord[1] != None:
             self.tempmass.remove(self.MyKoord)
         if self.MyKoord[1] == None:
             self.dropmass.remove(self.MyStart)
-        if (x < 15) and (x >= 0) and (y < 15) and (y >= 0) and self.mass[y][x] == '' and ([y, x] not in self.tempmass and self.dropmass == []):
+        if (x < 15) and (x >= 0) and (y < 15) and (y >= 0) and self.mass[y][x] == '' and (
+                [y, x] not in self.tempmass and self.dropmass == []):
             self.MyKoord = [y, x]
             self.tempmass.append([y, x])
             return self.size.karta[y][x][0], self.size.karta[y][x][1]
@@ -82,8 +84,9 @@ class DragButton(QPushButton):
                     posx + (self.size.yi / 2) < self.size.letterskoord[0] + 15 * (
                     self.size.ot + self.size.yi) - self.size.ot - self.size.dropx - self.size.ot + 1 + self.size.dropx) and (
                     posy + (self.size.yi / 2) > self.size.letterskoord[1] + self.size.ot + 1) and (
-                    posy + (self.size.yi / 2) < self.size.letterskoord[1] + self.size.ot + 1 + self.size.dropy) and self.tempmass == []:
-                self.MyKoord = [self.MyStart,None]
+                    posy + (self.size.yi / 2) < self.size.letterskoord[
+                1] + self.size.ot + 1 + self.size.dropy) and self.tempmass == []:
+                self.MyKoord = [self.MyStart, None]
                 self.dropmass.append(self.MyStart)
                 return posx, posy
             self.MyKoord = [None, self.MyStart]
@@ -92,6 +95,7 @@ class DragButton(QPushButton):
 
 def clicked():
     print("click as normal!")
+
 
 class Fishka(QPushButton):
 
@@ -105,9 +109,11 @@ class Fishka(QPushButton):
         self.MyKoord = [None, 0]
         self.MyStart = 0
 
+
 class Communicate(QObject):
     redrawMe = pyqtSignal()
     redrawEnd = pyqtSignal()
+
 
 class SizeSettings:
     def __init__(self):
@@ -217,7 +223,6 @@ class GameWindow(QWidget):
         self.logs = QTextBrowser(self)
         self.logs.setGeometry(self.ot, self.ot + self.libh, self.libw - self.ot, 2 * self.libh - self.ot - self.ot)
         self.logs.setFontPointSize(10)
-        
 
     def CollectLetters(self):
         out = []
@@ -485,6 +490,7 @@ class GameWindow(QWidget):
             for pl in self.serv.players:
                 text += pl.name + ": " + str(pl.score) + "\n"
         self.logs.setText(text + "\n" + self.logs.toPlainText())
+
     def _hoddaemon(self):
         while 1:
             if self.me.alertMe:
