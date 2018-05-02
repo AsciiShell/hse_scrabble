@@ -457,7 +457,7 @@ class GameWindow(QWidget):
                 drlet.append(self.myletters[int(i)].MyLetter)
             a = self.me.accept_turn(TurnStruct(False, drlet))
             if a.res:
-                self.Message(a.msg)
+                self.add_to_console(a.msg)
                 self.EndMyHod()
 
     def DisabledSet(self, t):
