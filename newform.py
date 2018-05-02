@@ -2,7 +2,7 @@ from PyQt5.QtCore import *
 from PyQt5.QtGui import QPainter, QColor
 from PyQt5.QtWidgets import QLineEdit
 from PyQt5.QtWidgets import QWidget, QDesktopWidget, QLabel, QMainWindow, QPushButton, QApplication, \
-    QGroupBox, QMessageBox, QHBoxLayout
+    QGroupBox, QMessageBox, QHBoxLayout, QTextBrowser
 
 from client import *
 from server import *
@@ -155,9 +155,6 @@ class GameWindow(QWidget):
         self.dropx = self.size.dropx
         self.dropy = self.size.dropy
         """инициализация окна"""
-        self.btnconcreateret = QPushButton("назад", self)
-        self.btnconcreateret.move(self.widthtotal - 120, 50)
-
         self.serv = GameServer([Player("BOT", "bot", 0.2), Player("Admin", "local")])
         self.serv.matrix.Mainmap[7][7] = "П"
         self.serv.matrix.Mainmap[7][8] = "Р"
@@ -185,15 +182,13 @@ class GameWindow(QWidget):
         # self.list = QListWidget()
         # self.list.setGeometry(self.ot, self.ot + self.libh + 20, self.libw - self.ot,2 * self.libh - self.ot - self.ot - 20)
         """Buttons"""
-        self.btnconcreateret = QPushButton("назад", self)
-        self.btnconcreateret.move(self.widthtotal - 120, 50)
         self.setAcceptDrops(True)
 
         self.burttoncollect = QPushButton("Clear", self)
         self.burttoncollect.clicked.connect(self.ClearChanges)
         self.burttoncollect.setGeometry(450, 600, 51, 50)
 
-        self.burttonsave = QPushButton("Seve\nChanges", self)
+        self.burttonsave = QPushButton("Save\nChanges", self)
         self.burttonsave.clicked.connect(self.SeveChangesForm)
         self.burttonsave.setGeometry(550, 600, 50, 50)
 
@@ -214,9 +209,15 @@ class GameWindow(QWidget):
         self.Pererisovka()
 
         """line edit/konsol"""
-        self.konsol = QLineEdit(self)
-        self.konsol.setGeometry(self.ot, self.ot + self.libh, self.libw - self.ot, 20)
-        self.konsol.returnPressed.connect(self.enter)
+        # self.konsol = QLineEdit(self)
+        # self.konsol.setGeometry(self.ot, self.ot + self.libh, self.libw - self.ot, 20)
+        # self.konsol.returnPressed.connect(self.enter)
+
+        """Logs"""
+        self.logs = QTextBrowser(self)
+        self.logs.setGeometry(self.ot, self.ot + self.libh, self.libw - self.ot, 2 * self.libh - self.ot - self.ot)
+        self.logs.setFontPointSize(10)
+        
 
     def CollectLetters(self):
         out = []
@@ -278,8 +279,9 @@ class GameWindow(QWidget):
         if b.result:
             a = self.me.accept_turn(TurnStruct(True, points))
             if a.res:
-                self.Message(a.msg)
                 self.EndMyHod()
+                self.add_to_console("Счет за ход: " + a.msg)
+
         elif b.score == 1:
             self.dobavlenie(b.wordsError)
         # if self.rez.result:
@@ -359,23 +361,24 @@ class GameWindow(QWidget):
         self.rez = self.me.check_turn(points)
         if self.rez.result:
             # ошибок нет,
-            print('ошибок нет')
-            print('Найденные слова:')
-            for i in self.rez.words:
-                print(i)
-            print('набранные баллы:')
-            print(self.rez.score)
+            # print('ошибок нет')
+            # print('Найденные слова:')
+            # for i in self.rez.words:
+            #     print(i)
+            # print('набранные баллы:')
+            # print(self.rez.score)
             self.Message("ошибок нет\n\nНайденные слова:\n" + " ".join(
                 self.rez.words) + "\n\nнабранные баллы: " + str(self.rez.score))
         else:
             if self.rez.score == 1:
                 # в матрице есть неопозанные слова
                 # self.dobavlenie(words)
-                pass
+                self.Message("Ошибка\n\nНе найденные слова:\n" + " ".join(
+                    self.rez.wordsError))
 
             if self.rez.score == 2:
                 # матрица заполнена неправильно
-                print(self.rez.msg)
+                # print(self.rez.msg)
                 self.Message(self.rez.msg)
 
     def getletter(self):
@@ -462,18 +465,26 @@ class GameWindow(QWidget):
         pass
 
     def my_hod(self):
-        self.Message("твой ход!!!")
+        # self.Message("твой ход!!!")
         # TODO andrsolo21 Перерисовку вызывай здес
+        self.add_to_console("Ваш ход!")
         self.DisabledSet(False)
         self.lastLetters()
         self.Pererisovka()
 
     def end_hod(self):
-        self.Message("Окончен ход")
+        # self.Message("Окончен ход")
         # TODO andrsolo21 Перерисовку вызывай здес
+        self.add_to_console("Окончен ход")
         self.lastLetters()
         self.Pererisovka()
 
+    def add_to_console(self, text, score=True):
+        text += "\n"
+        if score:
+            for pl in self.serv.players:
+                text += pl.name + ": " + str(pl.score) + "\n"
+        self.logs.setText(text + "\n" + self.logs.toPlainText())
     def _hoddaemon(self):
         while 1:
             if self.me.alertMe:
@@ -820,34 +831,6 @@ class MainWindow(QMainWindow):
         self.setGeometry(0, 30, self.widthtotal, self.heighttotal)
         self.setCentralWidget(self.GameCreate)
         # self.GameCreate.btnFirst.clicked.connect(self.startFirst)
-        self.GameCreate.btnconcreateret.clicked.connect(self.startGamePrepare)
-        self.show()
-
-    def startGamePrepare(self):
-        self.gamePrepare = ThirdWindowCreate(self)
-        self.setWindowTitle("Создание игры")
-        self.setGeometry(self.widthtotal / 4, 30, self.widthtotal / 2, self.heighttotal)
-        self.setCentralWidget(self.gamePrepare)
-        self.gamePrepare.btnBack.clicked.connect(self.startFirst)
-        self.gamePrepare.btnStart.clicked.connect(self.startGame)
-        self.show()
-
-    def startSecond(self):
-        self.Second = SecondWindow(self)
-        self.setWindowTitle("Подключение к серверу")
-        self.setGeometry(0, 30, self.widthtotal / 2, self.heighttotal / 2)
-        self.setCentralWidget(self.Second)
-        self.Second.btnBack.clicked.connect(self.startFirst)
-
-        self.show()
-
-    def startFirst(self):
-        self.First = FirstWindow(self)
-        self.setWindowTitle("FirstWindow")
-        self.setGeometry(300, 300, 260, 150)
-        self.setCentralWidget(self.First)
-        self.First.btnconnect.clicked.connect(self.startSecond)
-        self.First.btncreate.clicked.connect(self.startGamePrepare)
         self.show()
 
 
