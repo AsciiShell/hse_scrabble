@@ -2,7 +2,6 @@ import json
 import os
 import random
 import socket
-import sys
 import warnings
 
 
@@ -81,13 +80,13 @@ class GameConfig:
                'Я': {'count': 3, 'price': 3},
                '*': {'count': 0, 'price': None}}
     """Начальное число фишек"""
-    startCount = 10
+    startCount = 7
     """Бонус за полное использование фишек"""
     fullBonus = 15
     """Количество пропусков для завершения игры"""
     skipEnd = 2
     """Время хода"""
-    turnTime = 120
+    turnTime = 60
 
 
 class Point:

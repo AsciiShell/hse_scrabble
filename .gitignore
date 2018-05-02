@@ -6,3 +6,11 @@ __pycache__/
 deploy\.py
 
 dictionarytemp
+
+text/main\.bbl
+
+*.bcf
+
+*.blg
+
+text/main\.run\.xml
