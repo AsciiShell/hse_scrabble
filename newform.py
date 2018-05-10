@@ -93,10 +93,6 @@ class DragButton(QPushButton):
             return self.size.StartPosition[self.MyStart][0], self.size.StartPosition[self.MyStart][1]
 
 
-def clicked():
-    print("click as normal!")
-
-
 class Fishka(QPushButton):
 
     def __init__(self, title, parent):
@@ -249,31 +245,6 @@ class GameApp(QMainWindow, GameForm):
 
         return out
 
-    def enter(self):
-        """функция обработки строки консоли"""
-        """move i,x,y"""
-        l = self.konsol.text()
-        name = l.split(" ")
-        if name[0] == "move":
-            ch = name[1].split(",")
-            if len(ch) == 3:
-                self.ProverkaKoordinat(int(ch[0]), int(ch[1]), int(ch[2]))
-        if name[0] == 'help' or name[0] == 'SOS':
-            self.Help()
-        if name[0] == 'clear':
-            self.ClearChanges()
-        if name[0] == 'lastletters':
-            self.lastLetters()
-        if name[0] == 'check':
-            self.CheckMatrix()
-        if name[0] == 'save':
-            self.SeveChangesForm()
-        if name[0] == 'endhod':
-            self.EndMyHod()
-        if name[0] == 'drop':
-            self.Drop(name[1].split(','))
-        self.konsol.clear()
-
     def lastLetters(self):
         """Расстановка кнопок, уже имеющихся в таблице"""
         self.ButMap = []
@@ -354,26 +325,6 @@ class GameApp(QMainWindow, GameForm):
                       self.yi + 1,
                       self.yi + 1))
             self.myletters[i].show()
-
-    def Help(self):
-        s = ''
-        print('переместить кнопку - move i,x,y (i - номер кнопки,(x, y) - координаты)')
-        s += 'переместить кнопку - move i,x,y (i - номер кнопки,(x, y) - координаты)' + '\n'
-        print('clear - очистить поле и временные данные')
-        s += 'clear - очистить поле и временные данные' + '\n'
-        print('lastletters - отрисовывает буквы, которые проверены')
-        s += 'lastletters - отрисовывает буквы, которые проверены' + '\n'
-        print('check - проверить матрицу и отобразить результат проверки')
-        s += 'check - проверить матрицу и отобразить результат проверки' + '\n'
-        print('save - сохраняет введенные данные и передает ход (при положительном результате функци check)')
-        s += 'save - сохраняет введенные данные и передает ход (при положительном результате функци check)' + '\n'
-        print('endhod - комбинация функций check и save')
-        s += 'endhod - комбинация функций check и save' + '\n'
-        self.Message(s)
-        print(self.newletters)
-        print(self.newkoord)
-        for i in self.serv.matrix.Mainmap:
-            print(i)
 
     def CheckMatrix(self):
         points = []
@@ -465,12 +416,7 @@ class GameApp(QMainWindow, GameForm):
             # self.CheckMatrix()
 
     def Message(self, text):
-        buttonReply = QMessageBox.question(self, 'Scrabble',
-                                           text,
-                                           QMessageBox.Ok, QMessageBox.Ok)
-
-    def DropButton(self):
-        pass
+        QMessageBox.question(self, 'Scrabble', text, QMessageBox.Ok, QMessageBox.Ok)
 
     def Drop(self):
         if self.dropmass != []:
@@ -612,8 +558,6 @@ class StartApp(QMainWindow, GameLauncher):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    # w = StartApp()
-    # sys.exit(app.exec_())
     form = StartApp()
     form.show()
     app.exec_()
