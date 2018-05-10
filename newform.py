@@ -2,11 +2,10 @@ import sys
 
 from PyQt5.QtCore import *
 from PyQt5.QtGui import QPainter, QColor
-from PyQt5.QtWidgets import QWidget, QDesktopWidget, QLabel, QMainWindow, QPushButton, QApplication, \
-    QGroupBox, QMessageBox, QHBoxLayout, QTextBrowser
+from PyQt5.QtWidgets import QDesktopWidget, QMainWindow, QPushButton, QApplication, \
+    QMessageBox, QTextBrowser
 
 from server import *
-
 from ui.start import Ui_Form as GameLauncher
 
 
@@ -143,51 +142,9 @@ class SizeSettings:
             self.StartPosition.append(
                 [self.letterskoord[0] + (self.yi + self.ot) * i + self.ot, self.letterskoord[1] + self.ot])
 
-class GameApp(QMainWindow, game.Ui_Form):
-    def __init__(self, parent=None):
-        super(GameApp, self).__init__(parent)
-        self.setupUi(self)
-class GameWindow(QWidget):
-    def __init__(self, parent=None):
-        super(GameWindow, self).__init__(parent)
-        self.size = SizeSettings()
-        self.koef = self.size.koef
-        self.pos = self.size.pos
-        self.k2 = self.size.k2
-        self.widthtotal = self.size.widthtotal
-        self.heighttotal = self.size.heighttotal
-        self.ot = self.size.ot
-        self.libw = self.size.libw
-        self.libh = self.size.libh
-        self.yi = self.size.yi
-        self.letterskoord = self.size.letterskoord
-        self.dropaccept = 1;
-        self.dropx = self.size.dropx
-        self.dropy = self.size.dropy
-        """инициализация окна"""
-        self.serv = GameServer([Player("BOT", "bot", 0.2), Player("Admin", "local")])
-        self.serv.matrix.Mainmap[7][7] = "П"
-        self.serv.matrix.Mainmap[7][8] = "Р"
-        self.serv.matrix.Mainmap[7][9] = "И"
-        self.serv.matrix.Mainmap[7][10] = "В"
-        self.serv.matrix.Mainmap[7][11] = "Е"
-        self.serv.matrix.Mainmap[7][12] = "Т"
-        for player in range(len(self.serv.players)):
-            if self.serv.players[player].name == "Admin":
-                self.me = self.serv.players[player]
-                # self.me.my_turn = self.my_hod
-                break
-        self.threadonstart = Thread(target=self._hoddaemon)
-        self.threadonstart.start()
-        self.progressed = Communicate()
-        self.progressed.redrawMe.connect(self.my_hod)
-        self.progressed.redrawEnd.connect(self.end_hod)
-        self.newkoord = []
-        self.newletters = []
 
-        self.initUI()
-
-    def initUI(self):
+class GameForm(object):
+    def setupUi(self, Form):
         """основная часть создания элементов формы"""
         # self.list = QListWidget()
         # self.list.setGeometry(self.ot, self.ot + self.libh + 20, self.libw - self.ot,2 * self.libh - self.ot - self.ot - 20)
@@ -227,6 +184,62 @@ class GameWindow(QWidget):
         self.logs = QTextBrowser(self)
         self.logs.setGeometry(self.ot, self.ot + self.libh, self.libw - self.ot, 2 * self.libh - self.ot - self.ot)
         self.logs.setFontPointSize(10)
+
+
+class GameApp(QMainWindow, GameForm):
+    def __init__(self, parent=None):
+        super(GameApp, self).__init__(parent)
+        self.koef = 1
+        self.k2 = 0.3
+        self.widthtotal = self.koef * QDesktopWidget().availableGeometry().width()
+        self.heighttotal = self.koef * QDesktopWidget().availableGeometry().height() - 30
+        self.ot = QDesktopWidget().availableGeometry().width() / 300
+        self.libw = self.widthtotal * self.k2
+        self.libh = self.heighttotal / 3
+        self.yi = self.widthtotal * (1 - 2 * self.k2) / 15 - self.ot
+        """инициализация окна"""
+        self.setGeometry(0, 30, self.widthtotal, self.heighttotal)
+
+        self.setWindowTitle("GameCreate")
+        self.setGeometry(0, 30, self.widthtotal, self.heighttotal)
+        # self.setCentralWidget(self.GameCreate)
+
+        self.size = SizeSettings()
+        self.koef = self.size.koef
+        self.pos = self.size.pos
+        self.k2 = self.size.k2
+        self.widthtotal = self.size.widthtotal
+        self.heighttotal = self.size.heighttotal
+        self.ot = self.size.ot
+        self.libw = self.size.libw
+        self.libh = self.size.libh
+        self.yi = self.size.yi
+        self.letterskoord = self.size.letterskoord
+        self.dropaccept = 1;
+        self.dropx = self.size.dropx
+        self.dropy = self.size.dropy
+        """инициализация окна"""
+        self.serv = GameServer([Player("BOT", "bot", 0.2), Player("Admin", "local")])
+        self.serv.matrix.Mainmap[7][7] = "П"
+        self.serv.matrix.Mainmap[7][8] = "Р"
+        self.serv.matrix.Mainmap[7][9] = "И"
+        self.serv.matrix.Mainmap[7][10] = "В"
+        self.serv.matrix.Mainmap[7][11] = "Е"
+        self.serv.matrix.Mainmap[7][12] = "Т"
+        for player in range(len(self.serv.players)):
+            if self.serv.players[player].name == "Admin":
+                self.me = self.serv.players[player]
+                # self.me.my_turn = self.my_hod
+                break
+        self.threadonstart = Thread(target=self._hoddaemon)
+        self.threadonstart.start()
+        self.progressed = Communicate()
+        self.progressed.redrawMe.connect(self.my_hod)
+        self.progressed.redrawEnd.connect(self.end_hod)
+        self.newkoord = []
+        self.newletters = []
+
+        self.setupUi(self)
 
     def CollectLetters(self):
         out = []
@@ -575,44 +588,18 @@ class GameWindow(QWidget):
         self.Message("Axaxa")
         event.ignore()
 
-class MainWindow(QMainWindow):
-    def __init__(self, parent=None):
-        super(MainWindow, self).__init__(parent)
-        self.koef = 1
-        self.k2 = 0.3
-        self.widthtotal = self.koef * QDesktopWidget().availableGeometry().width()
-        self.heighttotal = self.koef * QDesktopWidget().availableGeometry().height() - 30
-        self.ot = QDesktopWidget().availableGeometry().width() / 300
-        self.libw = self.widthtotal * self.k2
-        self.libh = self.heighttotal / 3
-        self.yi = self.widthtotal * (1 - 2 * self.k2) / 15 - self.ot
-        """инициализация окна"""
-        self.setGeometry(0, 30, self.widthtotal, self.heighttotal)
-        self.startGame()
-
-    def startGame(self):
-        # self.gamePrepare.game.start_game()
-        self.GameCreate = GameWindow(self)
-        self.setWindowTitle("GameCreate")
-        self.setGeometry(0, 30, self.widthtotal, self.heighttotal)
-        self.setCentralWidget(self.GameCreate)
-        # self.GameCreate.btnFirst.clicked.connect(self.startFirst)
-        self.show()
-    def closeEvent(self, event):
-        print("Lol")
-        event.ignore()
 
 class StartApp(QMainWindow, GameLauncher):
     def __init__(self, parent=None):
         super(StartApp, self).__init__(parent)
         self.setupUi(self)
         self.pushButton.clicked.connect(self.run_game)
-        self.game = MainWindow(self)
 
     def run_game(self):
         if (not self.checkBox_1.checkState() or self.validate_float(self.lineEdit_1.text())) and \
                 (not self.checkBox_2.checkState() or self.validate_float(self.lineEdit_2.text())) and (
                 not self.checkBox_3.checkState() or self.validate_float(self.lineEdit_3.text())):
+            self.game = GameApp(self)
             self.game.show()
 
     @staticmethod
@@ -625,8 +612,8 @@ class StartApp(QMainWindow, GameLauncher):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    w = MainWindow()
-    sys.exit(app.exec_())
-    # form = StartApp()
-    # form.show()
-    # app.exec_()
+    # w = StartApp()
+    # sys.exit(app.exec_())
+    form = StartApp()
+    form.show()
+    app.exec_()
