@@ -2,11 +2,11 @@ import sys
 
 from PyQt5.QtCore import *
 from PyQt5.QtGui import QPainter, QColor
-from PyQt5.QtWidgets import QWidget, QDesktopWidget, QLabel, QMainWindow, QPushButton, QApplication, \
-    QGroupBox, QMessageBox, QHBoxLayout, QTextBrowser
+from PyQt5.QtWidgets import QDesktopWidget, QMainWindow, QPushButton, QApplication, \
+    QMessageBox, QTextBrowser
 
-from client import *
 from server import *
+from ui.start import Ui_Form as GameLauncher
 
 
 class DragButton(QPushButton):
@@ -93,10 +93,6 @@ class DragButton(QPushButton):
             return self.size.StartPosition[self.MyStart][0], self.size.StartPosition[self.MyStart][1]
 
 
-def clicked():
-    print("click as normal!")
-
-
 class Fishka(QPushButton):
 
     def __init__(self, title, parent):
@@ -143,47 +139,8 @@ class SizeSettings:
                 [self.letterskoord[0] + (self.yi + self.ot) * i + self.ot, self.letterskoord[1] + self.ot])
 
 
-class GameWindow(QWidget):
-    def __init__(self, parent=None):
-        super(GameWindow, self).__init__(parent)
-        self.size = SizeSettings()
-        self.koef = self.size.koef
-        self.pos = self.size.pos
-        self.k2 = self.size.k2
-        self.widthtotal = self.size.widthtotal
-        self.heighttotal = self.size.heighttotal
-        self.ot = self.size.ot
-        self.libw = self.size.libw
-        self.libh = self.size.libh
-        self.yi = self.size.yi
-        self.letterskoord = self.size.letterskoord
-        self.dropaccept = 1;
-        self.dropx = self.size.dropx
-        self.dropy = self.size.dropy
-        """инициализация окна"""
-        self.serv = GameServer([Player("BOT", "bot", 0.2), Player("Admin", "local")])
-        self.serv.matrix.Mainmap[7][7] = "П"
-        self.serv.matrix.Mainmap[7][8] = "Р"
-        self.serv.matrix.Mainmap[7][9] = "И"
-        self.serv.matrix.Mainmap[7][10] = "В"
-        self.serv.matrix.Mainmap[7][11] = "Е"
-        self.serv.matrix.Mainmap[7][12] = "Т"
-        for player in range(len(self.serv.players)):
-            if self.serv.players[player].name == "Admin":
-                self.me = self.serv.players[player]
-                # self.me.my_turn = self.my_hod
-                break
-        self.threadonstart = Thread(target=self._hoddaemon)
-        self.threadonstart.start()
-        self.progressed = Communicate()
-        self.progressed.redrawMe.connect(self.my_hod)
-        self.progressed.redrawEnd.connect(self.end_hod)
-        self.newkoord = []
-        self.newletters = []
-
-        self.initUI()
-
-    def initUI(self):
+class GameForm(object):
+    def setupUi(self, Form):
         """основная часть создания элементов формы"""
         # self.list = QListWidget()
         # self.list.setGeometry(self.ot, self.ot + self.libh + 20, self.libw - self.ot,2 * self.libh - self.ot - self.ot - 20)
@@ -224,6 +181,66 @@ class GameWindow(QWidget):
         self.logs.setGeometry(self.ot, self.ot + self.libh, self.libw - self.ot, 2 * self.libh - self.ot - self.ot)
         self.logs.setFontPointSize(10)
 
+
+class GameApp(QMainWindow, GameForm):
+    def __init__(self, parent=None):
+        super(GameApp, self).__init__(parent)
+        self.koef = 1
+        self.k2 = 0.3
+        self.widthtotal = self.koef * QDesktopWidget().availableGeometry().width()
+        self.heighttotal = self.koef * QDesktopWidget().availableGeometry().height() - 30
+        self.ot = QDesktopWidget().availableGeometry().width() / 300
+        self.libw = self.widthtotal * self.k2
+        self.libh = self.heighttotal / 3
+        self.yi = self.widthtotal * (1 - 2 * self.k2) / 15 - self.ot
+        """инициализация окна"""
+        self.setGeometry(0, 30, self.widthtotal, self.heighttotal)
+
+        self.setWindowTitle("GameCreate")
+        self.setGeometry(0, 30, self.widthtotal, self.heighttotal)
+        # self.setCentralWidget(self.GameCreate)
+
+        self.size = SizeSettings()
+        self.koef = self.size.koef
+        self.pos = self.size.pos
+        self.k2 = self.size.k2
+        self.widthtotal = self.size.widthtotal
+        self.heighttotal = self.size.heighttotal
+        self.ot = self.size.ot
+        self.libw = self.size.libw
+        self.libh = self.size.libh
+        self.yi = self.size.yi
+        self.letterskoord = self.size.letterskoord
+        self.dropaccept = 1
+        self.dropx = self.size.dropx
+        self.dropy = self.size.dropy
+        """инициализация окна"""
+        self.serv = GameServer()
+        self.me = None
+        # self.serv.matrix.Mainmap[7][7] = "П"
+        # self.serv.matrix.Mainmap[7][8] = "Р"
+        # self.serv.matrix.Mainmap[7][9] = "И"
+        # self.serv.matrix.Mainmap[7][10] = "В"
+        # self.serv.matrix.Mainmap[7][11] = "Е"
+        # self.serv.matrix.Mainmap[7][12] = "Т"
+
+        self.threadonstart = Thread(target=self._hoddaemon)
+        self.progressed = Communicate()
+        self.progressed.redrawMe.connect(self.my_hod)
+        self.progressed.redrawEnd.connect(self.end_hod)
+        self.newkoord = []
+        self.newletters = []
+
+    def run(self):
+        for player in range(len(self.serv.players)):
+            if type(self.serv.players[player]) == PlayerLocal:
+                self.me = self.serv.players[player]
+                # self.me.my_turn = self.my_hod
+                break
+        self.serv.run_game()
+        self.threadonstart.start()
+        self.setupUi(self)
+
     def CollectLetters(self):
         out = []
         for i in self.myletters:
@@ -231,31 +248,6 @@ class GameWindow(QWidget):
                 out.append([i.MyKoord[0], i.MyKoord[1], i.MyLetter])
 
         return out
-
-    def enter(self):
-        """функция обработки строки консоли"""
-        """move i,x,y"""
-        l = self.konsol.text()
-        name = l.split(" ")
-        if name[0] == "move":
-            ch = name[1].split(",")
-            if len(ch) == 3:
-                self.ProverkaKoordinat(int(ch[0]), int(ch[1]), int(ch[2]))
-        if name[0] == 'help' or name[0] == 'SOS':
-            self.Help()
-        if name[0] == 'clear':
-            self.ClearChanges()
-        if name[0] == 'lastletters':
-            self.lastLetters()
-        if name[0] == 'check':
-            self.CheckMatrix()
-        if name[0] == 'save':
-            self.SeveChangesForm()
-        if name[0] == 'endhod':
-            self.EndMyHod()
-        if name[0] == 'drop':
-            self.Drop(name[1].split(','))
-        self.konsol.clear()
 
     def lastLetters(self):
         """Расстановка кнопок, уже имеющихся в таблице"""
@@ -324,7 +316,7 @@ class GameWindow(QWidget):
         self.acceptdrop = [0]
         for i in range(len(self.me.letters)):
             gs = self.me.letters[i]
-            self.myletters.append(DragButton((gs + ' ' + str(i)), self))
+            self.myletters.append(DragButton(gs, self))
             self.myletters[i].MyLetter = gs
             self.myletters[i].MyPrice = GameConfig.letters[gs]['price']
             self.myletters[i].MyKoord = [None, i]
@@ -337,26 +329,6 @@ class GameWindow(QWidget):
                       self.yi + 1,
                       self.yi + 1))
             self.myletters[i].show()
-
-    def Help(self):
-        s = ''
-        print('переместить кнопку - move i,x,y (i - номер кнопки,(x, y) - координаты)')
-        s += 'переместить кнопку - move i,x,y (i - номер кнопки,(x, y) - координаты)' + '\n'
-        print('clear - очистить поле и временные данные')
-        s += 'clear - очистить поле и временные данные' + '\n'
-        print('lastletters - отрисовывает буквы, которые проверены')
-        s += 'lastletters - отрисовывает буквы, которые проверены' + '\n'
-        print('check - проверить матрицу и отобразить результат проверки')
-        s += 'check - проверить матрицу и отобразить результат проверки' + '\n'
-        print('save - сохраняет введенные данные и передает ход (при положительном результате функци check)')
-        s += 'save - сохраняет введенные данные и передает ход (при положительном результате функци check)' + '\n'
-        print('endhod - комбинация функций check и save')
-        s += 'endhod - комбинация функций check и save' + '\n'
-        self.Message(s)
-        print(self.newletters)
-        print(self.newkoord)
-        for i in self.serv.matrix.Mainmap:
-            print(i)
 
     def CheckMatrix(self):
         points = []
@@ -448,12 +420,7 @@ class GameWindow(QWidget):
             # self.CheckMatrix()
 
     def Message(self, text):
-        buttonReply = QMessageBox.question(self, 'Scrabble',
-                                           text,
-                                           QMessageBox.Ok, QMessageBox.Ok)
-
-    def DropButton(self):
-        pass
+        QMessageBox.question(self, 'Scrabble', text, QMessageBox.Ok, QMessageBox.Ok)
 
     def Drop(self):
         if self.dropmass != []:
@@ -503,6 +470,8 @@ class GameWindow(QWidget):
             time.sleep(1)
 
     def paintEvent(self, e):
+        # TODO вызывается очень часто
+        # Мб приклеить на другое событие?
         background = QPainter()
         background.begin(self)
         self.drawBackground(background)
@@ -567,280 +536,51 @@ class GameWindow(QWidget):
                 background.setFont(QFont('Decorative', 10))
                 background.drawText(self.karta[i][j][0][0],self.karta[i][j][1][0], self.yi,self.yi,Qt.AlignCenter, Point.info[GameConfig.map[i][j]]['multi'])"""
 
+    def closeEvent(self, event):
+        if QMessageBox.question(self, 'Предупреждение', "Закрыть игру?", QMessageBox.Yes | QMessageBox.No,
+                                QMessageBox.No) == QMessageBox.Yes:
+            self.serv.playStatus = False
+            self.serv.thread.join(0)
+            for p in self.serv.players:
+                if p.type == "bot":
+                    p.botEnable = False
+                    p.thread.join(0)
+            event.accept()
+        else:
+            event.ignore()
 
-class FirstWindow(QWidget):
+
+class StartApp(QMainWindow, GameLauncher):
     def __init__(self, parent=None):
-        super(FirstWindow, self).__init__(parent)
-        self.btncreate = QPushButton("Create game", self)
-        self.btncreate.move(30, 50)
-
-        self.btnconnect = QPushButton("Connect game", self)
-        self.btnconnect.move(150, 50)
-
-        # hbox = QHBoxLayout()
-        # hbox.addStretch(1)
-        # hbox.addWidget(self.btnconnect)
-        # hbox.addWidget(self.btncreate)
-        # vbox = QVBoxLayout()
-        # vbox.addStretch(1)
-        # vbox.addLayout(hbox)
-
-        # self.setLayout(vbox)
-
-        # self.setGeometry(300, 300, 290, 150)
-        self.setWindowTitle('Event sender')
-
-
-class SecondWindow(QWidget):
-    def __init__(self, parent=None):
-        super(SecondWindow, self).__init__(parent)
-        self.koef = 0.8
-        self.k2 = 0.3
-        self.widthtotal = self.koef * QDesktopWidget().availableGeometry().width() * 0.5
-        self.heighttotal = self.koef * QDesktopWidget().availableGeometry().height() - 30
-        self.ot = QDesktopWidget().availableGeometry().width() / 100
-        self.libw = self.widthtotal * self.k2
-        self.libh = self.heighttotal / 3
-        self.yi = self.widthtotal * (1 - 2 * self.k2) / 15 - self.ot
-        """инициализация окна"""
-        # self.setGeometry(0, 30, self.widthtotal, self.heighttotal)
-        # self.setWindowTitle('Event sender')
-        #
-        # self.btnconcreate = QPushButton("Подключиться", self)
-        self.btnBack = QPushButton("Вернуться назад", self)
-        self.btnBack.move(400, 50)
-        #
-        # title = QLabel('Title')
-        # title.setAlignment(Qt.AlignCenter)
-        # title.setStyleSheet("QLabel {background-color: red;}")
-        #
-        # title2 = QLabel('Title2')
-        # title2.setAlignment(Qt.AlignCenter)
-        # title2.setStyleSheet("QLabel {background-color: yellow;}")
-        #
-        # self.grid = QGridLayout()
-        # self.grid.setSpacing(8)
-        #
-        # self.grid.addWidget(title, 0, 0, 2, 3)
-        # self.grid.addWidget(title2, 4, 0, 1, 3)
-        #
-        # self.grid.addWidget(self.btnfirst, 1, 4, 1, 1)
-        # self.grid.addWidget(self.btnconcreate, 0, 4, 1, 1)
-        #
-        # self.setLayout(self.grid)
+        super(StartApp, self).__init__(parent)
         self.setupUi(self)
-        self.serverInit()
+        self.pushButton.clicked.connect(self.run_game)
 
-    def setupUi(self, Form):
-        Form.setObjectName("Form")
-        Form.resize(400, 300)
-        self.groupBoxServers = QGroupBox(Form)
-        self.groupBoxServers.setGeometry(QRect(10, 0, 291, 361))
-        self.groupBoxServers.setObjectName("groupBoxServers")
+    def run_game(self):
+        if (not self.checkBox_1.checkState() or self.validate_float(self.lineEdit_1.text())) and \
+                (not self.checkBox_2.checkState() or self.validate_float(self.lineEdit_2.text())) and (
+                not self.checkBox_3.checkState() or self.validate_float(self.lineEdit_3.text())):
+            self.game = GameApp(self)
+            self.game.serv.add_player(Player("Admin", "local"))
+            if self.checkBox_1.checkState():
+                self.game.serv.add_player(Player("BOT1", "bot", diff=self.validate_float(self.lineEdit_1.text())))
+            if self.checkBox_2.checkState():
+                self.game.serv.add_player(Player("BOT2", "bot", diff=self.validate_float(self.lineEdit_2.text())))
+            if self.checkBox_3.checkState():
+                self.game.serv.add_player(Player("BOT3", "bot", diff=self.validate_float(self.lineEdit_3.text())))
+            self.game.run()
+            self.game.show()
 
-        self.horizontalLayoutWidgets = []
-        self.horizontalLayouts = []
-        self.labels = []
-        self.pushButtons = []
-        for i in range(10):
-            self.horizontalLayoutWidgets.append(QWidget(self.groupBoxServers))
-            self.horizontalLayoutWidgets[-1].setGeometry(QRect(0, 20 + i * 30, 291, 21))
-            self.horizontalLayoutWidgets[-1].setObjectName("horizontalLayoutWidget")
-            self.horizontalLayouts.append(QHBoxLayout(self.horizontalLayoutWidgets[-1]))
-            self.horizontalLayouts[-1].setContentsMargins(0, 0, 0, 0)
-            self.horizontalLayouts[-1].setObjectName("horizontalLayout")
-            self.labels.append(QLabel(self.horizontalLayoutWidgets[-1]))
-            self.labels[-1].setText("Сервер такой то")
-            self.horizontalLayouts[-1].addWidget(self.labels[-1])
-            self.pushButtons.append(QPushButton(self.horizontalLayoutWidgets[-1]))
-            self.pushButtons[-1].setMouseTracking(False)
-            self.pushButtons[-1].setCheckable(False)
-            self.pushButtons[-1].setEnabled(False)
-            self.pushButtons[-1].setText("Подключиться")
-            self.horizontalLayouts[-1].addWidget(self.pushButtons[-1])
-            self.horizontalLayouts[-1].setStretch(0, 2)
-
-        self.retranslateUi(Form)
-        QMetaObject.connectSlotsByName(Form)
-
-    def retranslateUi(self, Form):
-        _translate = QCoreApplication.translate
-        Form.setWindowTitle(_translate("Form", "Form"))
-        self.groupBoxServers.setTitle(_translate("Form", "Сервера"))
-
-    def connect_server(self):
-        res = self.game.connect_server(self.sender().server_id)
-        if not res.res:
-            QMessageBox.question(self.sender(), 'Ошибка', res.msg, QMessageBox.Ok, QMessageBox.Ok)
-
-    def redraw(self):
-        i = 0
-        while i < len(self.labels):
-            if i < len(self.game.servers):
-                self.labels[i].setText(self.game.servers[i]["id"] + " Игроков: " + str(
-                    len(self.game.servers[i]["game"])) + ". Ожидание: " + str(len(self.game.servers[i]["queue"])))
-                self.pushButtons[i].server_id = self.game.servers[i]["id"]
-                self.pushButtons[i].clicked.connect(self.connect_server)
-                self.pushButtons[i].setEnabled(True)
-            else:
-                self.labels[i].setText("")
-                self.pushButtons[i].setEnabled(False)
-            i += 1
-
-    def serverInit(self):
-        self.game = GameClientPrepare()
-        self.game.callback = self.redraw
-
-
-class ThirdWindowCreate(QWidget):
-    def __init__(self, parent=None):
-        super(ThirdWindowCreate, self).__init__(parent)
-        self.koef = 1
-        self.k2 = 0.3
-        self.widthtotal = self.koef * QDesktopWidget().availableGeometry().width() / 2
-        self.heighttotal = self.koef * QDesktopWidget().availableGeometry().height() - 30
-        self.ot = QDesktopWidget().availableGeometry().width() / 300
-        self.libw = self.widthtotal * self.k2
-        self.libh = self.heighttotal / 3
-        self.yi = self.widthtotal * (1 - 2 * self.k2) / 15 - self.ot
-
-        """инициализация окна"""
-        # self.setGeometry(0, 30, self.widthtotal, self.heighttotal)
-        self.setWindowTitle('Event sender')
-
-        self.btnconcreate = QPushButton("Подключиться", self)
-        self.btnconcreate.move(self.widthtotal - 120, 50)
-        self.btnFirst = QPushButton("Вернуться назад", self)
-        self.btnFirst.move(self.widthtotal - 120, 100)
-        self.setupUi(self)
-        self.serverInit()
-
-    def setupUi(self, Form):
-        Form.setObjectName("Form")
-        Form.resize(509, 300)
-        self.groupBoxConnected = QGroupBox(Form)
-        self.groupBoxConnected.setGeometry(QRect(10, 10, 341, 101))
-        self.groupBoxConnected.setObjectName("groupBoxConnected")
-        self.readyLabels = [QLabel(self.groupBoxConnected) for _ in range(4)]
-        for i in range(len(self.readyLabels)):
-            self.readyLabels[i].setGeometry(QRect(10, (i + 1) * 20, 200, 13))
-            self.readyLabels[i].setText("Свободно")
-
-        self.groupBoxQueue = QGroupBox(Form)
-        self.groupBoxQueue.setGeometry(QRect(10, 120, 341, 500))
-        self.groupBoxQueue.setObjectName("groupBoxQueue")
-        self.queueItem = [QPushButton(self.groupBoxQueue) for _ in range(16)]
-        for i in range(len(self.queueItem)):
-            self.queueItem[i].setGeometry(QRect(10, (i + 1) * 23, 321, 20))
-            self.queueItem[i].setText("Свободно")
-            self.queueItem[i].rid = ""
-            self.queueItem[i].clicked.connect(self.add_player)
-        self.btnBack = QPushButton(Form)
-        self.btnBot = QPushButton(Form)
-        self.btnBot.setGeometry(QRect(370, 20, 75, 23))
-        self.btnBot.setText("Добавить бота")
-        self.btnBot.clicked.connect(self.add_bot)
-        self.btnBack.setGeometry(QRect(370, 50, 75, 23))
-        self.btnBack.setObjectName("btnBack")
-        self.btnBack.clicked.connect(self.stop)
-        self.btnStart = QPushButton(Form)
-
-        self.btnStart.setGeometry(QRect(370, 70, 75, 23))
-        self.btnStart.setObjectName("btnStart")
-        self.btnStart.clicked.connect(self.stop)
-        self.retranslateUi(Form)
-        self.Form = Form
-        QMetaObject.connectSlotsByName(Form)
-
-    def retranslateUi(self, Form):
-        _translate = QCoreApplication.translate
-        Form.setWindowTitle(_translate("Form", "Form"))
-        self.groupBoxConnected.setTitle(_translate("Form", "Подключены"))
-
-        self.groupBoxQueue.setTitle(_translate("Form", "Очередь"))
-        self.btnBack.setText(_translate("Form", "Отмена"))
-        self.btnStart.setText(_translate("Form", "Старт"))
-
-    def stop(self):
-        # TODO
-        # Метод start_game в будущем будет возвращать информацию для запуска игры
-        # При отмене нужно просто подавить выход
-        # А при создании передать в создание другого класса
-        # Как вариант, сделать все серверные класс статичными и глобальными
-        self.game.start_game()
-        self.gameThread.join(1)
-
-    def add_player(self):
-        res = self.game.add_player("net", self.sender().rid)
-        if not res.res:
-            QMessageBox.question(self.sender(), 'Ошибка', res.msg, QMessageBox.Ok, QMessageBox.Ok)
-
-    def add_bot(self):
-        res = self.game.add_player("bot")
-        if not res.res:
-            QMessageBox.question(self.sender(), 'Ошибка', res.msg, QMessageBox.Ok, QMessageBox.Ok)
-
-    def server_redraw(self):
-        while self.game.gamePrepare:
-            i = 0
-            for key, value in self.game.players.items():
-                self.readyLabels[i].setText(value.name)
-                i += 1
-            while i < 4:
-                self.readyLabels[i].setText("Свободно")
-                i += 1
-
-            i = 0
-            while i < len(self.game.queue):
-                name = str(self.game.queue[i]['add']) + self.game.queue[i]['ip'][0] + ":" + str(
-                    self.game.queue[i]['ip'][1]) + " " + self.game.queue[i][
-                           "name"]
-                self.queueItem[i].rid = self.game.queue[i]["rid"]
-                self.queueItem[i].setText(name)
-                i += 1
-            while i < 16:
-                self.queueItem[i].setText("Свободно")
-                self.queueItem[i].rid = ""
-                i += 1
-            # self.Form.setLayout(self.queueItem[-1])
-            time.sleep(1)
-
-    def serverInit(self):
-        self.game = GameServerPrepare()
-        self.game.create_game("Модератор")
-        self.gameThread = Thread(target=self.server_redraw)
-        self.gameThread.start()
-
-    def __delete__(self, instance):
-        self.game.start_game()
-
-
-class MainWindow(QMainWindow):
-    def __init__(self, parent=None):
-        super(MainWindow, self).__init__(parent)
-        self.koef = 1
-        self.k2 = 0.3
-        self.widthtotal = self.koef * QDesktopWidget().availableGeometry().width()
-        self.heighttotal = self.koef * QDesktopWidget().availableGeometry().height() - 30
-        self.ot = QDesktopWidget().availableGeometry().width() / 300
-        self.libw = self.widthtotal * self.k2
-        self.libh = self.heighttotal / 3
-        self.yi = self.widthtotal * (1 - 2 * self.k2) / 15 - self.ot
-        """инициализация окна"""
-        self.setGeometry(0, 30, self.widthtotal, self.heighttotal)
-        self.startGame()
-
-    def startGame(self):
-        # self.gamePrepare.game.start_game()
-        self.GameCreate = GameWindow(self)
-        self.setWindowTitle("GameCreate")
-        self.setGeometry(0, 30, self.widthtotal, self.heighttotal)
-        self.setCentralWidget(self.GameCreate)
-        # self.GameCreate.btnFirst.clicked.connect(self.startFirst)
-        self.show()
+    @staticmethod
+    def validate_float(text):
+        try:
+            return 0 < float(text) <= 1
+        except ValueError:
+            return False
 
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    w = MainWindow()
-    sys.exit(app.exec_())
+    form = StartApp()
+    form.show()
+    app.exec_()

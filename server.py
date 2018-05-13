@@ -126,6 +126,7 @@ class PlayerBot(GamePlayer):
         self.thread.start()
 
     def __del__(self):
+        print("Deleting BOT " + self.name)
         self.botEnable = False
         self.thread.join(1)
 
@@ -337,21 +338,25 @@ class GameServerPrepare:
 
 
 class GameServer:
-    def __init__(self, players):
+    def __init__(self):
         self.players = []
-        for player in players:
-            if player.type == "local":
-                self.players.append(PlayerLocal(player.name, self))
-            elif player.type == "bot":
-                self.players.append(PlayerBot(player.name, self, player.diff))
-            else:
-                warnings.warn("Тип не найден" + player.type)
-        self.playStatus = True
+        self.playStatus = False
         self.alphabet = ""
         self.matrix = Matrix()
         for key, value in GameConfig.letters.items():
             self.alphabet += key * value["count"]
         self.thread = Thread(target=self._game_loop)
+
+    def add_player(self, player):
+        if player.type == "local":
+            self.players.append(PlayerLocal(player.name, self))
+        elif player.type == "bot":
+            self.players.append(PlayerBot(player.name, self, player.diff))
+        else:
+            warnings.warn("Тип не найден" + player.type)
+
+    def run_game(self):
+        self.playStatus = True
         self.thread.start()
 
     def __del__(self):
@@ -397,10 +402,13 @@ class GameServer:
 
 
 if __name__ == '__main__':
-    game_server = GameServer([Player("BOT1", "bot", diff=0.5), Player("BOT2", "bot", diff=1)])
+    game_server = GameServer()
+    game_server.add_player(Player("BOT1", "bot", diff=0.5))
+    game_server.add_player(Player("BOT2", "bot", diff=1))
     game_server.matrix.Mainmap[7][7] = "П"
     game_server.matrix.Mainmap[7][8] = "Р"
     game_server.matrix.Mainmap[7][9] = "И"
     game_server.matrix.Mainmap[7][10] = "В"
     game_server.matrix.Mainmap[7][11] = "Е"
+    game_server.run_game()
     # game_server.players[0].letters = ["Т"]
