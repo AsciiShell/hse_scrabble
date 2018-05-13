@@ -211,30 +211,34 @@ class GameApp(QMainWindow, GameForm):
         self.libh = self.size.libh
         self.yi = self.size.yi
         self.letterskoord = self.size.letterskoord
-        self.dropaccept = 1;
+        self.dropaccept = 1
         self.dropx = self.size.dropx
         self.dropy = self.size.dropy
         """инициализация окна"""
-        self.serv = GameServer([Player("BOT", "bot", 0.2), Player("Admin", "local")])
-        self.serv.matrix.Mainmap[7][7] = "П"
-        self.serv.matrix.Mainmap[7][8] = "Р"
-        self.serv.matrix.Mainmap[7][9] = "И"
-        self.serv.matrix.Mainmap[7][10] = "В"
-        self.serv.matrix.Mainmap[7][11] = "Е"
-        self.serv.matrix.Mainmap[7][12] = "Т"
-        for player in range(len(self.serv.players)):
-            if self.serv.players[player].name == "Admin":
-                self.me = self.serv.players[player]
-                # self.me.my_turn = self.my_hod
-                break
+        self.serv = GameServer()
+        self.me = None
+        # self.serv.matrix.Mainmap[7][7] = "П"
+        # self.serv.matrix.Mainmap[7][8] = "Р"
+        # self.serv.matrix.Mainmap[7][9] = "И"
+        # self.serv.matrix.Mainmap[7][10] = "В"
+        # self.serv.matrix.Mainmap[7][11] = "Е"
+        # self.serv.matrix.Mainmap[7][12] = "Т"
+
         self.threadonstart = Thread(target=self._hoddaemon)
-        self.threadonstart.start()
         self.progressed = Communicate()
         self.progressed.redrawMe.connect(self.my_hod)
         self.progressed.redrawEnd.connect(self.end_hod)
         self.newkoord = []
         self.newletters = []
 
+    def run(self):
+        for player in range(len(self.serv.players)):
+            if type(self.serv.players[player]) == PlayerLocal:
+                self.me = self.serv.players[player]
+                # self.me.my_turn = self.my_hod
+                break
+        self.serv.run_game()
+        self.threadonstart.start()
         self.setupUi(self)
 
     def CollectLetters(self):
@@ -312,7 +316,7 @@ class GameApp(QMainWindow, GameForm):
         self.acceptdrop = [0]
         for i in range(len(self.me.letters)):
             gs = self.me.letters[i]
-            self.myletters.append(DragButton((gs + ' ' + str(i)), self))
+            self.myletters.append(DragButton(gs, self))
             self.myletters[i].MyLetter = gs
             self.myletters[i].MyPrice = GameConfig.letters[gs]['price']
             self.myletters[i].MyKoord = [None, i]
@@ -466,6 +470,8 @@ class GameApp(QMainWindow, GameForm):
             time.sleep(1)
 
     def paintEvent(self, e):
+        # TODO вызывается очень часто
+        # Мб приклеить на другое событие?
         background = QPainter()
         background.begin(self)
         self.drawBackground(background)
@@ -531,8 +537,17 @@ class GameApp(QMainWindow, GameForm):
                 background.drawText(self.karta[i][j][0][0],self.karta[i][j][1][0], self.yi,self.yi,Qt.AlignCenter, Point.info[GameConfig.map[i][j]]['multi'])"""
 
     def closeEvent(self, event):
-        self.Message("Axaxa")
-        event.ignore()
+        if QMessageBox.question(self, 'Предупреждение', "Закрыть игру?", QMessageBox.Yes | QMessageBox.No,
+                                QMessageBox.No) == QMessageBox.Yes:
+            self.serv.playStatus = False
+            self.serv.thread.join(0)
+            for p in self.serv.players:
+                if p.type == "bot":
+                    p.botEnable = False
+                    p.thread.join(0)
+            event.accept()
+        else:
+            event.ignore()
 
 
 class StartApp(QMainWindow, GameLauncher):
@@ -546,6 +561,14 @@ class StartApp(QMainWindow, GameLauncher):
                 (not self.checkBox_2.checkState() or self.validate_float(self.lineEdit_2.text())) and (
                 not self.checkBox_3.checkState() or self.validate_float(self.lineEdit_3.text())):
             self.game = GameApp(self)
+            self.game.serv.add_player(Player("Admin", "local"))
+            if self.checkBox_1.checkState():
+                self.game.serv.add_player(Player("BOT1", "bot", diff=self.validate_float(self.lineEdit_1.text())))
+            if self.checkBox_2.checkState():
+                self.game.serv.add_player(Player("BOT2", "bot", diff=self.validate_float(self.lineEdit_2.text())))
+            if self.checkBox_3.checkState():
+                self.game.serv.add_player(Player("BOT3", "bot", diff=self.validate_float(self.lineEdit_3.text())))
+            self.game.run()
             self.game.show()
 
     @staticmethod
