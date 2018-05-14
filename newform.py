@@ -547,6 +547,7 @@ class GameApp(QMainWindow, GameForm):
                 if p.type == "bot":
                     p.botEnable = False
                     p.thread.join(0)
+            del self.serv
             event.accept()
         else:
             event.ignore()
