@@ -296,9 +296,11 @@ class GameApp(QMainWindow, GameForm):
     def ClearChanges(self):
         self.dropmass = []
         self.tempmap = []
+        self.acceptdrop = [0]
         for i in range(len(self.myletters)):
             self.myletters[i].MyKoord = [None, i]
             self.myletters[i].move(self.StartPosition[i][0], self.StartPosition[i][1])
+            self.myletters[i].getmass(self.serv.matrix.Mainmap, self.tempmap, self.dropmass)
 
     def EndMyHod(self):
         # TODO
