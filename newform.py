@@ -281,6 +281,8 @@ class GameApp(QMainWindow, GameForm):
 
         elif b.score == 1:
             self.dobavlenie(b.wordsError)
+        else:
+            self.Message(b.msg)
         # if self.rez.result:
         #     self.serv.matrix.SaveChangesMatr()
         #     self.lastLetters()
@@ -358,6 +360,9 @@ class GameApp(QMainWindow, GameForm):
             if self.rez.score == 2:
                 # матрица заполнена неправильно
                 # print(self.rez.msg)
+                self.Message(self.rez.msg)
+            if self.rez.score == 3:
+                # Дубликат
                 self.Message(self.rez.msg)
 
     def getletter(self):

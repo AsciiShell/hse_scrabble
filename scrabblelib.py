@@ -320,9 +320,11 @@ class Matrix:
             # if not sys.argv[0].endswith("server.py"):
             #     print('поиск закончен')
             if len(undefined) == 0:
-                # if not sys.argv[0].endswith("server.py"):
-                #     print('ok')
-                return MatrixResult(True, score, outx + outy)
+                words = outx + outy
+                for i in words:
+                    if i in self.acceptedWords or words.count(i) > 1:
+                        return MatrixResult(False, 3, words, "Дубликат слова")
+                return MatrixResult(True, score, words)
             else:
                 # if not sys.argv[0].endswith("server.py"):
                 #     print('нопознанные слова')
@@ -401,6 +403,7 @@ class Matrix:
         self.matrvalid = [[0 for i in range(15)] for j in range(15)]
         self.dict = GameDictionary()
         self.FirstFish = [7, 7]
+        self.acceptedWords = []
 
 
 class GameDictionary:

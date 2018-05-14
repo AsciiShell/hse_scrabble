@@ -20,12 +20,15 @@ class Player:
 
 
 class TurnStruct:
-    def __init__(self, changed=False, letters=None, score=0):
+    def __init__(self, changed=False, letters=None, score=0, words=None):
         if letters is None:
             letters = []
+        if words is None:
+            words = []
         self.changed = changed
         self.letters = letters
         self.score = score
+        self.words = words
 
 
 class GamePlayer(Player):
@@ -84,6 +87,7 @@ class GamePlayer(Player):
                             self.letters.remove('*')
                     self.score += res.score
                     self.result = turn
+                    self.result.words = res.words.copy()
                     # Останавливает ход
                     self.isTurn = False
                     return Message(True, str(res.score))
@@ -246,7 +250,6 @@ class GameServer:
         self.players = []
         self.playStatus = False
         self.alphabet = ""
-        self.acceptedWords = []
         self.matrix = Matrix()
         for key, value in GameConfig.letters.items():
             self.alphabet += key * value["count"]
@@ -282,6 +285,7 @@ class GameServer:
             for player in range(len(self.players)):
                 self._give_letter(self.players[player])
                 result = self.players[player].action()
+                self.matrix.acceptedWords.extend(result.words)
                 if result.changed:
                     skip = 0
                 else:

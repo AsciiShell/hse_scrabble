@@ -44,7 +44,7 @@
     <string>Запустить</string>
    </property>
   </widget>
-  <widget class="QWidget" name="">
+  <widget class="QWidget" name="layoutWidget">
    <property name="geometry">
     <rect>
      <x>10</x>
@@ -60,6 +60,12 @@
        <widget class="QCheckBox" name="checkBox_1">
         <property name="text">
          <string>Бот 1</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+        <property name="autoRepeat">
+         <bool>false</bool>
         </property>
        </widget>
       </item>
@@ -83,6 +89,9 @@
         </property>
         <property name="inputMask">
          <string/>
+        </property>
+        <property name="text">
+         <string>0.5</string>
         </property>
         <property name="placeholderText">
          <string>Сложность</string>
@@ -111,6 +120,12 @@
         <property name="text">
          <string>Бот 2</string>
         </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+        <property name="autoRepeat">
+         <bool>false</bool>
+        </property>
        </widget>
       </item>
       <item>
@@ -130,6 +145,9 @@
        <widget class="QLineEdit" name="lineEdit_2">
         <property name="inputMask">
          <string/>
+        </property>
+        <property name="text">
+         <string>0.2</string>
         </property>
         <property name="placeholderText">
          <string>Сложность</string>
