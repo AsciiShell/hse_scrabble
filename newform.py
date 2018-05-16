@@ -9,17 +9,23 @@ from server import *
 from ui.start import Ui_Form as GameLauncher
 
 
-class DragButton(QPushButton):
+class Fishka(QPushButton):
+
     def __init__(self, title, parent):
         super().__init__(title, parent)
         self.initUI()
-        self.size = SizeSettings()
 
     def initUI(self):
         self.MyLetter = ''
         self.MyPrice = 0
         self.MyKoord = [None, 0]
         self.MyStart = 0
+
+class DragButton(Fishka):
+    def __init__(self, title, parent):
+        super().__init__(title, parent)
+        self.initUI()
+        self.size = SizeSettings()
 
     def getmass(self, mass, tempmass, dropmass):
         self.mass = mass
@@ -91,20 +97,6 @@ class DragButton(QPushButton):
                 return posx, posy
             self.MyKoord = [None, self.MyStart]
             return self.size.StartPosition[self.MyStart][0], self.size.StartPosition[self.MyStart][1]
-
-
-class Fishka(QPushButton):
-
-    def __init__(self, title, parent):
-        super().__init__(title, parent)
-        self.initUI()
-
-    def initUI(self):
-        self.MyLetter = ''
-        self.MyPrice = 0
-        self.MyKoord = [None, 0]
-        self.MyStart = 0
-
 
 class Communicate(QObject):
     redrawMe = pyqtSignal()
