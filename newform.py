@@ -166,8 +166,19 @@ class wrinfo():
         self.hard.setFont(QFont("Times", self.hardH))
         self.hard.setMinimumSize(self.size.libw - self.size.ot * 10, self.hardH +  self.ot)
         self.hard.setAlignment(Qt.AlignRight)
+
     def setScore(self,score):
+        """устанавливает счет
+        на вход подаются баллы"""
         self.score.setText("счет:" + str(score))
+
+    def setTime(self,time):
+        """устанавливает время
+        на вход подаются секунды"""
+        min = time//60
+        sek = time % 60
+        self.time.setText(str(min) + ":" + str(sek))
+
 
 
 class GameForm(object):
@@ -273,6 +284,10 @@ class GameApp(QMainWindow, GameForm):
 
         self.b3 = wrinfo()
         self.b3.initui(self, 3, 0)
+
+        self.b3.setScore(10)
+
+        self.b2.setTime(200)
 
     def run(self):
         for player in range(len(self.serv.players)):
