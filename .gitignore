@@ -14,3 +14,5 @@ text/main\.bbl
 *.blg
 
 text/main\.run\.xml
+
+*.docx
