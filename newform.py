@@ -3,7 +3,7 @@ import sys
 from PyQt5.QtCore import *
 from PyQt5.QtGui import QPainter, QColor
 from PyQt5.QtWidgets import QDesktopWidget, QMainWindow, QPushButton, QApplication, \
-    QMessageBox, QTextBrowser
+    QMessageBox, QTextBrowser, QLabel
 
 from server import *
 from ui.start import Ui_Form as GameLauncher
@@ -130,7 +130,14 @@ class SizeSettings:
             self.StartPosition.append(
                 [self.letterskoord[0] + (self.yi + self.ot) * i + self.ot, self.letterskoord[1] + self.ot])
 
+class wrinfo():
+    def __init__(self):
+        self.name = QLabel()
+        self.size = SizeSettings()
 
+    def setNum(self,Num,Form):
+        pass
+        #self.name =
 class GameForm(object):
     def setupUi(self, Form):
         """основная часть создания элементов формы"""
@@ -151,12 +158,13 @@ class GameForm(object):
         self.burttoncheck.clicked.connect(self.CheckMatrix)
         self.burttoncheck.setGeometry(650, 600, 50, 50)
 
-        self.burttoncheck = QPushButton("drop", self)
-        self.burttoncheck.clicked.connect(self.Drop)
-        self.burttoncheck.setGeometry(self.letterskoord[0] + 15 * (self.ot + self.yi) - self.ot - self.dropx - self.ot,
+        self.burttondrop = QPushButton("drop", self)
+        self.burttondrop.clicked.connect(self.Drop)
+        self.burttondrop.setGeometry(self.letterskoord[0] + 15 * (self.ot + self.yi) - self.ot - self.dropx - self.ot,
                                       self.letterskoord[1] + self.ot + self.dropy,
                                       self.dropx,
                                       self.heighttotal - 15 * (self.ot + self.yi) - 2 * self.ot - self.dropy - 1)
+
 
         """расстановка кнопок для перемещения"""
         self.myletters = []
@@ -172,6 +180,8 @@ class GameForm(object):
         self.logs = QTextBrowser(self)
         self.logs.setGeometry(self.ot, self.ot + self.libh, self.libw - self.ot, 2 * self.libh - self.ot - self.ot)
         self.logs.setFontPointSize(10)
+
+
 
 
 class GameApp(QMainWindow, GameForm):
