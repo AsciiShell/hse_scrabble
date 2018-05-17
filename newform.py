@@ -133,16 +133,42 @@ class SizeSettings:
 class wrinfo():
     def __init__(self):
         self.size = SizeSettings()
-    def initui(self,Form, Num):
-        self.y = self.size.widthtotal * (1 - self.size.k2) + self.size.ot
-        self.x = self.size.ot + self.size.libh * (Num - 1)
-        s = "text" + str(Num)
-        self.name = QLabel(s, Form)
+        self.nameH = 40
+        self.timeH = 50
+        self.ot = 10
+        self.scoreH = 30
+        self.hardH = 15
+    def initui(self,Form, Num, hard):
         #Num 1 or 2 or 3
-        self.name.move(self.y ,self.x  + 20)
-        Bigfont = QFont
-        Bigfont.setWeight(75)
-        self.name.setFont(QFont("Times", 30, QFont.Bold))
+        self.y = int(self.size.widthtotal * (1 - self.size.k2) + self.size.ot)
+        self.x = int(self.size.ot + self.size.libh * (Num - 1))
+
+        self.name = QLabel("Bot #" + str(Num), Form)
+        self.name.move(self.y ,self.x)
+        self.name.setFont(QFont("Times", self.nameH))
+        self.name.setMinimumSize(self.size.libw - self.size.ot - self.size.ot,self.nameH + self.ot)
+        self.name.setAlignment(Qt.AlignCenter)
+
+        self.time = QLabel("00:00", Form)
+        self.time.move(self.y ,self.x  + int(self.size.libh / 3))
+        self.time.setFont(QFont("Times", self.timeH))
+        self.time.setMinimumSize(self.size.libw - self.size.ot - self.size.ot,self.timeH + self.ot)
+        self.time.setAlignment(Qt.AlignCenter)
+
+        self.score = QLabel("счет: " + str(0), Form)
+        self.score.move(self.y + 30,self.x  + self.size.libh - self.scoreH - self.size.ot -  3 * self.ot)
+        self.score.setFont(QFont("Times", self.scoreH))
+        self.score.setMinimumSize(self.size.libw - self.size.ot - self.size.ot, self.scoreH +  self.ot)
+        self.score.setAlignment(Qt.AlignLeft)
+
+        self.hard = QLabel("сложность: " + str(hard), Form)
+        self.hard.move(self.y + 30,self.x  + self.size.libh - self.hardH - self.size.ot -  3 * self.ot)
+        self.hard.setFont(QFont("Times", self.hardH))
+        self.hard.setMinimumSize(self.size.libw - self.size.ot * 10, self.hardH +  self.ot)
+        self.hard.setAlignment(Qt.AlignRight)
+    def setScore(self,score):
+        self.score.setText("счет:" + str(score))
+
 
 class GameForm(object):
     def setupUi(self, Form):
@@ -240,7 +266,13 @@ class GameApp(QMainWindow, GameForm):
         self.newletters = []
 
         self.b1 = wrinfo()
-        self.b1.initui(self, 1)
+        self.b1.initui(self, 1, 0.5)
+
+        self.b2 = wrinfo()
+        self.b2.initui(self, 2, 1)
+
+        self.b3 = wrinfo()
+        self.b3.initui(self, 3, 0)
 
     def run(self):
         for player in range(len(self.serv.players)):
