@@ -1,7 +1,7 @@
 import sys
 
 from PyQt5.QtCore import *
-from PyQt5.QtGui import QPainter, QColor
+from PyQt5.QtGui import QPainter, QColor, QFont
 from PyQt5.QtWidgets import QDesktopWidget, QMainWindow, QPushButton, QApplication, \
     QMessageBox, QTextBrowser, QLabel
 
@@ -132,12 +132,18 @@ class SizeSettings:
 
 class wrinfo():
     def __init__(self):
-        self.name = QLabel()
         self.size = SizeSettings()
+    def initui(self,Form, Num):
+        self.y = self.size.widthtotal * (1 - self.size.k2) + self.size.ot
+        self.x = self.size.ot + self.size.libh * (Num - 1)
+        s = "text" + str(Num)
+        self.name = QLabel(s, Form)
+        #Num 1 or 2 or 3
+        self.name.move(self.y ,self.x  + 20)
+        Bigfont = QFont
+        Bigfont.setWeight(75)
+        self.name.setFont(QFont("Times", 30, QFont.Bold))
 
-    def setNum(self,Num,Form):
-        pass
-        #self.name =
 class GameForm(object):
     def setupUi(self, Form):
         """основная часть создания элементов формы"""
@@ -232,6 +238,9 @@ class GameApp(QMainWindow, GameForm):
         self.progressed.redrawEnd.connect(self.end_hod)
         self.newkoord = []
         self.newletters = []
+
+        self.b1 = wrinfo()
+        self.b1.initui(self, 1)
 
     def run(self):
         for player in range(len(self.serv.players)):
