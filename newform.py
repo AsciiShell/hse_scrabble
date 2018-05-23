@@ -1,13 +1,12 @@
 import sys
 
 from PyQt5.QtCore import *
-from PyQt5.QtGui import QPainter, QColor
+from PyQt5.QtGui import QPainter, QColor, QFont
 from PyQt5.QtWidgets import QDesktopWidget, QMainWindow, QPushButton, QApplication, \
-    QMessageBox, QTextBrowser
+    QMessageBox, QTextBrowser, QLabel, QWidget
 
 from server import *
 from ui.start import Ui_Form as GameLauncher
-
 
 class Fishka(QPushButton):
 
@@ -102,7 +101,6 @@ class Communicate(QObject):
     redrawMe = pyqtSignal()
     redrawEnd = pyqtSignal()
 
-
 class SizeSettings:
     def __init__(self):
         self.koef = 1
@@ -130,6 +128,67 @@ class SizeSettings:
             self.StartPosition.append(
                 [self.letterskoord[0] + (self.yi + self.ot) * i + self.ot, self.letterskoord[1] + self.ot])
 
+class wrinfo():
+    def __init__(self,Form, Num, hard):
+        self.size = SizeSettings()
+        self.nameH = 40
+        self.timeH = 50
+        self.ot = 10
+        self.scoreH = 30
+        self.hardH = 15
+        #Num 1 or 2 or 3 -> Bot; Num == 0 -> player
+        if Num == 0:
+            self.y = int(self.size.ot)
+            self.x = int(self.size.ot)
+            s = "player"
+        else:
+            self.y = int(self.size.widthtotal * (1 - self.size.k2) + self.size.ot)
+            self.x = int(self.size.ot + self.size.libh * (Num - 1))
+            s="Bot #" + str(Num)
+
+            self.hard = QLabel("сложность: " + str(hard), Form)
+            self.hard.move(self.y + 30,self.x  + self.size.libh - self.hardH - self.size.ot -  3 * self.ot)
+            self.hard.setFont(QFont("Times", self.hardH))
+            self.hard.setMinimumSize(self.size.libw - self.size.ot * 10, self.hardH +  self.ot)
+            self.hard.setAlignment(Qt.AlignRight)
+
+        self.name = QLabel(s, Form)
+        self.name.move(self.y ,self.x)
+        self.name.setFont(QFont("Times", self.nameH))
+        self.name.setMinimumSize(self.size.libw - self.size.ot - self.size.ot,self.nameH + self.ot+10)
+        self.name.setAlignment(Qt.AlignCenter)
+
+        self.time = QLabel("00:00", Form)
+        self.time.move(self.y ,self.x  + int(self.size.libh / 3))
+        self.time.setFont(QFont("Times", self.timeH))
+        self.time.setMinimumSize(self.size.libw - self.size.ot - self.size.ot,self.timeH + self.ot)
+        self.time.setAlignment(Qt.AlignCenter)
+
+        self.score = QLabel("счет: " + str(0), Form)
+        self.score.move(self.y + 30,self.x  + self.size.libh - self.scoreH - self.size.ot -  3 * self.ot)
+        self.score.setFont(QFont("Times", self.scoreH))
+        self.score.setMinimumSize(self.size.libw - self.size.ot - self.size.ot, self.scoreH +  self.ot)
+        self.score.setAlignment(Qt.AlignLeft)
+
+    def setScore(self,score):
+        """устанавливает счет
+        на вход подаются баллы"""
+        self.score.setText("счет:" + str(score))
+
+    def setTime(self,time):
+        """устанавливает время
+        на вход подаются секунды"""
+        min = time//60
+        sek = time % 60
+        self.time.setText(str(min) + ":" + str(sek))
+
+    def VisTime(self,flag):
+        """устанавливает видимость таймера"""
+        self.time.setVisible(flag)
+
+class helpwin():
+    def __init__(self):
+        pass
 
 class GameForm(object):
     def setupUi(self, Form):
@@ -151,12 +210,17 @@ class GameForm(object):
         self.burttoncheck.clicked.connect(self.CheckMatrix)
         self.burttoncheck.setGeometry(650, 600, 50, 50)
 
-        self.burttoncheck = QPushButton("drop", self)
-        self.burttoncheck.clicked.connect(self.Drop)
-        self.burttoncheck.setGeometry(self.letterskoord[0] + 15 * (self.ot + self.yi) - self.ot - self.dropx - self.ot,
+        self.burttoncheck = QPushButton("help", self)
+        self.burttoncheck.clicked.connect(self.HelpForm)
+        self.burttoncheck.setGeometry(700, 600, 30, 30)
+
+        self.burttondrop = QPushButton("drop", self)
+        self.burttondrop.clicked.connect(self.Drop)
+        self.burttondrop.setGeometry(self.letterskoord[0] + 15 * (self.ot + self.yi) - self.ot - self.dropx - self.ot,
                                       self.letterskoord[1] + self.ot + self.dropy,
                                       self.dropx,
                                       self.heighttotal - 15 * (self.ot + self.yi) - 2 * self.ot - self.dropy - 1)
+
 
         """расстановка кнопок для перемещения"""
         self.myletters = []
@@ -172,7 +236,6 @@ class GameForm(object):
         self.logs = QTextBrowser(self)
         self.logs.setGeometry(self.ot, self.ot + self.libh, self.libw - self.ot, 2 * self.libh - self.ot - self.ot)
         self.logs.setFontPointSize(10)
-
 
 class GameApp(QMainWindow, GameForm):
     def __init__(self, parent=None):
@@ -222,6 +285,7 @@ class GameApp(QMainWindow, GameForm):
         self.progressed.redrawEnd.connect(self.end_hod)
         self.newkoord = []
         self.newletters = []
+        self.InitBots()
 
     def run(self):
         for player in range(len(self.serv.players)):
@@ -232,6 +296,21 @@ class GameApp(QMainWindow, GameForm):
         self.serv.run_game()
         self.threadonstart.start()
         self.setupUi(self)
+
+    def InitBots(self):
+        self.b1 = wrinfo(self, 1, 0.5)
+        self.b1.VisTime(False)
+
+        self.b2 = wrinfo(self, 2, 1)
+        self.b2.setTime(200)
+
+        self.b3 = wrinfo(self, 3, 0)
+        self.b3.setScore(10)
+
+        self.pl = wrinfo(self, 0, 0)
+
+    def HelpForm(self):
+        self.selfHelp = helpwin()
 
     def CollectLetters(self):
         out = []
@@ -548,6 +627,7 @@ class GameApp(QMainWindow, GameForm):
             event.accept()
         else:
             event.ignore()
+
 
 
 class StartApp(QMainWindow, GameLauncher):
