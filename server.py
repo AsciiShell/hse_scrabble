@@ -251,6 +251,7 @@ class GameServer:
         self.playStatus = False
         self.alphabet = ""
         self.matrix = Matrix()
+        self.playerIndex = -1
         for key, value in GameConfig.letters.items():
             self.alphabet += key * value["count"]
         self.thread = Thread(target=self._game_loop)
@@ -283,6 +284,7 @@ class GameServer:
         skip = 0
         while self.playStatus:
             for player in range(len(self.players)):
+                self.playerIndex = player
                 self._give_letter(self.players[player])
                 result = self.players[player].action()
                 self.matrix.acceptedWords.extend(result.words)

@@ -134,7 +134,7 @@ class SizeSettings:
 
 
 class wrinfo():
-    def __init__(self, Form, Num, hard):
+    def __init__(self, Form, Num, hard, name):
         self.size = SizeSettings()
         self.nameH = 40
         self.timeH = 50
@@ -142,14 +142,13 @@ class wrinfo():
         self.scoreH = 30
         self.hardH = 15
         # Num 1 or 2 or 3 -> Bot; Num == 0 -> player
+        s = name
         if Num == 0:
             self.y = int(self.size.ot)
             self.x = int(self.size.ot)
-            s = "player"
         else:
             self.y = int(self.size.widthtotal * (1 - self.size.k2) + self.size.ot)
             self.x = int(self.size.ot + self.size.libh * (Num - 1))
-            s = "Bot #" + str(Num)
 
             self.hard = QLabel("сложность: " + str(hard), Form)
             self.hard.move(self.y + 30, self.x + self.size.libh - self.hardH - self.size.ot - 3 * self.ot)
@@ -279,12 +278,6 @@ class GameApp(QMainWindow, GameForm):
         """инициализация окна"""
         self.serv = GameServer()
         self.me = None
-        # self.serv.matrix.Mainmap[7][7] = "П"
-        # self.serv.matrix.Mainmap[7][8] = "Р"
-        # self.serv.matrix.Mainmap[7][9] = "И"
-        # self.serv.matrix.Mainmap[7][10] = "В"
-        # self.serv.matrix.Mainmap[7][11] = "Е"
-        # self.serv.matrix.Mainmap[7][12] = "Т"
 
         self.threadonstart = Thread(target=self._hoddaemon)
         self.progressed = Communicate()
@@ -292,7 +285,6 @@ class GameApp(QMainWindow, GameForm):
         self.progressed.redrawEnd.connect(self.end_hod)
         self.newkoord = []
         self.newletters = []
-        self.InitBots()
 
     def run(self):
         for player in range(len(self.serv.players)):
@@ -300,21 +292,17 @@ class GameApp(QMainWindow, GameForm):
                 self.me = self.serv.players[player]
                 # self.me.my_turn = self.my_hod
                 break
+
+        self.InitBots()
         self.serv.run_game()
         self.threadonstart.start()
         self.setupUi(self)
 
     def InitBots(self):
-        self.b1 = wrinfo(self, 1, 0.5)
-        self.b1.VisTime(False)
-
-        self.b2 = wrinfo(self, 2, 1)
-        self.b2.setTime(200)
-
-        self.b3 = wrinfo(self, 3, 0)
-        self.b3.setScore(10)
-
-        self.pl = wrinfo(self, 0, 0)
+        num = 0
+        for i in self.serv.players:
+            i.info = wrinfo(self, num, i.diff, i.name)
+            num += 1
 
     def HelpForm(self):
         self.selfHelp = helpwin()
@@ -544,7 +532,14 @@ class GameApp(QMainWindow, GameForm):
         self.logs.setText(text + "\n" + self.logs.toPlainText())
 
     def _hoddaemon(self):
+        last_tick = -1
         while 1:
+            if last_tick != self.serv.playerIndex:
+                last_tick = self.serv.playerIndex
+                for i in self.serv.players:
+                    i.info.VisTime(False)
+                    i.info.setScore(i.score)
+
             if self.me.alertMe:
                 self.progressed.redrawMe.emit()
                 self.me.alertMe = False
@@ -552,7 +547,10 @@ class GameApp(QMainWindow, GameForm):
             if self.me.alertEnd:
                 self.progressed.redrawEnd.emit()
                 self.me.alertEnd = False
-            time.sleep(1)
+
+            self.serv.players[self.serv.playerIndex].info.VisTime(True)
+            self.serv.players[self.serv.playerIndex].info.setTime(self.serv.players[self.serv.playerIndex].timeout)
+            time.sleep(0.5)
 
     def paintEvent(self, e):
         # TODO вызывается очень часто
@@ -649,11 +647,11 @@ class StartApp(QMainWindow, GameLauncher):
             self.game = GameApp(self)
             self.game.serv.add_player(Player("Admin", "local"))
             if self.checkBox_1.checkState():
-                self.game.serv.add_player(Player("BOT1", "bot", diff=self.validate_float(self.lineEdit_1.text())))
+                self.game.serv.add_player(Player("BOT1", "bot", diff=float(self.lineEdit_1.text())))
             if self.checkBox_2.checkState():
-                self.game.serv.add_player(Player("BOT2", "bot", diff=self.validate_float(self.lineEdit_2.text())))
+                self.game.serv.add_player(Player("BOT2", "bot", diff=float(self.lineEdit_2.text())))
             if self.checkBox_3.checkState():
-                self.game.serv.add_player(Player("BOT3", "bot", diff=self.validate_float(self.lineEdit_3.text())))
+                self.game.serv.add_player(Player("BOT3", "bot", diff=float(self.lineEdit_3.text())))
             self.game.run()
             self.game.show()
 
