@@ -643,9 +643,13 @@ class StartApp(QMainWindow, GameLauncher):
     def run_game(self):
         if (not self.checkBox_1.checkState() or self.validate_float(self.lineEdit_1.text())) and \
                 (not self.checkBox_2.checkState() or self.validate_float(self.lineEdit_2.text())) and (
-                not self.checkBox_3.checkState() or self.validate_float(self.lineEdit_3.text())):
+                not self.checkBox_3.checkState() or self.validate_float(self.lineEdit_3.text())) and \
+                self.validate_int(self.lineEdit_Start.text(), 1, 9) and \
+                self.validate_int(self.lineEdit_time.text(), 10, 600):
+            GameConfig.startCount = int(self.lineEdit_Start.text())
+            GameConfig.turnTime = int(self.lineEdit_time.text())
             self.game = GameApp(self)
-            self.game.serv.add_player(Player("Admin", "local"))
+            self.game.serv.add_player(Player(self.lineEdit_Name.text(), "local"))
             if self.checkBox_1.checkState():
                 self.game.serv.add_player(Player("BOT1", "bot", diff=float(self.lineEdit_1.text())))
             if self.checkBox_2.checkState():
@@ -659,6 +663,13 @@ class StartApp(QMainWindow, GameLauncher):
     def validate_float(text):
         try:
             return 0 < float(text) <= 1
+        except ValueError:
+            return False
+
+    @staticmethod
+    def validate_int(i, a, b):
+        try:
+            return a <= int(i) <= b
         except ValueError:
             return False
 
