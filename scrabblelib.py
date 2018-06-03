@@ -267,6 +267,14 @@ class Matrix:
         self._ChekKoord()
         self.pasteletters()
         undefined = []
+        alex_count = 0
+        for i in range(len(self.tempmap)):
+            for j in range(len(self.tempmap[i])):
+                if self.tempmap[i][j] != '':
+                    alex_count += 1
+        if alex_count == 1:
+            return MatrixResult(False, 2, [], 'неправильное заполнение матрицы')
+
         if self.ValidationKoord():
             self.map = [_.copy() for _ in self.tempmap]
             for i in range(len(self.map)):
