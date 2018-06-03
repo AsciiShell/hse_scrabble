@@ -161,24 +161,6 @@ class MatrixResult:
 class Matrix:
     """Класс игрового поля"""
 
-    # TODO andrsolo21 создай/укажи 2 метода и назови их красиво
-    # первый принимает массив новых букв
-    # возвращает структуру состоящую из
-    #     a)успеха,
-    #     b)суммы очков,
-    #     c)найденные слова,
-    #     или
-    #     d)список ошибок (клетка занята), слово не существует в словаре
-    #
-    #     ошибки больше нужны для человека
-    # второй принимает все то же самое,
-    # вызывает первую функцию а затем, в случае успеха, фиксирует изменения
-    # По идее все методы есть, их надо красиво скомпоновать
-    # те сделать newkoord и newletters локальными, убрать обращение к ним извне и передавать как параметр
-    #
-    # P.S.
-    # TODO думаю словарь хранить тоже в матрице, так как там он и обрабатывается. Как думаешь?
-    # TODO P.P.S в этом файле ошибки только в этом классе
     def add_temporary(self, arr):
         """Добавляет несколько элементов во временную матрицу"""
         if type(arr) is list:
@@ -202,8 +184,6 @@ class Matrix:
         self.matrvalid = [[0 for i in range(15)] for j in range(15)]
 
     def check_temp(self):
-        """Возвращает True, если временная матрица правильная"""
-        # TODO andrsolo21
         return True
 
     def _prov(self, x, y, napr):
@@ -287,6 +267,14 @@ class Matrix:
         self._ChekKoord()
         self.pasteletters()
         undefined = []
+        alex_count = 0
+        for i in range(len(self.tempmap)):
+            for j in range(len(self.tempmap[i])):
+                if self.tempmap[i][j] != '':
+                    alex_count += 1
+        if alex_count == 1:
+            return MatrixResult(False, 2, [], 'неправильное заполнение матрицы')
+
         if self.ValidationKoord():
             self.map = [_.copy() for _ in self.tempmap]
             for i in range(len(self.map)):
@@ -387,7 +375,11 @@ class Matrix:
             else:
                 return False
         else:
-            return False
+            for i in range(len(self.map)):
+                for j in range(len(self.map[i])):
+                    if self.map[i][j] != '' or self.tempmap[i][j] != '':
+                        return False
+            return True
 
     def SaveChangesMatr(self):
         self.Mainmap = [_.copy() for _ in self.map]
@@ -417,10 +409,11 @@ class GameDictionary:
         with open(self.filetemp, "a", encoding="utf-8") as f:
             f.write(item + "\n")
 
-    def prepare(self, alphabet):
+    def prepare(self, alphabet, letters=None):
         """Подготавливает словарь к допустимым буквам
 
-        alphabet - строка допустимых символов"""
+        alphabet - строка допустимых символов
+        letters - список доступных букв с учетом их количества"""
         alphabet = alphabet.upper()
         if '*' in alphabet:
             star = alphabet.count("*")
@@ -440,7 +433,17 @@ class GameDictionary:
                         loc_star -= 1
             else:
                 temp_dict.append(i)
-        return temp_dict
+        if letters is None:
+            return temp_dict
+        else:
+            new_dict = []
+            for i in temp_dict:
+                for j in i:
+                    if i.count(j) > letters.count(j):
+                        break
+                else:
+                    new_dict.append(i)
+            return new_dict
 
     def __init__(self):
         """Инициализирует словарь начальным списком слов"""
