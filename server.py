@@ -145,6 +145,33 @@ class PlayerBot(GamePlayer):
 
     def _available(self, word, ind):
         res = []
+        for line in self.game.matrix.Mainmap:
+            for point in line:
+                if point != '':
+                    break
+            else:
+                continue
+            break
+        else:
+            turn = []
+            if random.randint(0, 2) == 0:
+                for let in range(len(word)):
+                    if 0 <= 7 - ind + let < len(self.game.matrix.Mainmap):
+                        turn.append(Point(7 - ind + let, 7, word[let]))
+                    else:
+                        break
+            else:
+                for let in range(len(word)):
+                    if 0 <= 7 - ind + let < len(self.game.matrix.Mainmap):
+                        turn.append(Point(7, 7 - ind + let, word[let]))
+                    else:
+                        break
+            check = self.check_turn(turn)
+            if check.result and check.score != 0:
+                return [TurnStruct(True, turn, check.score)]
+            else:
+                return []
+
         for i in range(len(self.game.matrix.Mainmap)):
             for j in range(len(self.game.matrix.Mainmap[0])):
                 if self.game.matrix.Mainmap[i][j] == word[ind]:
@@ -197,16 +224,19 @@ class PlayerBot(GamePlayer):
     def cpu(self):
         """Вычисляет информацию для хода"""
         letters = ""
+        newlet = ""
         for i in self.game.matrix.Mainmap:
             for j in i:
+                newlet += j
                 if letters.count(j) == 0:
                     letters += j
         for i in self.letters:
+            newlet += i
             if letters.count(i) == 0:
                 letters += i
         if '*' in letters:
             print("Hi")
-        words = self.game.matrix.dict.prepare(letters)
+        words = self.game.matrix.dict.prepare(letters, newlet)
         res = []
         for word in words:
             for char in range(len(word)):

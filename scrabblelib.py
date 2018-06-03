@@ -421,10 +421,11 @@ class GameDictionary:
         with open(self.filetemp, "a", encoding="utf-8") as f:
             f.write(item + "\n")
 
-    def prepare(self, alphabet):
+    def prepare(self, alphabet, letters=None):
         """Подготавливает словарь к допустимым буквам
 
-        alphabet - строка допустимых символов"""
+        alphabet - строка допустимых символов
+        letters - список доступных букв с учетом их количества"""
         alphabet = alphabet.upper()
         if '*' in alphabet:
             star = alphabet.count("*")
@@ -444,7 +445,17 @@ class GameDictionary:
                         loc_star -= 1
             else:
                 temp_dict.append(i)
-        return temp_dict
+        if letters is None:
+            return temp_dict
+        else:
+            new_dict = []
+            for i in temp_dict:
+                for j in i:
+                    if i.count(j) > letters.count(j):
+                        break
+                else:
+                    new_dict.append(i)
+            return new_dict
 
     def __init__(self):
         """Инициализирует словарь начальным списком слов"""
