@@ -510,16 +510,12 @@ class GameApp(QMainWindow, GameForm):
         pass
 
     def my_hod(self):
-        # self.Message("твой ход!!!")
-        # TODO andrsolo21 Перерисовку вызывай здес
         self.add_to_console("Ваш ход!")
         self.DisabledSet(False)
         self.lastLetters()
         self.Pererisovka()
 
     def end_hod(self):
-        # self.Message("Окончен ход")
-        # TODO andrsolo21 Перерисовку вызывай здес
         self.add_to_console("Окончен ход")
         self.lastLetters()
         self.Pererisovka()
@@ -553,7 +549,6 @@ class GameApp(QMainWindow, GameForm):
             time.sleep(0.5)
 
     def paintEvent(self, e):
-        # TODO вызывается очень часто
         # Мб приклеить на другое событие?
         background = QPainter()
         background.begin(self)
