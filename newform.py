@@ -524,7 +524,7 @@ class GameApp(QMainWindow, GameForm):
         self.lastLetters()
         self.Pererisovka()
 
-    def add_to_console(self, text, score=True):
+    def add_to_console(self, text, score=False):
         text += "\n"
         if score:
             for pl in self.serv.players:

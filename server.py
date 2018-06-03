@@ -330,6 +330,7 @@ class GameServer:
                                                                          self.players[player].score))
                 print("Осталось в руке {} букв. В мешке - {} букв".format(str(len(self.players[player].letters)),
                                                                           str(len(self.alphabet))))
+                print("-" * 64)
                 for i in self.players:
                     i.turn_end()
                 if len(self.alphabet) == 0 or skip >= GameConfig.skipEnd * len(self.players):
