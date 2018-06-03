@@ -387,7 +387,11 @@ class Matrix:
             else:
                 return False
         else:
-            return False
+            for i in range(len(self.map)):
+                for j in range(len(self.map[i])):
+                    if self.map[i][j] != '' or self.tempmap[i][j] != '':
+                        return False
+            return True
 
     def SaveChangesMatr(self):
         self.Mainmap = [_.copy() for _ in self.map]

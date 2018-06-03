@@ -172,6 +172,7 @@ class PlayerBot(GamePlayer):
                                 res.append(TurnStruct(True, turn, check.score))
                     # Проверка по вертикали
                     let = self.letters.copy()
+                    turn = []
                     if self._empty(i - ind - 1, j) and self._empty(i - ind + len(word), j):
                         for x in range(len(word)):
                             if not 0 <= i - ind + x < len(self.game.matrix.Mainmap):
@@ -221,17 +222,17 @@ class PlayerBot(GamePlayer):
             index = round(len(res) * self.diff)
             if index > 0:
                 index -= 1
-            print(res[index].score)
-            for x in range(len(self.game.matrix.Mainmap)):
-                for y in range(len(self.game.matrix.Mainmap[0])):
-                    for let in res[index].letters:
-                        if let.x == x and let.y == y:
-                            print(let.letter, end='\t')
-                            break
-                    else:
-                        print(self.game.matrix.Mainmap[x][y], end='\t')
-                print()
-            print('\n---------\n')
+            # print(res[index].score)
+            # for x in range(len(self.game.matrix.Mainmap)):
+            #     for y in range(len(self.game.matrix.Mainmap[0])):
+            #         for let in res[index].letters:
+            #             if let.x == x and let.y == y:
+            #                 print(let.letter, end='\t')
+            #                 break
+            #         else:
+            #             print(self.game.matrix.Mainmap[x][y], end='\t')
+            #     print()
+            # print('\n---------\n')
             self.accept_turn(TurnStruct(True, res[index].letters))
         else:
             # Reject all letters
