@@ -319,6 +319,8 @@ class GameServer:
                 self._give_letter(self.players[player])
                 result = self.players[player].action()
                 self.matrix.acceptedWords.extend(result.words)
+                for i in result.letters:
+                    GameConfig.map[i.x][i.y] = 0
                 if result.changed:
                     skip = 0
                 else:
