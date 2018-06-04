@@ -217,9 +217,9 @@ class GameForm(object):
         self.burttoncheck.clicked.connect(self.CheckMatrix)
         self.burttoncheck.setGeometry(650, 600, 50, 50)
 
-        self.burttoncheck = QPushButton("help", self)
-        self.burttoncheck.clicked.connect(self.HelpForm)
-        self.burttoncheck.setGeometry(700, 600, 30, 30)
+        # self.burttoncheck = QPushButton("help", self)
+        # self.burttoncheck.clicked.connect(self.HelpForm)
+        # self.burttoncheck.setGeometry(700, 600, 30, 30)
 
         self.burttondrop = QPushButton("drop", self)
         self.burttondrop.clicked.connect(self.Drop)
