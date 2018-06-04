@@ -103,6 +103,7 @@ class DragButton(Fishka):
 class Communicate(QObject):
     redrawMe = pyqtSignal()
     redrawEnd = pyqtSignal()
+    redrawGameEnd = pyqtSignal()
 
 
 class SizeSettings:
@@ -283,6 +284,7 @@ class GameApp(QMainWindow, GameForm):
         self.progressed = Communicate()
         self.progressed.redrawMe.connect(self.my_hod)
         self.progressed.redrawEnd.connect(self.end_hod)
+        self.progressed.redrawGameEnd.connect(self.end_game)
         self.newkoord = []
         self.newletters = []
 
@@ -520,6 +522,11 @@ class GameApp(QMainWindow, GameForm):
         self.lastLetters()
         self.Pererisovka()
 
+    def end_game(self):
+        self.add_to_console("Игра закончена")
+        self.lastLetters()
+        self.Pererisovka()
+
     def add_to_console(self, text, score=False):
         text += "\n"
         if score:
@@ -529,7 +536,7 @@ class GameApp(QMainWindow, GameForm):
 
     def _hoddaemon(self):
         last_tick = -1
-        while 1:
+        while self.serv.playStatus:
             if last_tick != self.serv.playerIndex:
                 last_tick = self.serv.playerIndex
                 for i in self.serv.players:
@@ -547,6 +554,11 @@ class GameApp(QMainWindow, GameForm):
             self.serv.players[self.serv.playerIndex].info.VisTime(True)
             self.serv.players[self.serv.playerIndex].info.setTime(self.serv.players[self.serv.playerIndex].timeout)
             time.sleep(0.5)
+        for i in self.serv.players:
+            i.info.VisTime(False)
+            i.info.setScore(i.score)
+        self.progressed.redrawGameEnd.emit()
+        # self.add_to_console("Игра окончена")
 
     def paintEvent(self, e):
         # Мб приклеить на другое событие?
@@ -623,7 +635,6 @@ class GameApp(QMainWindow, GameForm):
                 if p.type == "bot":
                     p.botEnable = False
                     p.thread.join(0)
-            del self.serv
             event.accept()
         else:
             event.ignore()

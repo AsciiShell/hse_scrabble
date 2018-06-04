@@ -301,9 +301,7 @@ class GameServer:
         self.thread.start()
 
     def __del__(self):
-        del self.players
         self.playStatus = False
-        self.thread.join(1)
 
     def _give_letter(self, player):
         """Выдает игроку недостающие фишки"""
