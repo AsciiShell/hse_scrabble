@@ -87,6 +87,7 @@ class GamePlayer(Player):
                             self.letters.remove('*')
                     self.score += res.score
                     self.result = turn
+                    self.result.score = res.score
                     self.result.words = res.words.copy()
                     # Останавливает ход
                     self.isTurn = False
