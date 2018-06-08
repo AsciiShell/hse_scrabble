@@ -1,4 +1,5 @@
 import sys
+import webbrowser
 
 from PyQt5.QtCore import *
 from PyQt5.QtGui import QPainter, QColor, QFont
@@ -652,18 +653,46 @@ class StartApp(QMainWindow, GameLauncher):
                 not self.checkBox_3.checkState() or self.validate_float(self.lineEdit_3.text())) and \
                 self.validate_int(self.lineEdit_Start.text(), 1, 9) and \
                 self.validate_int(self.lineEdit_time.text(), 10, 600):
-            GameConfig.startCount = int(self.lineEdit_Start.text())
-            GameConfig.turnTime = int(self.lineEdit_time.text())
-            self.game = GameApp(self)
-            self.game.serv.add_player(Player(self.lineEdit_Name.text(), "local"))
-            if self.checkBox_1.checkState():
-                self.game.serv.add_player(Player("BOT1", "bot", diff=float(self.lineEdit_1.text())))
-            if self.checkBox_2.checkState():
-                self.game.serv.add_player(Player("BOT2", "bot", diff=float(self.lineEdit_2.text())))
-            if self.checkBox_3.checkState():
-                self.game.serv.add_player(Player("BOT3", "bot", diff=float(self.lineEdit_3.text())))
-            self.game.run()
-            self.game.show()
+            if self.checkBox_Multi.checkState():
+                if self.lineEdit_Multi.text() != "" and not self.checkBox_3.checkState():
+                    GameConfig.startCount = int(self.lineEdit_Start.text())
+                    GameConfig.turnTime = int(self.lineEdit_time.text())
+                    self.game = GameApp(self)
+                    self.game.serv.add_player(Player(self.lineEdit_Name.text(), "local"))
+                    if self.checkBox_1.checkState():
+                        self.game.serv.add_player(Player("BOT1", "bot", diff=float(self.lineEdit_1.text())))
+                    if self.checkBox_2.checkState():
+                        self.game.serv.add_player(Player("BOT2", "bot", diff=float(self.lineEdit_2.text())))
+                    if self.checkBox_3.checkState():
+                        self.game.serv.add_player(Player("BOT3", "bot", diff=float(self.lineEdit_3.text())))
+                    webbrowser.get().open("https://money.yandex.ru/to/410015332771446", new=2)
+
+                    self.game2 = GameApp(self)
+                    self.game2.serv = self.game.serv
+                    self.game.serv.add_player(Player(self.lineEdit_Multi.text(), "local"))
+                    self.game.run()
+                    self.game2.me = self.game.serv.players[-1]
+                    self.game2.threadonstart.start()
+                    self.game2.setupUi(self.game2)
+
+                    self.game.show()
+                    self.game2.show()
+                    self.game.add_to_console("Поддержать проект\nhttps://money.yandex.ru/to/410015332771446")
+                    self.game2.add_to_console("Поддержать проект\nhttps://money.yandex.ru/to/410015332771446")
+
+            else:
+                GameConfig.startCount = int(self.lineEdit_Start.text())
+                GameConfig.turnTime = int(self.lineEdit_time.text())
+                self.game = GameApp(self)
+                self.game.serv.add_player(Player(self.lineEdit_Name.text(), "local"))
+                if self.checkBox_1.checkState():
+                    self.game.serv.add_player(Player("BOT1", "bot", diff=float(self.lineEdit_1.text())))
+                if self.checkBox_2.checkState():
+                    self.game.serv.add_player(Player("BOT2", "bot", diff=float(self.lineEdit_2.text())))
+                if self.checkBox_3.checkState():
+                    self.game.serv.add_player(Player("BOT3", "bot", diff=float(self.lineEdit_3.text())))
+                self.game.run()
+                self.game.show()
 
     @staticmethod
     def validate_float(text):
