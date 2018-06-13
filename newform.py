@@ -677,8 +677,8 @@ class StartApp(QMainWindow, GameLauncher):
 
                     self.game.show()
                     self.game2.show()
-                    self.game.add_to_console("Поддержать проект\nhttps://money.yandex.ru/to/410015332771446")
-                    self.game2.add_to_console("Поддержать проект\nhttps://money.yandex.ru/to/410015332771446")
+                    #self.game.add_to_console("Поддержать проект\nhttps://money.yandex.ru/to/410015332771446")
+                    #self.game2.add_to_console("Поддержать проект\nhttps://money.yandex.ru/to/410015332771446")
 
             else:
                 GameConfig.startCount = int(self.lineEdit_Start.text())
